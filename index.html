@@ -5634,7 +5634,7 @@ async function initApp(){
 
   /* ---------- Construction / application du paquet de données cloud ---------- */
   function buildCloudPayload(){
-    return {
+    const raw = {
       games: GAMES,
       arrivals: ARRIVALS,
       wishlist: WISHLIST,
@@ -5645,6 +5645,9 @@ async function initApp(){
       platformOrder: platformOrder,
       updatedAt: Date.now()
     };
+    // Firestore refuse toute valeur "undefined" explicite : ce passage par JSON
+    // nettoie automatiquement les éventuels champs jamais initialisés sur d'anciennes entrées.
+    return JSON.parse(JSON.stringify(raw));
   }
 
   function applyCloudPayload(data){
