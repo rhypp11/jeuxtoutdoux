@@ -577,6 +577,7 @@
   }
   .toggle-chip-label{display:flex;align-items:center;gap:8px;}
   .toggle-chip-label .format-icon{width:14px;height:14px;}
+  .toggle-chip-label svg{width:14px;height:14px;flex-shrink:0;}
   .status-chip-icon{display:flex;flex-shrink:0;}
   .status-chip-icon svg{width:14px;height:14px;}
 
@@ -853,6 +854,8 @@
   .format-icon.star-icon{color:var(--amber);}
   .format-icon.disc-icon{color:var(--muted);}
   .format-icon.download-icon{color:var(--teal);}
+  .type-icon-wrap{display:inline-flex;align-items:center;color:var(--muted);flex-shrink:0;}
+  .type-icon-wrap svg{width:14px;height:14px;flex-shrink:0;}
 
   .status-row{position:relative;height:30px;}
   .backlog-status-row{height:auto;}
@@ -1747,6 +1750,11 @@
           </button>
           <button class="profile-menu-item" id="import-btn">
             <span class="profile-menu-item-label">⭱ Importer</span>
+            <span class="profile-menu-sub">Remplace toute ta bibliothèque</span>
+          </button>
+          <button class="profile-menu-item" id="import-merge-btn">
+            <span class="profile-menu-item-label">＋ Ajouter des jeux</span>
+            <span class="profile-menu-sub">Depuis un fichier JSON, sans rien écraser</span>
           </button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -1755,6 +1763,7 @@
         </div>
       </div>
       <input type="file" id="import-input" accept="application/json" style="display:none;">
+      <input type="file" id="import-merge-input" accept="application/json" style="display:none;">
     </div>
   </div>
 </nav>
@@ -1924,6 +1933,11 @@
     </div>
 
     <div class="side-section">
+      <div class="side-label">Type</div>
+      <div class="format-toggles" id="type-toggles"></div>
+    </div>
+
+    <div class="side-section">
       <div class="side-label">Complétion</div>
       <div class="format-toggles" id="status-toggles"></div>
     </div>
@@ -1993,6 +2007,16 @@
           <option value="Physique">Physique</option>
           <option value="Numérique">Numérique</option>
           <option value="Collector">Collector</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-type">Type</label>
+        <select id="f-type">
+          <option value="Jeu simple">Jeu simple</option>
+          <option value="Compilation">Compilation</option>
+          <option value="Jeu + DLC">Jeu + DLC</option>
+          <option value="DLC extension">DLC</option>
+          <option value="Mise à niveau">Mise à niveau</option>
         </select>
       </div>
     </div>
@@ -2146,7 +2170,8 @@
           <option value="Jeu simple">Jeu simple</option>
           <option value="Compilation">Compilation</option>
           <option value="Jeu + DLC">Jeu + DLC</option>
-          <option value="DLC extension">DLC extension</option>
+          <option value="DLC extension">DLC</option>
+          <option value="Mise à niveau">Mise à niveau</option>
         </select>
       </div>
     </div>
@@ -2228,7 +2253,8 @@
           <option value="Jeu simple">Jeu simple</option>
           <option value="Compilation">Compilation</option>
           <option value="Jeu + DLC">Jeu + DLC</option>
-          <option value="DLC extension">DLC extension</option>
+          <option value="DLC extension">DLC</option>
+          <option value="Mise à niveau">Mise à niveau</option>
         </select>
       </div>
     </div>
@@ -2305,7 +2331,8 @@
           <option value="Jeu simple">Jeu simple</option>
           <option value="Compilation">Compilation</option>
           <option value="Jeu + DLC">Jeu + DLC</option>
-          <option value="DLC extension">DLC extension</option>
+          <option value="DLC extension">DLC</option>
+          <option value="Mise à niveau">Mise à niveau</option>
         </select>
       </div>
     </div>
@@ -2574,6 +2601,7 @@ let convertingArrivalId = null; // id de l'arrivage en cours de bascule vers la 
 let state = {
   platform: null,
   format: null,
+  type: null,
   status: null,
   search: "",
   sort: "name-asc"
@@ -2608,6 +2636,10 @@ async function loadGames(){
   // Premier lancement (ou stockage local vide) : on part des données du CSV
   GAMES = SEED_GAMES.map(g => ({...g, image: null, status:null}));
   await saveGames();
+}
+
+function migrateGameTypes(){
+  GAMES.forEach(g => { if(!g.type) g.type = 'Jeu simple'; });
 }
 
 async function saveGames(){
@@ -2701,6 +2733,46 @@ function exportGames(){
   updateExportNote();
 }
 
+function mergeImportGames(file){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+      const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.games) ? parsed.games : null);
+      if(!incoming) throw new Error('Format invalide');
+
+      const existingKeys = new Set(GAMES.map(g => nameKeyOf(g.nom, g.plateforme)));
+      let added = 0, skipped = 0;
+      incoming.forEach((g, i) => {
+        if(!g || !g.nom || !g.plateforme) return;
+        const key = nameKeyOf(g.nom, g.plateforme);
+        if(existingKeys.has(key)){ skipped++; return; }
+        existingKeys.add(key);
+        GAMES.push({
+          id: 'imp-' + Date.now() + '-' + i,
+          nom: g.nom,
+          plateforme: g.plateforme,
+          date: g.date || null,
+          source: g.source || null,
+          prix: typeof g.prix === 'number' ? g.prix : null,
+          format: g.format || 'Physique',
+          image: g.image || null,
+          status: g.status || null
+        });
+        added++;
+      });
+
+      saveGames();
+      buildPlatformList();
+      render();
+      alert(`${added} jeu(x) ajouté(s).` + (skipped ? ` ${skipped} déjà présent(s) dans ta collection ont été ignorés (même nom + plateforme).` : ''));
+    }catch(err){
+      alert("Ce fichier n'a pas pu être lu. Vérifie qu'il s'agit bien d'un JSON de jeux valide.");
+    }
+  };
+  reader.readAsText(file);
+}
+
 function importGames(file){
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -2789,12 +2861,26 @@ function buildPlatformList(){
 function buildFormatToggles(){
   const container = document.getElementById('format-toggles');
   container.innerHTML = "";
-  ["Physique","Collector"].forEach(f => {
+  ["Physique","Numérique","Collector"].forEach(f => {
     const chip = document.createElement('div');
     chip.className = 'toggle-chip' + (state.format === f ? ' active' : '');
     chip.tabIndex = 0;
     chip.innerHTML = `<span class="toggle-chip-label">${getFormatOptionIconHtml(f)}<span>${f}</span></span>`;
     chip.onclick = () => { state.format = (state.format === f ? null : f); buildFormatToggles(); render(); };
+    container.appendChild(chip);
+  });
+}
+
+function buildTypeToggles(){
+  const container = document.getElementById('type-toggles');
+  if(!container) return;
+  container.innerHTML = "";
+  Object.keys(TYPE_META).forEach(t => {
+    const chip = document.createElement('div');
+    chip.className = 'toggle-chip' + (state.type === t ? ' active' : '');
+    chip.tabIndex = 0;
+    chip.innerHTML = `<span class="toggle-chip-label">${TYPE_META[t].icon}<span>${TYPE_META[t].label}</span></span>`;
+    chip.onclick = () => { state.type = (state.type === t ? null : t); buildTypeToggles(); render(); };
     container.appendChild(chip);
   });
 }
@@ -2828,6 +2914,7 @@ function filteredGames(){
   return GAMES.filter(g => {
       if(state.platform && g.plateforme !== state.platform) return false;
       if(state.format && g.format !== state.format) return false;
+      if(state.type && (g.type || 'Jeu simple') !== state.type) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
       if(state.status){
         if(getEffectiveStatus(g) !== state.status) return false;
@@ -2996,6 +3083,10 @@ function renderCard(g){
     ? `<svg class="format-icon download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" title="Numérique"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>`
     : `<svg class="format-icon disc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="Physique"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
 
+  const typeIconHtml = (g.type && g.type !== 'Jeu simple' && TYPE_META[g.type])
+    ? `<span class="type-icon-wrap" title="${TYPE_META[g.type].label}">${TYPE_META[g.type].icon}</span>`
+    : '';
+
   const platformLineHtml = state.platform
     ? ''
     : `<div class="card-platform">${logo ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\' style=\\'--spine:${color}\\'></span>'">` : `<span class="dot" style="--spine:${color}"></span>`}${g.plateforme}</div>`;
@@ -3009,6 +3100,7 @@ function renderCard(g){
       ${platformLineHtml}
       <div class="card-meta">
         ${formatIconHtml}
+        ${typeIconHtml}
         <span class="price">${euros(g.prix)}</span>
         <span>${dateFR(g.date)}</span>
         <span class="card-source" title="${g.source || ''}">${g.source || '—'}</span>
@@ -3172,6 +3264,21 @@ function populatePlatformSelect(selectId, digitalOnly){
   syncIconSelectTrigger(selectId);
 }
 
+const TYPE_OPTIONS_DIGITAL = ['Jeu simple','Compilation','Jeu + DLC','DLC extension','Mise à niveau'];
+const TYPE_OPTIONS_PHYSICAL = ['Jeu simple','Compilation','Jeu + DLC'];
+
+function populateTypeSelect(selectId, format){
+  const select = document.getElementById(selectId);
+  if(!select) return;
+  const options = format === 'Numérique' ? TYPE_OPTIONS_DIGITAL : TYPE_OPTIONS_PHYSICAL;
+  const current = select.value;
+  select.innerHTML = options.map(t => `<option value="${t}">${TYPE_META[t].label}</option>`).join('');
+  if(current && options.includes(current)) select.value = current;
+  else select.value = options[0];
+  rebuildIconSelectList(selectId);
+  syncIconSelectTrigger(selectId);
+}
+
 function setSelectValueAndSync(selectId, value){
   const select = document.getElementById(selectId);
   if(!select) return;
@@ -3194,6 +3301,8 @@ function openModal(id){
     setSelectValueAndSync('f-format', g.format || 'Physique');
     populatePlatformSelect('f-plateforme', g.format === 'Numérique');
     setSelectValueAndSync('f-plateforme', g.plateforme);
+    populateTypeSelect('f-type', g.format || 'Physique');
+    setSelectValueAndSync('f-type', g.type || 'Jeu simple');
     document.getElementById('f-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
     document.getElementById('f-date').value = g.date || '';
     document.getElementById('f-source').value = g.source || '';
@@ -3207,6 +3316,8 @@ function openModal(id){
     if(state.platform){
       setSelectValueAndSync('f-plateforme', state.platform);
     }
+    populateTypeSelect('f-type', 'Physique');
+    setSelectValueAndSync('f-type', 'Jeu simple');
     document.getElementById('f-prix').value = '';
     document.getElementById('f-date').value = '';
     document.getElementById('f-source').value = '';
@@ -3244,15 +3355,16 @@ function saveModal(){
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
   const format = document.getElementById('f-format').value;
+  const type = document.getElementById('f-type').value;
   const image = document.getElementById('f-image').value.trim() || null;
 
   if(editingId){
     const g = GAMES.find(x => x.id === editingId);
-    Object.assign(g, { nom, plateforme, prix, date, source, format, image });
+    Object.assign(g, { nom, plateforme, prix, date, source, format, type, image });
   } else {
     GAMES.push({
       id: 'custom-' + Date.now(),
-      nom, plateforme, prix, date, source, format, image,
+      nom, plateforme, prix, date, source, format, type, image,
       status:null
     });
   }
@@ -3871,6 +3983,11 @@ document.getElementById('import-input').addEventListener('change', (e) => {
   if(e.target.files && e.target.files[0]) importGames(e.target.files[0]);
   e.target.value = '';
 });
+document.getElementById('import-merge-btn').addEventListener('click', () => document.getElementById('import-merge-input').click());
+document.getElementById('import-merge-input').addEventListener('change', (e) => {
+  if(e.target.files && e.target.files[0]) mergeImportGames(e.target.files[0]);
+  e.target.value = '';
+});
 
 document.getElementById('profile-menu-btn').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -3895,7 +4012,9 @@ document.getElementById('save-btn').addEventListener('click', saveModal);
 document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
 document.getElementById('f-format').addEventListener('change', () => {
-  populatePlatformSelect('f-plateforme', document.getElementById('f-format').value === 'Numérique');
+  const format = document.getElementById('f-format').value;
+  populatePlatformSelect('f-plateforme', format === 'Numérique');
+  populateTypeSelect('f-type', format);
 });
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 document.addEventListener('keydown', (e) => {
@@ -3913,11 +4032,12 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  state = { platform:null, format:null, status:null, search:"", sort:"name-asc" };
+  state = { platform:null, format:null, type:null, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
   buildFormatToggles();
+  buildTypeToggles();
   buildStatusToggles();
   render();
 });
@@ -4793,6 +4913,7 @@ const ICON_FORMAT_EMULATION = `<svg viewBox="0 0 24 24" fill="none" stroke="curr
 const ICON_TYPE_COMPILATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`;
 const ICON_TYPE_SIMPLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"></rect></svg>`;
 const ICON_TYPE_GAME_DLC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="13" height="14" rx="3"></rect><path d="M18.5 8v6"></path><path d="M15.5 11h6"></path></svg>`;
+const ICON_TYPE_UPGRADE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M12 16V8"></path><path d="M8.5 11.5 12 8l3.5 3.5"></path></svg>`;
 
 const FORMAT_META = {
   'Physique':          { icon: FORMAT_ICON_DISC, label:'Physique' },
@@ -4809,7 +4930,8 @@ const TYPE_META = {
   'Compilation':    { icon: ICON_TYPE_COMPILATION, label:'Compilation' },
   'Jeu simple':     { icon: ICON_TYPE_SIMPLE, label:'Jeu simple' },
   'Jeu + DLC':      { icon: ICON_TYPE_GAME_DLC, label:'Jeu + DLC' },
-  'DLC extension':  { icon: ICON_FORMAT_DLC, label:'DLC extension' }
+  'DLC extension':  { icon: ICON_FORMAT_DLC, label:'DLC' },
+  'Mise à niveau':  { icon: ICON_TYPE_UPGRADE, label:'Mise à niveau' }
 };
 function getBacklogTypeOptionIconHtml(value){
   return (TYPE_META[value] || TYPE_META['Jeu simple']).icon;
@@ -5659,11 +5781,13 @@ async function initApp(){
   await loadWishlist();
   loadBacklogData();
   reconcileBacklogLinks();
+  migrateGameTypes();
   seedPcPlatformOnce();
   iconSelectify('f-plateforme', getPlatformOptionIconHtml);
   iconSelectify('a-plateforme', getPlatformOptionIconHtml);
   iconSelectify('w-plateforme', getPlatformOptionIconHtml);
   iconSelectify('f-format', getFormatOptionIconHtml);
+  iconSelectify('f-type', getBacklogTypeOptionIconHtml);
   iconSelectify('cp-plateforme', getPlatformOptionIconHtml);
   iconSelectify('pl-plateforme', getPlatformOptionIconHtml);
   iconSelectify('cg-plateforme', getPlatformOptionIconHtml);
@@ -5675,6 +5799,7 @@ async function initApp(){
   iconSelectify('cg-type', getBacklogTypeOptionIconHtml);
   buildPlatformList();
   buildFormatToggles();
+  buildTypeToggles();
   buildStatusToggles();
   render();
   renderArrivals();
@@ -5741,8 +5866,10 @@ async function initApp(){
 
   function refreshAllViews(){
     reconcileBacklogLinks();
+    migrateGameTypes();
     buildPlatformList();
     buildFormatToggles();
+    buildTypeToggles();
     buildStatusToggles();
     render();
     renderArrivals();
