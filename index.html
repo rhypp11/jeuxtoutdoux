@@ -100,6 +100,21 @@
     white-space:nowrap;
   }
   .topnav-btn:hover{border-color:var(--teal);color:var(--teal);}
+  .logout-btn:hover{border-color:var(--danger);color:var(--danger);}
+
+  .cloud-sync-status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    padding:5px 9px;
+    border-radius:20px;
+    border:1px solid var(--hairline);
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .cloud-sync-status.ok{color:var(--teal);border-color:rgba(79,199,181,0.4);}
+  .cloud-sync-status.syncing,
+  .cloud-sync-status.pending{color:var(--amber);border-color:rgba(217,164,65,0.4);}
+  .cloud-sync-status.error{color:var(--danger);border-color:rgba(217,106,106,0.4);}
 
   @media (max-width:700px){
     .topnav-export-note{display:none;}
@@ -916,6 +931,54 @@
     z-index:50;
   }
   .modal-overlay.hidden{display:none;}
+
+  .login-gate{
+    position:fixed;inset:0;
+    background:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    z-index:100;
+  }
+  .login-gate.hidden{display:none;}
+  .login-card{
+    width:100%;
+    max-width:380px;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:14px;
+    padding:30px 28px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .login-brand{margin-bottom:4px;}
+  .login-brand .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+  }
+  .login-brand h1{
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-size:24px;
+    margin:4px 0 6px;
+  }
+  .login-sub{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0;}
+  .login-error{
+    font-size:12px;
+    color:var(--danger);
+    background:rgba(217,106,106,0.1);
+    border:1px solid rgba(217,106,106,0.3);
+    border-radius:8px;
+    padding:8px 10px;
+  }
+  .login-submit-btn{width:100%;justify-content:center;}
+  .login-toggle-btn{
+    align-self:center;
+    font-size:12px;
+    padding:0;
+  }
   .modal{
     background:var(--surface);
     border:1px solid var(--hairline);
@@ -1596,16 +1659,41 @@
 </head>
 <body>
 
+<div class="login-gate" id="login-gate" data-mode="signin">
+  <div class="login-card">
+    <div class="login-brand">
+      <span class="eyebrow">JeuxToutDoux</span>
+      <h1 id="login-title">Connexion</h1>
+      <p class="login-sub">Connecte-toi pour retrouver ta ludothèque, synchronisée sur tous tes appareils.</p>
+    </div>
+    <div class="field">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" autocomplete="username" placeholder="toi@exemple.com">
+    </div>
+    <div class="field">
+      <label for="login-password">Mot de passe</label>
+      <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <div class="login-error hidden" id="login-error"></div>
+    <button class="btn btn-primary login-submit-btn" id="login-submit-btn">Se connecter</button>
+    <button class="manage-link login-toggle-btn" id="login-toggle-mode">Pas encore de compte ? Créer un compte</button>
+  </div>
+</div>
+
+<div class="hidden" id="app-shell">
+
 <nav class="topnav">
   <div class="topnav-inner">
     <button class="nav-tab" data-page="home"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg>Accueil</button>
     <button class="nav-tab active" data-page="collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>Collection</button>
     <button class="nav-tab" data-page="backlog"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Backlog</button>
     <div class="topnav-actions">
+      <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
       <span class="topnav-export-note" id="export-note"></span>
       <button class="topnav-btn" id="export-btn">⭳ Exporter</button>
       <button class="topnav-btn" id="import-btn">⭱ Importer</button>
       <input type="file" id="import-input" accept="application/json" style="display:none;">
+      <button class="topnav-btn logout-btn hidden" id="logout-btn">Déconnexion</button>
     </div>
   </div>
 </nav>
@@ -2206,6 +2294,8 @@
       <button class="btn btn-primary" id="qc-confirm-btn">Valider</button>
     </div>
   </div>
+</div>
+
 </div>
 
 <script>
@@ -5483,7 +5573,7 @@ document.getElementById('qc-confirm-btn').addEventListener('click', confirmQuick
   document.addEventListener('touchcancel', () => endTouchDrag(null, null), {passive:true});
 })();
 
-(async function init(){
+async function initApp(){
   loadPlatformMeta();
   loadPlatformOrder();
   await loadGames();
@@ -5512,7 +5602,220 @@ document.getElementById('qc-confirm-btn').addEventListener('click', confirmQuick
   renderArrivals();
   renderWishlist();
   updateExportNote();
-})();
+}
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+    createUserWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFzVeQx7mw37Fk4mXr3odu9H57xpSXmdg",
+    authDomain: "jeux-tout-doux.firebaseapp.com",
+    projectId: "jeux-tout-doux",
+    storageBucket: "jeux-tout-doux.firebasestorage.app",
+    messagingSenderId: "367742323465",
+    appId: "1:367742323465:web:ad01acd9274d4d6ca2e1d8"
+  };
+  const fbApp = initializeApp(firebaseConfig);
+  const auth = getAuth(fbApp);
+  const db = getFirestore(fbApp);
+
+  let currentUser = null;
+  let syncTimer = null;
+  let suppressSync = false;
+  let appInitialized = false;
+
+  /* ---------- Construction / application du paquet de données cloud ---------- */
+  function buildCloudPayload(){
+    return {
+      games: GAMES,
+      arrivals: ARRIVALS,
+      wishlist: WISHLIST,
+      backlogCompletions: BACKLOG_COMPLETIONS,
+      backlogPlaying: BACKLOG_PLAYING,
+      backlogCategories: BACKLOG_CATEGORIES,
+      platformMeta: platformMeta,
+      platformOrder: platformOrder,
+      updatedAt: Date.now()
+    };
+  }
+
+  function applyCloudPayload(data){
+    if(Array.isArray(data.games)) GAMES = data.games;
+    if(Array.isArray(data.arrivals)) ARRIVALS = data.arrivals;
+    if(Array.isArray(data.wishlist)) WISHLIST = data.wishlist;
+    if(Array.isArray(data.backlogCompletions)) BACKLOG_COMPLETIONS = data.backlogCompletions;
+    if(Array.isArray(data.backlogPlaying)) BACKLOG_PLAYING = data.backlogPlaying;
+    if(Array.isArray(data.backlogCategories)) BACKLOG_CATEGORIES = data.backlogCategories;
+    if(data.platformMeta && typeof data.platformMeta === 'object') platformMeta = data.platformMeta;
+    if(Array.isArray(data.platformOrder)) platformOrder = data.platformOrder;
+  }
+
+  function refreshAllViews(){
+    reconcileBacklogLinks();
+    buildPlatformList();
+    buildFormatToggles();
+    buildStatusToggles();
+    render();
+    renderArrivals();
+    renderWishlist();
+    renderBacklogPage();
+    updateExportNote();
+  }
+
+  /* ---------- Indicateur de synchronisation ---------- */
+  function setSyncStatus(status, message){
+    const el = document.getElementById('cloud-sync-status');
+    if(!el) return;
+    el.className = 'cloud-sync-status ' + status;
+    el.title = message || '';
+    el.textContent = status === 'error' ? '⚠ Sync' : (status === 'syncing' || status === 'pending' ? '☁ …' : '☁ Sync');
+  }
+
+  async function doCloudSync(){
+    if(!currentUser) return;
+    setSyncStatus('syncing', 'Synchronisation...');
+    try{
+      await setDoc(doc(db, 'users', currentUser.uid), buildCloudPayload());
+      setSyncStatus('ok', 'Synchronisé avec le cloud');
+    }catch(err){
+      console.error('Erreur de synchronisation Firebase', err);
+      setSyncStatus('error', 'Erreur de synchronisation : ' + err.message);
+    }
+  }
+
+  function scheduleCloudSync(){
+    if(!currentUser || suppressSync) return;
+    setSyncStatus('pending', 'Synchronisation en attente...');
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(doCloudSync, 900);
+  }
+
+  // Branche la synchro cloud sur toutes les fonctions de sauvegarde existantes, sans y toucher
+  [
+    'saveGames','saveArrivals','saveWishlist','saveBacklogCompletions',
+    'saveBacklogPlaying','saveBacklogCategories','savePlatformMeta','savePlatformOrder'
+  ].forEach(name => {
+    const orig = window[name];
+    if(typeof orig !== 'function') return;
+    window[name] = function(...args){
+      const result = orig.apply(this, args);
+      scheduleCloudSync();
+      return result;
+    };
+  });
+
+  async function loadFromCloudOrSeed(uid){
+    const ref = doc(db, 'users', uid);
+    try{
+      const snap = await getDoc(ref);
+      suppressSync = true;
+      if(snap.exists()){
+        applyCloudPayload(snap.data());
+      } else {
+        // Première connexion : on pousse ce qui existe déjà localement comme point de départ
+        await setDoc(ref, buildCloudPayload());
+      }
+      suppressSync = false;
+      refreshAllViews();
+      setSyncStatus('ok', 'Synchronisé avec le cloud');
+    }catch(err){
+      suppressSync = false;
+      console.error('Erreur de chargement Firebase', err);
+      setSyncStatus('error', 'Erreur de chargement : ' + err.message);
+    }
+  }
+
+  /* ---------- Écran de connexion ---------- */
+  function showLoginGate(){
+    document.getElementById('login-gate').classList.remove('hidden');
+    document.getElementById('app-shell').classList.add('hidden');
+  }
+  function hideLoginGate(){
+    document.getElementById('login-gate').classList.add('hidden');
+    document.getElementById('app-shell').classList.remove('hidden');
+  }
+  function setLoginError(msg){
+    const el = document.getElementById('login-error');
+    el.textContent = msg || '';
+    el.classList.toggle('hidden', !msg);
+  }
+  function translateAuthError(code){
+    const map = {
+      'auth/invalid-email': "Adresse email invalide.",
+      'auth/user-not-found': "Aucun compte avec cet email.",
+      'auth/wrong-password': "Mot de passe incorrect.",
+      'auth/invalid-credential': "Email ou mot de passe incorrect.",
+      'auth/email-already-in-use': "Un compte existe déjà avec cet email.",
+      'auth/weak-password': "Le mot de passe doit faire au moins 6 caractères."
+    };
+    return map[code] || "Une erreur est survenue. Réessaie.";
+  }
+
+  document.getElementById('login-submit-btn').addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const isSignup = document.getElementById('login-gate').dataset.mode === 'signup';
+    setLoginError('');
+    if(!email || !password){ setLoginError('Renseigne un email et un mot de passe.'); return; }
+    const btn = document.getElementById('login-submit-btn');
+    btn.disabled = true;
+    try{
+      if(isSignup){
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+    }catch(err){
+      setLoginError(translateAuthError(err.code));
+    }finally{
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('login-password').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') document.getElementById('login-submit-btn').click();
+  });
+
+  document.getElementById('login-toggle-mode').addEventListener('click', () => {
+    const gate = document.getElementById('login-gate');
+    const isSignup = gate.dataset.mode === 'signup';
+    gate.dataset.mode = isSignup ? 'signin' : 'signup';
+    document.getElementById('login-title').textContent = isSignup ? 'Connexion' : 'Créer un compte';
+    document.getElementById('login-submit-btn').textContent = isSignup ? 'Se connecter' : 'Créer le compte';
+    document.getElementById('login-toggle-mode').textContent = isSignup ? "Pas encore de compte ? Créer un compte" : "Déjà un compte ? Se connecter";
+    setLoginError('');
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    if(confirm('Se déconnecter ?')) signOut(auth);
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    if(user){
+      currentUser = user;
+      document.getElementById('logout-btn').classList.remove('hidden');
+      document.getElementById('cloud-sync-status').classList.remove('hidden');
+      if(!appInitialized){
+        await initApp();
+        appInitialized = true;
+      }
+      hideLoginGate();
+      await loadFromCloudOrSeed(user.uid);
+    } else {
+      currentUser = null;
+      document.getElementById('logout-btn').classList.add('hidden');
+      document.getElementById('cloud-sync-status').classList.add('hidden');
+      showLoginGate();
+    }
+  });
 </script>
 </body>
 </html>
