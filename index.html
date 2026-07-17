@@ -940,6 +940,26 @@
     z-index:100;
   }
   .login-gate.hidden{display:none;}
+  .auth-loading{
+    position:fixed;inset:0;
+    background:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    z-index:110;
+  }
+  .auth-loading.hidden{display:none;}
+  .auth-loading .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--amber);
+    opacity:0.7;
+    animation:auth-loading-pulse 1.3s ease-in-out infinite;
+  }
+  @keyframes auth-loading-pulse{
+    0%, 100%{opacity:0.35;}
+    50%{opacity:0.85;}
+  }
   .login-card{
     width:100%;
     max-width:380px;
@@ -1659,7 +1679,11 @@
 </head>
 <body>
 
-<div class="login-gate" id="login-gate" data-mode="signin">
+<div class="auth-loading" id="auth-loading">
+  <span class="eyebrow">JeuxToutDoux</span>
+</div>
+
+<div class="login-gate hidden" id="login-gate" data-mode="signin">
   <div class="login-card">
     <div class="login-brand">
       <span class="eyebrow">JeuxToutDoux</span>
@@ -5801,6 +5825,11 @@ async function initApp(){
     if(confirm('Se déconnecter ?')) signOut(auth);
   });
 
+  function hideAuthLoading(){
+    const el = document.getElementById('auth-loading');
+    if(el) el.classList.add('hidden');
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if(user){
       currentUser = user;
@@ -5810,12 +5839,14 @@ async function initApp(){
         await initApp();
         appInitialized = true;
       }
+      hideAuthLoading();
       hideLoginGate();
       await loadFromCloudOrSeed(user.uid);
     } else {
       currentUser = null;
       document.getElementById('logout-btn').classList.add('hidden');
       document.getElementById('cloud-sync-status').classList.add('hidden');
+      hideAuthLoading();
       showLoginGate();
     }
   });
