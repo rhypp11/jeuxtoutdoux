@@ -1030,7 +1030,7 @@
     border:1px solid var(--hairline);
     border-radius:14px;
     width:100%;
-    max-width:460px;
+    max-width:520px;
     max-height:88vh;
     overflow-y:auto;
     padding:22px 24px 24px;
@@ -1996,11 +1996,12 @@
       </div>
     </div>
 
+    <div class="field">
+      <label for="f-source">Source d'achat</label>
+      <input type="text" id="f-source" placeholder="ex. Fnac">
+    </div>
+
     <div class="field-row">
-      <div class="field">
-        <label for="f-source">Source d'achat</label>
-        <input type="text" id="f-source" placeholder="ex. Fnac">
-      </div>
       <div class="field">
         <label for="f-format">Format</label>
         <select id="f-format">
@@ -3077,15 +3078,9 @@ function renderCard(g){
     ? `<div class="card-banner"><img src="${g.image}" alt="${g.nom}" onerror="this.parentElement.outerHTML='<div class=\\'card-banner placeholder\\'><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>'"></div>`
     : `<div class="card-banner placeholder"><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>`;
 
-  const formatIconHtml = g.format === 'Collector'
-    ? `<svg class="format-icon star-icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" title="Collector"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`
-    : g.format === 'Numérique'
-    ? `<svg class="format-icon download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" title="Numérique"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>`
-    : `<svg class="format-icon disc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="Physique"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
-
-  const typeIconHtml = (g.type && g.type !== 'Jeu simple' && TYPE_META[g.type])
-    ? `<span class="type-icon-wrap" title="${TYPE_META[g.type].label}">${TYPE_META[g.type].icon}</span>`
-    : '';
+  const typeMeta = TYPE_META[g.type] || TYPE_META['Jeu simple'];
+  const typeColor = g.format === 'Collector' ? 'var(--amber)' : g.format === 'Numérique' ? 'var(--status-done)' : 'var(--muted)';
+  const typeIconHtml = `<span class="type-icon-wrap" style="color:${typeColor};" title="${typeMeta.label} · ${g.format}">${typeMeta.icon}</span>`;
 
   const platformLineHtml = state.platform
     ? ''
@@ -3099,7 +3094,6 @@ function renderCard(g){
       </div>
       ${platformLineHtml}
       <div class="card-meta">
-        ${formatIconHtml}
         ${typeIconHtml}
         <span class="price">${euros(g.prix)}</span>
         <span>${dateFR(g.date)}</span>
