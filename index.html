@@ -2902,6 +2902,18 @@ function buildStatusToggles(){
     chip.onclick = () => { state.status = (state.status === s.key ? null : s.key); buildStatusToggles(); render(); };
     container.appendChild(chip);
   });
+
+  const noneChip = document.createElement('div');
+  const noneActive = state.status === '__none__';
+  noneChip.className = 'toggle-chip status-chip' + (noneActive ? ' active' : '');
+  noneChip.tabIndex = 0;
+  noneChip.innerHTML = `<span class="toggle-chip-label"><span class="status-chip-icon" style="color:var(--muted)">—</span><span>Sans statut</span></span>`;
+  if(noneActive){
+    noneChip.style.borderColor = 'var(--hairline)';
+    noneChip.style.background = 'var(--surface-raised)';
+  }
+  noneChip.onclick = () => { state.status = (state.status === '__none__' ? null : '__none__'); buildStatusToggles(); render(); };
+  container.appendChild(noneChip);
 }
 
 function getEffectiveStatus(g){
@@ -2918,7 +2930,11 @@ function filteredGames(){
       if(state.type && (g.type || 'Jeu simple') !== state.type) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
       if(state.status){
-        if(getEffectiveStatus(g) !== state.status) return false;
+        if(state.status === '__none__'){
+          if(getEffectiveStatus(g)) return false;
+        } else if(getEffectiveStatus(g) !== state.status){
+          return false;
+        }
       }
       return true;
     });
@@ -2950,12 +2966,16 @@ function renderPlatformBanner(games){
   if(!banner) return;
 
   const total = games.length;
+  const physiqueCount = games.filter(g => g.format === 'Physique').length;
+  const numeriqueCount = games.filter(g => g.format === 'Numérique').length;
   const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
   const collectors = games.filter(g => g.format === 'Collector').length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
 
   let statsHtml = `
-    <div class="platform-banner-stat"><span class="num">${iconWithClass(ICON_BOOKS_VERTICAL,'banner-stat-icon')}${total}</span><span class="label">Jeux</span></div>
+    <div class="platform-banner-stat"><span class="num"><svg class="banner-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>${physiqueCount}</span><span class="label">Physique</span></div>
+    <div class="platform-banner-stat"><span class="num"><svg class="banner-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>${numeriqueCount}</span><span class="label">Numérique</span></div>
+    <div class="platform-banner-stat"><span class="num">${iconWithClass(ICON_BOOKS_VERTICAL,'banner-stat-icon')}${total}</span><span class="label">Total</span></div>
     <div class="platform-banner-stat"><span class="num">${iconWithClass(ICON_STAR,'banner-stat-icon')}${collectors}</span><span class="label">Collectors</span></div>
     <div class="platform-banner-stat"><span class="num">${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span><span class="label">Dépensé</span></div>
   `;
