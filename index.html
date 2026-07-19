@@ -555,17 +555,6 @@
     background:var(--spine, var(--muted));
   }
   .plat-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .plat-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
-  .plat-info .plat-name{flex:none;}
-  .plat-subcounts{
-    display:flex;align-items:center;gap:4px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:10px;color:var(--muted);
-    white-space:nowrap;overflow:hidden;
-  }
-  .plat-subcounts .pcm-item{display:inline-flex;align-items:center;gap:2px;}
-  .plat-subcounts svg{width:9px;height:9px;flex-shrink:0;opacity:0.8;}
-  .plat-subcounts .pcm-sep{opacity:0.4;}
   .plat-count{
     font-family:'JetBrains Mono',monospace;
     font-size:11px;
@@ -623,7 +612,7 @@
   .reset-btn:hover{border-color:var(--muted);color:var(--text);}
 
   /* ---------- Main ---------- */
-  .main{padding:28px 32px 60px;display:flex;flex-direction:column;gap:22px;min-width:0;overflow-y:auto;}
+  .main{padding:0 32px 60px;display:flex;flex-direction:column;gap:22px;min-width:0;overflow-y:auto;}
 
   .platform-banner{
     display:flex;
@@ -631,7 +620,7 @@
     flex-wrap:wrap;
     gap:16px;
     padding:16px 32px;
-    margin:-28px -32px 0;
+    margin:0 -32px;
     border-radius:0;
     font-family:'Segoe UI','Roboto',sans-serif;
     position:sticky;
@@ -1074,7 +1063,6 @@
     outline:none;
   }
   .field textarea{resize:vertical;min-height:60px;}
-  .completion-comment-icon{font-size:12px;margin-left:5px;cursor:help;opacity:0.85;}
   .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--teal);}
   .field input:disabled, .field select:disabled{opacity:0.55;cursor:not-allowed;}
   .linked-note{
@@ -1423,8 +1411,8 @@
     .side-section{min-width:180px;}
     .add-btn{min-width:140px;}
     .platform-banner-stats{margin-left:0;width:100%;}
-    .platform-banner{margin:-20px -16px 0;padding:14px 16px;}
-    .main{padding:20px 16px 40px;overflow-y:visible;}
+    .platform-banner{margin:0 -16px;padding:14px 16px;}
+    .main{padding:0 16px 40px;overflow-y:visible;}
   }
 
   button, input, select{font-family:inherit;}
@@ -1546,7 +1534,7 @@
   .completion-head,
   .completion-row{
     display:grid;
-    grid-template-columns:52px 110px 1fr 104px 70px;
+    grid-template-columns:52px 110px 1fr 104px 70px 28px;
     gap:12px;
     align-items:center;
     padding:12px 16px;
@@ -1604,6 +1592,8 @@
   .note-badge.note-A{background:rgba(111,174,121,0.16);color:var(--status-done);}
   .note-badge.note-B{background:rgba(217,164,65,0.16);color:var(--amber);}
   .note-badge.note-C{background:rgba(217,106,106,0.14);color:var(--danger);}
+  .completion-comment{display:flex;align-items:center;justify-content:center;}
+  .completion-comment-icon{font-size:14px;cursor:help;opacity:0.85;}
 
   .backlog-board{
     padding:24px 18px 40px;
@@ -1713,7 +1703,7 @@
     .backlog-sidebar{flex-direction:row;overflow-x:auto;overflow-y:visible;border-right:none;border-bottom:1px solid var(--hairline);}
     .backlog-sidebar .side-section{min-width:220px;}
     .backlog-main,.backlog-board{border-right:none;border-bottom:1px solid var(--hairline);overflow-y:visible;}
-    .completion-head,.completion-row{grid-template-columns:44px 84px 1fr 60px 54px;gap:8px;padding:10px 12px;}
+    .completion-head,.completion-row{grid-template-columns:44px 84px 1fr 60px 54px 22px;gap:8px;padding:10px 12px;}
     .media-thumb{width:96px;}
   }
 </style>
@@ -2844,26 +2834,9 @@ function setStatus(id, statusKey){
   render();
 }
 
-const ICON_MINI_PHYS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
-const ICON_MINI_NUM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>`;
-
-function platSubcountsHtml(phys, num){
-  return `<span class="plat-subcounts">
-    <span class="pcm-item pcm-phys" title="Physique">${ICON_MINI_PHYS}${phys}</span>
-    <span class="pcm-sep">·</span>
-    <span class="pcm-item pcm-num" title="Numérique">${ICON_MINI_NUM}${num}</span>
-  </span>`;
-}
-
 function buildPlatformList(){
   const counts = {};
-  const physCounts = {};
-  const numCounts = {};
-  GAMES.forEach(g => {
-    counts[g.plateforme] = (counts[g.plateforme]||0) + 1;
-    if(g.format === 'Physique') physCounts[g.plateforme] = (physCounts[g.plateforme]||0) + 1;
-    else if(g.format === 'Numérique') numCounts[g.plateforme] = (numCounts[g.plateforme]||0) + 1;
-  });
+  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
   const platforms = platformSortMode === 'custom'
     ? getOrderedPlatformNames().filter(p => counts[p])
     : Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
@@ -2873,14 +2846,11 @@ function buildPlatformList(){
   const container = document.getElementById('platform-list');
   container.innerHTML = "";
 
-  const totalPhys = GAMES.filter(g => g.format === 'Physique').length;
-  const totalNum = GAMES.filter(g => g.format === 'Numérique').length;
-
   const allItem = document.createElement('div');
   allItem.className = 'plat-item' + (state.platform === null ? ' active' : '');
   allItem.style.setProperty('--spine', 'var(--muted)');
   allItem.tabIndex = 0;
-  allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><div class="plat-info"><span class="plat-name">Toutes</span>${platSubcountsHtml(totalPhys, totalNum)}</div><span class="plat-count">${GAMES.length}</span>`;
+  allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><span class="plat-name">Toutes</span><span class="plat-count">${GAMES.length}</span>`;
   allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); };
   container.appendChild(allItem);
 
@@ -2894,7 +2864,7 @@ function buildPlatformList(){
     const iconHtml = logo
       ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'spine-chip\\'></span>'">`
       : `<span class="spine-chip"></span>`;
-    item.innerHTML = `${iconHtml}<div class="plat-info"><span class="plat-name">${p}</span>${platSubcountsHtml(physCounts[p]||0, numCounts[p]||0)}</div><span class="plat-count">${counts[p]}</span>`;
+    item.innerHTML = `${iconHtml}<span class="plat-name">${p}</span><span class="plat-count">${counts[p]}</span>`;
     item.onclick = () => { state.platform = (state.platform === p ? null : p); buildPlatformList(); render(); };
     container.appendChild(item);
   });
@@ -4816,11 +4786,12 @@ function completionRowHtml(c){
     <span class="completion-date">${dateDM(c.date)}</span>
     ${backlogThumbHtml(r,'media-thumb')}
     <span class="completion-name">
-      <span class="completion-title">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}${commentHtml}</span>
+      <span class="completion-title">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
       <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatTagHtml(c.format), typeTagHtml(c.type), replayTagHtml(c))}</span>
     </span>
     <span class="completion-status"><span class="status-pill ${statutMeta.cls}">${statutMeta.emoji} ${c.statut}</span></span>
     <span class="completion-note"><span class="note-badge note-lg ${noteClass}">${c.note || '—'}</span></span>
+    <span class="completion-comment">${commentHtml}</span>
   </div>`;
 }
 
@@ -4835,7 +4806,7 @@ function yearBlockHtml(year, list, hideTitle){
       ${titleHtml}
       <div class="completion-table">
         <div class="completion-head">
-          <span>Date</span><span></span><span>Jeu</span><span>Statut</span><span>Note</span>
+          <span>Date</span><span></span><span>Jeu</span><span>Statut</span><span>Note</span><span></span>
         </div>
         ${rowsHtml}
       </div>
