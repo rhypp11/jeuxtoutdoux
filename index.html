@@ -555,6 +555,17 @@
     background:var(--spine, var(--muted));
   }
   .plat-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .plat-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .plat-info .plat-name{flex:none;}
+  .plat-subcounts{
+    display:flex;align-items:center;gap:4px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;
+  }
+  .plat-subcounts .pcm-item{display:inline-flex;align-items:center;gap:2px;}
+  .plat-subcounts svg{width:9px;height:9px;flex-shrink:0;opacity:0.8;}
+  .plat-subcounts .pcm-sep{opacity:0.4;}
   .plat-count{
     font-family:'JetBrains Mono',monospace;
     font-size:11px;
@@ -619,8 +630,9 @@
     align-items:center;
     flex-wrap:wrap;
     gap:16px;
-    padding:16px 22px;
-    border-radius:12px;
+    padding:16px 32px;
+    margin:-28px -32px 0;
+    border-radius:0;
     font-family:'Segoe UI','Roboto',sans-serif;
     position:sticky;
     top:0;
@@ -1411,6 +1423,7 @@
     .side-section{min-width:180px;}
     .add-btn{min-width:140px;}
     .platform-banner-stats{margin-left:0;width:100%;}
+    .platform-banner{margin:-20px -16px 0;padding:14px 16px;}
     .main{padding:20px 16px 40px;overflow-y:visible;}
   }
 
@@ -1955,7 +1968,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input type="text" id="search-input" placeholder="Chercher un jeu...">
       </div>
-      <button class="add-btn add-btn-inline" id="add-btn">+ Ajouter un jeu</button>
       <select class="sort-select" id="sort-select">
         <option value="name-asc">Nom (A → Z)</option>
         <option value="name-desc">Nom (Z → A)</option>
@@ -1964,6 +1976,7 @@
         <option value="date-desc">Date d'achat (récent)</option>
         <option value="date-asc">Date d'achat (ancien)</option>
       </select>
+      <button class="add-btn add-btn-inline" id="add-btn">+ Ajouter un jeu</button>
     </div>
 
     <div class="grid" id="grid"></div>
@@ -2179,15 +2192,16 @@
       </div>
     </div>
 
+    <div class="field">
+      <label for="cp-statut">Statut</label>
+      <select id="cp-statut">
+        <option value="Fini">Fini</option>
+        <option value="100%">100%</option>
+        <option value="Succès">Succès</option>
+      </select>
+    </div>
+
     <div class="field-row">
-      <div class="field">
-        <label for="cp-statut">Statut</label>
-        <select id="cp-statut">
-          <option value="Fini">Fini</option>
-          <option value="100%">100%</option>
-          <option value="Succès">Succès</option>
-        </select>
-      </div>
       <div class="field">
         <label for="cp-note">Note</label>
         <select id="cp-note">
@@ -2198,17 +2212,16 @@
           <option value="C">C</option>
         </select>
       </div>
+      <div class="field" style="flex:2;">
+        <label for="cp-commentaire">Commentaire (optionnel)</label>
+        <input type="text" id="cp-commentaire" placeholder="Impressions, souvenir, ce qui t'a marqué...">
+      </div>
     </div>
 
     <div class="field">
       <label for="cp-image">Image (URL)</label>
       <input type="text" id="cp-image" placeholder="https://...">
       <div class="image-preview" id="cp-image-preview"><span>Aperçu de l'image</span></div>
-    </div>
-
-    <div class="field">
-      <label for="cp-commentaire">Commentaire (optionnel)</label>
-      <textarea id="cp-commentaire" rows="3" placeholder="Tes impressions, un souvenir, ce qui t'a marqué..."></textarea>
     </div>
 
     <div class="modal-actions">
@@ -2593,6 +2606,7 @@ function iconWithClass(svgStr, cls){
 
 const STATUS_OPTIONS = [
   { key: "a_jouer", label: "À jouer", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(199,168,85,0.07)", border: "rgba(199,168,85,0.3)" },
+  { key: "en_cours", label: "En cours", icon: ICON_STATUS_PROGRESS, color: "var(--teal)", bg: "rgba(79,199,181,0.07)", border: "rgba(79,199,181,0.3)" },
   { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(111,174,121,0.07)", border: "rgba(111,174,121,0.3)" },
   { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(156,137,184,0.07)", border: "rgba(156,137,184,0.3)" }
 ];
@@ -2830,9 +2844,26 @@ function setStatus(id, statusKey){
   render();
 }
 
+const ICON_MINI_PHYS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
+const ICON_MINI_NUM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>`;
+
+function platSubcountsHtml(phys, num){
+  return `<span class="plat-subcounts">
+    <span class="pcm-item pcm-phys" title="Physique">${ICON_MINI_PHYS}${phys}</span>
+    <span class="pcm-sep">·</span>
+    <span class="pcm-item pcm-num" title="Numérique">${ICON_MINI_NUM}${num}</span>
+  </span>`;
+}
+
 function buildPlatformList(){
   const counts = {};
-  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
+  const physCounts = {};
+  const numCounts = {};
+  GAMES.forEach(g => {
+    counts[g.plateforme] = (counts[g.plateforme]||0) + 1;
+    if(g.format === 'Physique') physCounts[g.plateforme] = (physCounts[g.plateforme]||0) + 1;
+    else if(g.format === 'Numérique') numCounts[g.plateforme] = (numCounts[g.plateforme]||0) + 1;
+  });
   const platforms = platformSortMode === 'custom'
     ? getOrderedPlatformNames().filter(p => counts[p])
     : Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
@@ -2842,11 +2873,14 @@ function buildPlatformList(){
   const container = document.getElementById('platform-list');
   container.innerHTML = "";
 
+  const totalPhys = GAMES.filter(g => g.format === 'Physique').length;
+  const totalNum = GAMES.filter(g => g.format === 'Numérique').length;
+
   const allItem = document.createElement('div');
   allItem.className = 'plat-item' + (state.platform === null ? ' active' : '');
   allItem.style.setProperty('--spine', 'var(--muted)');
   allItem.tabIndex = 0;
-  allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><span class="plat-name">Toutes</span><span class="plat-count">${GAMES.length}</span>`;
+  allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><div class="plat-info"><span class="plat-name">Toutes</span>${platSubcountsHtml(totalPhys, totalNum)}</div><span class="plat-count">${GAMES.length}</span>`;
   allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); };
   container.appendChild(allItem);
 
@@ -2860,7 +2894,7 @@ function buildPlatformList(){
     const iconHtml = logo
       ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'spine-chip\\'></span>'">`
       : `<span class="spine-chip"></span>`;
-    item.innerHTML = `${iconHtml}<span class="plat-name">${p}</span><span class="plat-count">${counts[p]}</span>`;
+    item.innerHTML = `${iconHtml}<div class="plat-info"><span class="plat-name">${p}</span>${platSubcountsHtml(physCounts[p]||0, numCounts[p]||0)}</div><span class="plat-count">${counts[p]}</span>`;
     item.onclick = () => { state.platform = (state.platform === p ? null : p); buildPlatformList(); render(); };
     container.appendChild(item);
   });
@@ -2926,6 +2960,7 @@ function buildStatusToggles(){
 function getEffectiveStatus(g){
   const ref = getGameBacklogRef(g.id);
   if(ref && ref.type === 'completion') return 'termine';
+  if(ref && ref.type === 'playing') return 'en_cours';
   return g.status;
 }
 
