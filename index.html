@@ -94,6 +94,33 @@
   .cloud-sync-status.pending{color:var(--amber);border-color:rgba(217,164,65,0.4);}
   .cloud-sync-status.error{color:var(--danger);border-color:rgba(217,106,106,0.4);}
 
+  .mobile-filter-toggle{
+    display:none;
+    align-items:center;
+    gap:6px;
+    background:var(--surface-raised);
+    border:1px solid var(--hairline);
+    color:var(--text);
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:10px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .mobile-filter-toggle:hover{border-color:var(--muted);}
+
+  .mobile-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:35;
+  }
+  .mobile-backdrop.visible{display:block;}
+
   .profile-menu-wrap{position:relative;}
   .profile-menu-btn{
     width:34px;height:34px;
@@ -662,9 +689,19 @@
   .platform-banner-stats{
     display:flex;
     flex-wrap:wrap;
-    gap:10px;
+    gap:14px;
     margin-left:auto;
   }
+  .platform-banner-group{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    padding-left:14px;
+    border-left:1px solid rgba(255,255,255,0.2);
+  }
+  .platform-banner-group:first-child{padding-left:0;border-left:none;}
+  .platform-banner.neutral .platform-banner-group{border-left-color:var(--hairline);}
   .platform-banner-stat{
     display:flex;
     flex-direction:column;
@@ -1398,19 +1435,32 @@
 
   @media (max-width:820px){
     .app{grid-template-columns:1fr;height:auto;}
-    .sidebar{
-      flex-direction:row;
-      overflow-x:auto;
-      overflow-y:visible;
-      border-right:none;
-      border-bottom:1px solid var(--hairline);
-      padding:16px;
-      gap:16px;
+    .mobile-filter-toggle{display:inline-flex;}
+    #collection-sidebar{
+      position:fixed;
+      top:50px;
+      left:0;
+      bottom:0;
+      width:85vw;
+      max-width:320px;
+      z-index:40;
+      flex-direction:column;
+      overflow-y:auto;
+      overflow-x:hidden;
+      border-right:1px solid var(--hairline);
+      border-bottom:none;
+      transform:translateX(-105%);
+      transition:transform .25s ease;
+      box-shadow:8px 0 24px rgba(0,0,0,0.4);
     }
-    .brand{display:none;}
-    .side-section{min-width:180px;}
+    #collection-sidebar.mobile-open{transform:translateX(0);}
+    .side-section{min-width:0;}
     .add-btn{min-width:140px;}
-    .platform-banner-stats{margin-left:0;width:100%;}
+    .platform-banner-stats{margin-left:0;width:100%;gap:6px;}
+    .platform-banner-group{gap:4px;padding-left:8px;}
+    .platform-banner-stat{padding:5px 8px;}
+    .platform-banner-stat .label{display:none;}
+    .platform-banner-stat .num{font-size:12.5px;gap:3px;}
     .platform-banner{margin:0 -16px;padding:14px 16px;}
     .main{padding:0 16px 40px;overflow-y:visible;}
   }
@@ -1601,7 +1651,7 @@
     flex-direction:column;
     gap:16px;
     min-width:0;
-    border-right:1px solid var(--hairline);
+    background:var(--surface);
     overflow-y:auto;
   }
   .backlog-board-title{
@@ -1700,8 +1750,26 @@
   }
   @media (max-width:1100px){
     .backlog-app{grid-template-columns:1fr;height:auto;}
-    .backlog-sidebar{flex-direction:row;overflow-x:auto;overflow-y:visible;border-right:none;border-bottom:1px solid var(--hairline);}
-    .backlog-sidebar .side-section{min-width:220px;}
+    .mobile-filter-toggle{display:inline-flex;}
+    #backlog-sidebar{
+      position:fixed;
+      top:50px;
+      left:0;
+      bottom:0;
+      width:85vw;
+      max-width:320px;
+      z-index:40;
+      flex-direction:column;
+      overflow-y:auto;
+      overflow-x:hidden;
+      border-right:1px solid var(--hairline);
+      border-bottom:none;
+      transform:translateX(-105%);
+      transition:transform .25s ease;
+      box-shadow:8px 0 24px rgba(0,0,0,0.4);
+    }
+    #backlog-sidebar.mobile-open{transform:translateX(0);}
+    #backlog-sidebar .side-section{min-width:0;}
     .backlog-main,.backlog-board{border-right:none;border-bottom:1px solid var(--hairline);overflow-y:visible;}
     .completion-head,.completion-row{grid-template-columns:44px 84px 1fr 60px 54px 22px;gap:8px;padding:10px 12px;}
     .media-thumb{width:96px;}
@@ -1736,6 +1804,8 @@
 </div>
 
 <div class="hidden" id="app-shell">
+
+<div class="mobile-backdrop" id="mobile-backdrop"></div>
 
 <nav class="topnav">
   <div class="topnav-inner">
@@ -1915,7 +1985,7 @@
 
 <div class="page hidden" id="page-collection">
 <div class="app">
-  <aside class="sidebar">
+  <aside class="sidebar" id="collection-sidebar">
     <div class="brand">
       <span class="eyebrow">Collection perso</span>
       <h1>JeuxToutDoux</h1>
@@ -1954,6 +2024,7 @@
     <div class="platform-banner" id="platform-banner"></div>
 
     <div class="top-row">
+      <button class="mobile-filter-toggle" id="collection-filter-toggle" aria-label="Afficher les filtres et plateformes">☰ Filtres</button>
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input type="text" id="search-input" placeholder="Chercher un jeu..." aria-label="Rechercher un jeu">
@@ -2061,7 +2132,7 @@
 <div class="page hidden" id="page-backlog">
   <div class="backlog-app">
 
-    <aside class="sidebar backlog-sidebar">
+    <aside class="sidebar backlog-sidebar" id="backlog-sidebar">
       <div class="brand">
         <span class="eyebrow">Complétions</span>
         <h1>JeuxToutDoux</h1>
@@ -2094,6 +2165,7 @@
 
     <main class="backlog-main">
       <div class="top-row">
+        <button class="mobile-filter-toggle" id="backlog-filter-toggle" aria-label="Afficher les statistiques et filtres">☰ Stats & filtres</button>
         <h2 class="backlog-section-title">Complétions <span class="board-count" id="completion-count">0</span></h2>
         <button class="add-btn add-btn-inline" id="add-completion-btn">+ Ajouter une complétion</button>
       </div>
@@ -2583,7 +2655,7 @@ function updateSortButtonUI(){
 const ICON_STATUS_TODO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"></circle><line x1="12" y1="9" x2="12" y2="15"></line><rect x="6" y="15" width="12" height="5" rx="1.5"></rect></svg>`;
 const ICON_STATUS_PROGRESS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"></polygon></svg>`;
 const ICON_STATUS_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
+const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3c2.5 0 4 3 6 3s3.5-3 6-3c1.66 0 3 1.34 3 3s-1.34 3-3 3c-2.5 0-4-3-6-3s-3.5 3-6 3z"></path></svg>`;
 
 const ICON_BOOKS_VERTICAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>`;
 const ICON_STAR = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
@@ -2598,7 +2670,7 @@ const STATUS_OPTIONS = [
   { key: "a_jouer", label: "À jouer", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(199,168,85,0.07)", border: "rgba(199,168,85,0.3)" },
   { key: "en_cours", label: "En cours", icon: ICON_STATUS_PROGRESS, color: "var(--teal)", bg: "rgba(79,199,181,0.07)", border: "rgba(79,199,181,0.3)" },
   { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(111,174,121,0.07)", border: "rgba(111,174,121,0.3)" },
-  { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(156,137,184,0.07)", border: "rgba(156,137,184,0.3)" }
+  { key: "multi", label: "Sans fin", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(156,137,184,0.07)", border: "rgba(156,137,184,0.3)" }
 ];
 
 let GAMES = [];
@@ -2851,7 +2923,7 @@ function buildPlatformList(){
   allItem.style.setProperty('--spine', 'var(--muted)');
   allItem.tabIndex = 0;
   allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><span class="plat-name">Toutes</span><span class="plat-count">${GAMES.length}</span>`;
-  allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); };
+  allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); closeMobileDrawers(); };
   container.appendChild(allItem);
 
   platforms.forEach(p => {
@@ -2865,7 +2937,7 @@ function buildPlatformList(){
       ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'spine-chip\\'></span>'">`
       : `<span class="spine-chip"></span>`;
     item.innerHTML = `${iconHtml}<span class="plat-name">${p}</span><span class="plat-count">${counts[p]}</span>`;
-    item.onclick = () => { state.platform = (state.platform === p ? null : p); buildPlatformList(); render(); };
+    item.onclick = () => { state.platform = (state.platform === p ? null : p); buildPlatformList(); render(); closeMobileDrawers(); };
     container.appendChild(item);
   });
 }
@@ -2984,7 +3056,7 @@ function renderPlatformBanner(games){
   const collectors = games.filter(g => g.format === 'Collector').length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
 
-  let statsHtml = `
+  let group1Html = `
     <div class="platform-banner-stat"><span class="num"><svg class="banner-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>${physiqueCount}</span><span class="label">Physique</span></div>
     <div class="platform-banner-stat"><span class="num"><svg class="banner-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>${numeriqueCount}</span><span class="label">Numérique</span></div>
     <div class="platform-banner-stat"><span class="num">${iconWithClass(ICON_BOOKS_VERTICAL,'banner-stat-icon')}${total}</span><span class="label">Total</span></div>
@@ -2992,7 +3064,7 @@ function renderPlatformBanner(games){
     <div class="platform-banner-stat"><span class="num">${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span><span class="label">Dépensé</span></div>
   `;
   if(!state.platform){
-    statsHtml += `<div class="platform-banner-stat"><span class="num">${platformsCount}</span><span class="label">Plateformes</span></div>`;
+    group1Html += `<div class="platform-banner-stat"><span class="num">${platformsCount}</span><span class="label">Plateformes</span></div>`;
   }
 
   let aFaireCount = 0, enCoursCount = 0, finiCount = 0, centCount = 0, succesCount = 0;
@@ -3012,15 +3084,22 @@ function renderPlatformBanner(games){
     }
   });
 
-  statsHtml += `<div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
-      <span class="completion-item" style="color:var(--status-todo);" title="À faire (dont catégories du backlog)">${ICON_STATUS_TODO}${aFaireCount}</span>
-      <span class="completion-item" style="color:var(--teal);" title="En cours">▶${enCoursCount}</span>
-    </span><span class="label">Backlog</span></div>`;
-  statsHtml += `<div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
-      <span class="completion-item" style="color:var(--status-done);" title="Fini">${ICON_STATUS_DONE}${finiCount}</span>
-      <span class="completion-item" style="color:var(--amber);" title="100%">💯${centCount}</span>
-      <span class="completion-item" style="color:var(--status-multi);" title="Succès">🏆${succesCount}</span>
-    </span><span class="label">Complétions</span></div>`;
+  const group2Html = `
+    <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
+        <span class="completion-item" style="color:var(--status-todo);" title="À faire (dont catégories du backlog)">${ICON_STATUS_TODO}${aFaireCount}</span>
+        <span class="completion-item" style="color:var(--teal);" title="En cours">▶${enCoursCount}</span>
+      </span><span class="label">Backlog</span></div>
+    <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
+        <span class="completion-item" style="color:var(--status-done);" title="Fini">${ICON_STATUS_DONE}${finiCount}</span>
+        <span class="completion-item" style="color:var(--amber);" title="100%">💯${centCount}</span>
+        <span class="completion-item" style="color:var(--status-multi);" title="Succès">🏆${succesCount}</span>
+      </span><span class="label">Complétions</span></div>
+  `;
+
+  const statsHtml = `
+    <div class="platform-banner-group">${group1Html}</div>
+    <div class="platform-banner-group">${group2Html}</div>
+  `;
 
   if(!state.platform){
     banner.classList.remove('hidden');
@@ -4078,7 +4157,38 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     document.getElementById('page-collection').classList.toggle('hidden', page !== 'collection');
     document.getElementById('page-backlog').classList.toggle('hidden', page !== 'backlog');
     if(page === 'backlog') renderBacklogPage();
+    closeMobileDrawers();
   });
+});
+
+/* ---------- Mobile filter drawers (Collection / Backlog sidebars) ---------- */
+function closeMobileDrawers(){
+  document.querySelectorAll('.sidebar.mobile-open').forEach(el => el.classList.remove('mobile-open'));
+  document.getElementById('mobile-backdrop').classList.remove('visible');
+}
+function openMobileDrawer(el){
+  if(!el) return;
+  closeMobileDrawers();
+  el.classList.add('mobile-open');
+  document.getElementById('mobile-backdrop').classList.add('visible');
+}
+function toggleMobileDrawer(el){
+  if(!el) return;
+  if(el.classList.contains('mobile-open')) closeMobileDrawers();
+  else openMobileDrawer(el);
+}
+document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
+document.getElementById('collection-filter-toggle')?.addEventListener('click', () => {
+  toggleMobileDrawer(document.getElementById('collection-sidebar'));
+});
+document.getElementById('backlog-filter-toggle')?.addEventListener('click', () => {
+  toggleMobileDrawer(document.getElementById('backlog-sidebar'));
+});
+window.addEventListener('resize', () => {
+  if(window.innerWidth > 1100) closeMobileDrawers();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closeMobileDrawers();
 });
 
 /* ================= Backlog ================= */
