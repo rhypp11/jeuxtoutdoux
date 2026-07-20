@@ -1102,11 +1102,28 @@
   .field textarea{resize:vertical;min-height:60px;}
   .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--teal);}
   .field input:disabled, .field select:disabled{opacity:0.55;cursor:not-allowed;}
-  .linked-note{
-    font-size:11px;color:var(--teal);
-    display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+  .linked-game-card{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 12px;
+    border:1px solid var(--hairline);
+    border-radius:10px;
+    background:var(--surface-raised);
   }
-  .linked-note .manage-link{font-size:11px;padding:0;}
+  .linked-game-card-thumb{
+    width:52px;height:52px;flex-shrink:0;
+    border-radius:8px;
+    background:var(--surface) center/cover no-repeat;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+  }
+  .linked-game-card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
+  .linked-game-card-name{
+    font-weight:600;font-size:14px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-family:'Segoe UI','Roboto',sans-serif;
+  }
+  .linked-game-card-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}
+  #cp-manual-fields,#pl-manual-fields,#cg-manual-fields{display:flex;flex-direction:column;gap:14px;}
   .linked-chip{font-size:11px;}
   .collection-search-wrap{position:relative;}
   .collection-search-list{
@@ -2200,58 +2217,73 @@
       <span class="replay-switch-label">🔁 C'est un replay (jeu déjà terminé avant)</span>
     </label>
 
+    <div class="field hidden" id="cp-replay-field">
+      <label for="cp-replay-select">Quel jeu as-tu rejoué ?</label>
+      <select id="cp-replay-select"></select>
+    </div>
+
     <div class="field" id="cp-collection-field">
       <label for="cp-collection-search">Depuis ma collection (optionnel — jeux déjà "Terminé")</label>
       <div class="collection-search-wrap">
         <input type="text" id="cp-collection-search" autocomplete="off" placeholder="Rechercher un jeu terminé de ta collection...">
         <div class="collection-search-list hidden" id="cp-collection-results"></div>
       </div>
-      <div class="linked-note hidden" id="cp-linked-note">🔗 Lié à ce jeu de ta collection — <button type="button" class="manage-link" id="cp-unlink-btn">saisir manuellement à la place</button></div>
-      <input type="hidden" id="cp-linked-id">
+    </div>
+    <input type="hidden" id="cp-linked-id">
+
+    <div class="linked-game-card hidden" id="cp-linked-card">
+      <div class="linked-game-card-thumb" id="cp-linked-card-thumb">🎮</div>
+      <div class="linked-game-card-info">
+        <div class="linked-game-card-name" id="cp-linked-card-name"></div>
+        <div class="linked-game-card-tags" id="cp-linked-card-tags"></div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="cp-unlink-btn">🔗 Délier</button>
     </div>
 
-    <div class="field hidden" id="cp-replay-field">
-      <label for="cp-replay-select">Quel jeu as-tu rejoué ?</label>
-      <select id="cp-replay-select"></select>
-    </div>
+    <div id="cp-manual-fields">
+      <div class="field">
+        <label for="cp-nom">Nom du jeu</label>
+        <input type="text" id="cp-nom" placeholder="ex. Hollow Knight">
+      </div>
 
-    <div class="field">
-      <label for="cp-nom">Nom du jeu</label>
-      <input type="text" id="cp-nom" placeholder="ex. Hollow Knight">
-    </div>
-
-    <div class="field-row">
-      <div class="field" style="flex:1;">
+      <div class="field">
         <label for="cp-plateforme">Plateforme</label>
         <select id="cp-plateforme"></select>
       </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="cp-format">Format</label>
+          <select id="cp-format">
+            <option value="Physique">Physique</option>
+            <option value="Numérique">Numérique</option>
+            <option value="Abonnement">Abonnement</option>
+            <option value="Partage familial">Partage familial</option>
+            <option value="Émulation / Pirate">Émulation / Pirate</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cp-type">Type</label>
+          <select id="cp-type">
+            <option value="Jeu simple">Jeu simple</option>
+            <option value="Compilation">Compilation</option>
+            <option value="Jeu + DLC">Jeu + DLC</option>
+            <option value="DLC extension">DLC</option>
+            <option value="Mise à niveau">Mise à niveau</option>
+          </select>
+        </div>
+      </div>
+
       <div class="field">
-        <label for="cp-date">Date</label>
-        <input type="date" id="cp-date">
+        <label for="cp-image">Image (URL)</label>
+        <input type="text" id="cp-image" placeholder="https://...">
+        <div class="image-preview" id="cp-image-preview"><span>Aperçu de l'image</span></div>
       </div>
     </div>
 
-    <div class="field-row">
-      <div class="field">
-        <label for="cp-format">Format</label>
-        <select id="cp-format">
-          <option value="Physique">Physique</option>
-          <option value="Numérique">Numérique</option>
-          <option value="Abonnement">Abonnement</option>
-          <option value="Partage familial">Partage familial</option>
-          <option value="Émulation / Pirate">Émulation / Pirate</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="cp-type">Type</label>
-        <select id="cp-type">
-          <option value="Jeu simple">Jeu simple</option>
-          <option value="Compilation">Compilation</option>
-          <option value="Jeu + DLC">Jeu + DLC</option>
-          <option value="DLC extension">DLC</option>
-          <option value="Mise à niveau">Mise à niveau</option>
-        </select>
-      </div>
+    <div class="field">
+      <label for="cp-date">Date de complétion</label>
+      <input type="date" id="cp-date">
     </div>
 
     <div class="field">
@@ -2280,12 +2312,6 @@
       </div>
     </div>
 
-    <div class="field">
-      <label for="cp-image">Image (URL)</label>
-      <input type="text" id="cp-image" placeholder="https://...">
-      <div class="image-preview" id="cp-image-preview"><span>Aperçu de l'image</span></div>
-    </div>
-
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="cp-delete-btn">Supprimer</button>
       <div style="flex:1;"></div>
@@ -2299,53 +2325,63 @@
   <div class="modal">
     <h2 id="playing-modal-title">Ajouter un jeu en cours</h2>
 
-    <div class="field">
+    <div class="field" id="pl-collection-field">
       <label for="pl-collection-search">Depuis ma collection (optionnel — jeux à faire)</label>
       <div class="collection-search-wrap">
         <input type="text" id="pl-collection-search" autocomplete="off" placeholder="Rechercher un jeu à faire de ta collection...">
         <div class="collection-search-list hidden" id="pl-collection-results"></div>
       </div>
-      <div class="linked-note hidden" id="pl-linked-note">🔗 Lié à ce jeu de ta collection — <button type="button" class="manage-link" id="pl-unlink-btn">saisir manuellement à la place</button></div>
-      <input type="hidden" id="pl-linked-id">
     </div>
+    <input type="hidden" id="pl-linked-id">
 
-    <div class="field">
-      <label for="pl-nom">Nom du jeu</label>
-      <input type="text" id="pl-nom" placeholder="ex. Rhythm Doctor">
-    </div>
-
-    <div class="field">
-      <label for="pl-plateforme">Plateforme</label>
-      <select id="pl-plateforme"></select>
-    </div>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="pl-format">Format</label>
-        <select id="pl-format">
-          <option value="Physique">Physique</option>
-          <option value="Numérique">Numérique</option>
-          <option value="Abonnement">Abonnement</option>
-          <option value="Partage familial">Partage familial</option>
-          <option value="Émulation / Pirate">Émulation / Pirate</option>
-        </select>
+    <div class="linked-game-card hidden" id="pl-linked-card">
+      <div class="linked-game-card-thumb" id="pl-linked-card-thumb">🎮</div>
+      <div class="linked-game-card-info">
+        <div class="linked-game-card-name" id="pl-linked-card-name"></div>
+        <div class="linked-game-card-tags" id="pl-linked-card-tags"></div>
       </div>
-      <div class="field">
-        <label for="pl-type">Type</label>
-        <select id="pl-type">
-          <option value="Jeu simple">Jeu simple</option>
-          <option value="Compilation">Compilation</option>
-          <option value="Jeu + DLC">Jeu + DLC</option>
-          <option value="DLC extension">DLC</option>
-          <option value="Mise à niveau">Mise à niveau</option>
-        </select>
-      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="pl-unlink-btn">🔗 Délier</button>
     </div>
 
-    <div class="field">
-      <label for="pl-image">Image (URL)</label>
-      <input type="text" id="pl-image" placeholder="https://...">
-      <div class="image-preview" id="pl-image-preview"><span>Aperçu de l'image</span></div>
+    <div id="pl-manual-fields">
+      <div class="field">
+        <label for="pl-nom">Nom du jeu</label>
+        <input type="text" id="pl-nom" placeholder="ex. Rhythm Doctor">
+      </div>
+
+      <div class="field">
+        <label for="pl-plateforme">Plateforme</label>
+        <select id="pl-plateforme"></select>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="pl-format">Format</label>
+          <select id="pl-format">
+            <option value="Physique">Physique</option>
+            <option value="Numérique">Numérique</option>
+            <option value="Abonnement">Abonnement</option>
+            <option value="Partage familial">Partage familial</option>
+            <option value="Émulation / Pirate">Émulation / Pirate</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pl-type">Type</label>
+          <select id="pl-type">
+            <option value="Jeu simple">Jeu simple</option>
+            <option value="Compilation">Compilation</option>
+            <option value="Jeu + DLC">Jeu + DLC</option>
+            <option value="DLC extension">DLC</option>
+            <option value="Mise à niveau">Mise à niveau</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="pl-image">Image (URL)</label>
+        <input type="text" id="pl-image" placeholder="https://...">
+        <div class="image-preview" id="pl-image-preview"><span>Aperçu de l'image</span></div>
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -2377,53 +2413,63 @@
   <div class="modal">
     <h2 id="category-game-modal-title">Ajouter un jeu à la catégorie</h2>
 
-    <div class="field">
+    <div class="field" id="cg-collection-field">
       <label for="cg-collection-search">Depuis ma collection (optionnel — jeux à faire)</label>
       <div class="collection-search-wrap">
         <input type="text" id="cg-collection-search" autocomplete="off" placeholder="Rechercher un jeu à faire de ta collection...">
         <div class="collection-search-list hidden" id="cg-collection-results"></div>
       </div>
-      <div class="linked-note hidden" id="cg-linked-note">🔗 Lié à ce jeu de ta collection — <button type="button" class="manage-link" id="cg-unlink-btn">saisir manuellement à la place</button></div>
-      <input type="hidden" id="cg-linked-id">
     </div>
+    <input type="hidden" id="cg-linked-id">
 
-    <div class="field">
-      <label for="cg-nom">Nom du jeu</label>
-      <input type="text" id="cg-nom" placeholder="ex. Mass Effect 3">
-    </div>
-
-    <div class="field">
-      <label for="cg-plateforme">Plateforme</label>
-      <select id="cg-plateforme"></select>
-    </div>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="cg-format">Format</label>
-        <select id="cg-format">
-          <option value="Physique">Physique</option>
-          <option value="Numérique">Numérique</option>
-          <option value="Abonnement">Abonnement</option>
-          <option value="Partage familial">Partage familial</option>
-          <option value="Émulation / Pirate">Émulation / Pirate</option>
-        </select>
+    <div class="linked-game-card hidden" id="cg-linked-card">
+      <div class="linked-game-card-thumb" id="cg-linked-card-thumb">🎮</div>
+      <div class="linked-game-card-info">
+        <div class="linked-game-card-name" id="cg-linked-card-name"></div>
+        <div class="linked-game-card-tags" id="cg-linked-card-tags"></div>
       </div>
-      <div class="field">
-        <label for="cg-type">Type</label>
-        <select id="cg-type">
-          <option value="Jeu simple">Jeu simple</option>
-          <option value="Compilation">Compilation</option>
-          <option value="Jeu + DLC">Jeu + DLC</option>
-          <option value="DLC extension">DLC</option>
-          <option value="Mise à niveau">Mise à niveau</option>
-        </select>
-      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="cg-unlink-btn">🔗 Délier</button>
     </div>
 
-    <div class="field">
-      <label for="cg-image">Image (URL)</label>
-      <input type="text" id="cg-image" placeholder="https://...">
-      <div class="image-preview" id="cg-image-preview"><span>Aperçu de l'image</span></div>
+    <div id="cg-manual-fields">
+      <div class="field">
+        <label for="cg-nom">Nom du jeu</label>
+        <input type="text" id="cg-nom" placeholder="ex. Mass Effect 3">
+      </div>
+
+      <div class="field">
+        <label for="cg-plateforme">Plateforme</label>
+        <select id="cg-plateforme"></select>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="cg-format">Format</label>
+          <select id="cg-format">
+            <option value="Physique">Physique</option>
+            <option value="Numérique">Numérique</option>
+            <option value="Abonnement">Abonnement</option>
+            <option value="Partage familial">Partage familial</option>
+            <option value="Émulation / Pirate">Émulation / Pirate</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cg-type">Type</label>
+          <select id="cg-type">
+            <option value="Jeu simple">Jeu simple</option>
+            <option value="Compilation">Compilation</option>
+            <option value="Jeu + DLC">Jeu + DLC</option>
+            <option value="DLC extension">DLC</option>
+            <option value="Mise à niveau">Mise à niveau</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="cg-image">Image (URL)</label>
+        <input type="text" id="cg-image" placeholder="https://...">
+        <div class="image-preview" id="cg-image-preview"><span>Aperçu de l'image</span></div>
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -4404,58 +4450,76 @@ function hideCollectionSearchResults(prefix){
 }
 
 function linkModalToGame(prefix, game){
+  const fullGame = GAMES.find(g => g.id === game.id) || game;
+
+  document.getElementById(prefix+'-linked-id').value = game.id;
+
+  const manualFields = document.getElementById(prefix+'-manual-fields');
+  if(manualFields) manualFields.classList.add('hidden');
+  const collectionField = document.getElementById(prefix+'-collection-field');
+  if(collectionField) collectionField.classList.add('hidden');
+  const card = document.getElementById(prefix+'-linked-card');
+  if(card) card.classList.remove('hidden');
+
+  const thumb = document.getElementById(prefix+'-linked-card-thumb');
+  if(thumb){
+    if(fullGame.image){
+      thumb.style.backgroundImage = `url('${fullGame.image.replace(/'/g,"\\'")}')`;
+      thumb.textContent = '';
+    } else {
+      thumb.style.backgroundImage = 'none';
+      thumb.textContent = '🎮';
+    }
+  }
+  const nameEl = document.getElementById(prefix+'-linked-card-name');
+  if(nameEl) nameEl.textContent = fullGame.nom || game.nom;
+  const tagsEl = document.getElementById(prefix+'-linked-card-tags');
+  if(tagsEl){
+    tagsEl.innerHTML = joinMetaSegs(
+      platformTagHtml(fullGame.plateforme || game.plateforme),
+      fullGame.format ? formatTagHtml(fullGame.format) : '',
+      fullGame.type ? typeTagHtml(fullGame.type) : ''
+    );
+  }
+
+  // Les champs sous-jacents restent à jour (masqués) pour que la sauvegarde lise les bonnes valeurs
   const nomEl = document.getElementById(prefix+'-nom');
   const platEl = document.getElementById(prefix+'-plateforme');
   const imgEl = document.getElementById(prefix+'-image');
-  nomEl.value = game.nom;
-  nomEl.disabled = true;
-  setSelectValueAndSync(prefix+'-plateforme', game.plateforme);
-  platEl.disabled = true;
-  const platWrap = platEl.closest('.icon-select-wrap');
-  if(platWrap) platWrap.querySelector('.icon-select-trigger').disabled = true;
-  imgEl.value = game.image || '';
-  imgEl.disabled = true;
+  nomEl.value = fullGame.nom || game.nom;
+  setSelectValueAndSync(prefix+'-plateforme', fullGame.plateforme || game.plateforme);
+  imgEl.value = fullGame.image || game.image || '';
   updateImagePreviewFor(prefix+'-image', prefix+'-image-preview');
-  document.getElementById(prefix+'-linked-id').value = game.id;
-  document.getElementById(prefix+'-linked-note').classList.remove('hidden');
-  document.getElementById(prefix+'-unlink-btn').classList.remove('hidden');
 
   const formatEl = document.getElementById(prefix+'-format');
-  const typeEl = document.getElementById(prefix+'-type');
-  const fullGame = GAMES.find(g => g.id === game.id);
   if(formatEl){
-    const srcFormat = (fullGame && fullGame.format) || game.format;
-    if(srcFormat){
-      setSelectValueAndSync(prefix+'-format', collectionFormatToBacklog(srcFormat));
-    }
-    formatEl.disabled = true;
+    const srcFormat = fullGame.format || game.format;
+    if(srcFormat) setSelectValueAndSync(prefix+'-format', collectionFormatToBacklog(srcFormat));
   }
+  const typeEl = document.getElementById(prefix+'-type');
   if(typeEl){
-    const srcType = fullGame && fullGame.type;
-    if(srcType){
-      setSelectValueAndSync(prefix+'-type', srcType);
-    }
-    typeEl.disabled = true;
+    const srcType = fullGame.type;
+    if(srcType) setSelectValueAndSync(prefix+'-type', srcType);
   }
 }
 
 function unlinkModalGame(prefix, clearAll){
-  const nomEl = document.getElementById(prefix+'-nom');
-  const platEl = document.getElementById(prefix+'-plateforme');
-  const imgEl = document.getElementById(prefix+'-image');
-  const formatEl = document.getElementById(prefix+'-format');
-  const typeEl = document.getElementById(prefix+'-type');
-  nomEl.disabled = false;
-  platEl.disabled = false;
-  imgEl.disabled = false;
-  if(formatEl) formatEl.disabled = false;
-  if(typeEl) typeEl.disabled = false;
-  const platWrap = platEl.closest('.icon-select-wrap');
-  if(platWrap) platWrap.querySelector('.icon-select-trigger').disabled = false;
   document.getElementById(prefix+'-linked-id').value = '';
-  document.getElementById(prefix+'-linked-note').classList.add('hidden');
-  document.getElementById(prefix+'-unlink-btn').classList.add('hidden');
+
+  const manualFields = document.getElementById(prefix+'-manual-fields');
+  if(manualFields) manualFields.classList.remove('hidden');
+  const collectionField = document.getElementById(prefix+'-collection-field');
+  if(collectionField){
+    const replayToggle = document.getElementById(prefix+'-replay-toggle');
+    const inReplayMode = !!(replayToggle && replayToggle.checked);
+    if(!inReplayMode) collectionField.classList.remove('hidden');
+  }
+  const card = document.getElementById(prefix+'-linked-card');
+  if(card) card.classList.add('hidden');
+
   if(clearAll){
+    const nomEl = document.getElementById(prefix+'-nom');
+    const imgEl = document.getElementById(prefix+'-image');
     document.getElementById(prefix+'-collection-search').value = '';
     nomEl.value = '';
     imgEl.value = '';
@@ -5009,6 +5073,7 @@ function openCompletionModal(id, prefill){
       document.getElementById('cp-collection-search').value = `${r.nom} — ${r.plateforme}`;
       linkModalToGame('cp', { id:c.gameId, nom:r.nom, plateforme:r.plateforme, image:r.image });
       setSelectValueAndSync('cp-format', c.format || 'Physique');
+      setSelectValueAndSync('cp-type', c.type || 'Jeu simple');
     } else {
       unlinkModalGame('cp', false);
       document.getElementById('cp-collection-search').value = '';
@@ -5161,6 +5226,7 @@ function openPlayingModal(id){
       document.getElementById('pl-collection-search').value = `${r.nom} — ${r.plateforme}`;
       linkModalToGame('pl', { id:p.gameId, nom:r.nom, plateforme:r.plateforme, image:r.image });
       setSelectValueAndSync('pl-format', p.format || 'Physique');
+      setSelectValueAndSync('pl-type', p.type || 'Jeu simple');
     } else {
       unlinkModalGame('pl', false);
       document.getElementById('pl-collection-search').value = '';
@@ -5301,6 +5367,7 @@ function openCategoryGameModal(catId, gameId){
       document.getElementById('cg-collection-search').value = `${r.nom} — ${r.plateforme}`;
       linkModalToGame('cg', { id:item.gameId, nom:r.nom, plateforme:r.plateforme, image:r.image });
       setSelectValueAndSync('cg-format', item.format || 'Physique');
+      setSelectValueAndSync('cg-type', item.type || 'Jeu simple');
     } else {
       unlinkModalGame('cg', false);
       document.getElementById('cg-collection-search').value = '';
