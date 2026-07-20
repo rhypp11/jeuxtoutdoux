@@ -1956,7 +1956,7 @@
     <div class="top-row">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="search-input" placeholder="Chercher un jeu...">
+        <input type="text" id="search-input" placeholder="Chercher un jeu..." aria-label="Rechercher un jeu">
       </div>
       <select class="sort-select" id="sort-select">
         <option value="name-asc">Nom (A → Z)</option>
@@ -3064,7 +3064,8 @@ function renderCard(g){
   const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
   const backlogRef = getGameBacklogRef(g.id);
 
-  const statusButtons = STATUS_OPTIONS.map(s => {
+  const CARD_STATUS_OPTIONS = STATUS_OPTIONS.filter(s => s.key !== 'en_cours');
+  const statusButtons = CARD_STATUS_OPTIONS.map(s => {
     const isActive = g.status === s.key;
     const style = isActive ? ` style="border-color:${s.border};color:color-mix(in srgb, ${s.color} 65%, var(--muted) 35%);background:${s.bg};"` : '';
     return `<button class="status-btn${isActive ? ' active':''}" data-status="${s.key}"${style}>${s.icon}<span>${s.label}</span></button>`;
