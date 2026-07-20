@@ -1511,7 +1511,7 @@
   .backlog-mini-stat .num{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;color:var(--muted);}
 
   .backlog-main{
-    padding:28px 24px 60px;
+    padding:0 24px 60px;
     display:flex;
     flex-direction:column;
     gap:16px;
@@ -1576,21 +1576,26 @@
     position:sticky;
     top:0;
     z-index:4;
-    display:flex;align-items:center;gap:10px;
+    display:flex;align-items:center;gap:12px;
     background:var(--surface-raised);
-    border:1px solid var(--hairline);
-    border-radius:10px 10px 0 0;
-    padding:12px 16px;
+    border-bottom:1px solid var(--hairline);
+    margin:0 -24px;
+    padding:14px 24px;
     font-family:'Segoe UI','Roboto',sans-serif;
     font-size:16px;
     font-weight:700;
     color:var(--amber);
-    box-shadow:0 6px 14px rgba(0,0,0,0.24);
+    box-shadow:0 10px 24px rgba(0,0,0,0.28);
   }
+  .year-block-title .year-block-year{display:flex;align-items:center;gap:10px;}
   .year-block-title .board-count{font-size:12px;}
-  .year-block-title + .completion-table{
-    border-radius:0 0 12px 12px;
+  .year-block-title .add-btn-inline{margin-left:auto;flex-shrink:0;}
+  .year-block .completion-table{
+    margin:0 -24px;
+    border-radius:0;
     border-top:none;
+    border-left:none;
+    border-right:none;
   }
   .completion-table{
     background:var(--surface);
@@ -1663,13 +1668,23 @@
   .completion-comment-icon{font-size:14px;cursor:help;opacity:0.85;}
 
   .backlog-board{
-    padding:24px 18px 40px;
+    padding:24px 18px 0;
     display:flex;
     flex-direction:column;
     gap:16px;
     min-width:0;
     background:var(--surface);
+    overflow:hidden;
+  }
+  .backlog-board-pinned{flex-shrink:0;}
+  .backlog-categories-scroll{
+    flex:1;
+    min-height:0;
     overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    padding-bottom:24px;
   }
   .backlog-board-title{
     font-family:'Segoe UI','Roboto',sans-serif;
@@ -2181,27 +2196,24 @@
     </aside>
 
     <main class="backlog-main">
-      <div class="top-row">
-        <button class="mobile-filter-toggle" id="backlog-filter-toggle" aria-label="Afficher les statistiques et filtres">☰ Stats & filtres</button>
-        <h2 class="backlog-section-title">Complétions <span class="board-count" id="completion-count">0</span></h2>
-        <button class="add-btn add-btn-inline" id="add-completion-btn">+ Ajouter une complétion</button>
-      </div>
       <div class="completion-table-zone" id="completion-table-zone">
         <div id="completion-tables-wrapper"></div>
       </div>
     </main>
 
     <section class="backlog-board">
-      <div>
+      <div class="backlog-board-pinned">
         <div class="backlog-board-title">▶ En cours <span class="board-count" id="playing-count">0/3</span></div>
+        <div class="playing-rows" id="playing-rows"></div>
       </div>
-      <div class="playing-rows" id="playing-rows"></div>
 
-      <div class="backlog-categories-head">
-        <span class="side-label" style="margin:0;">Catégories du backlog</span>
-        <button class="icon-link-btn" id="manage-categories-btn" title="Gérer les catégories">✎ Gérer</button>
+      <div class="backlog-categories-scroll">
+        <div class="backlog-categories-head">
+          <span class="side-label" style="margin:0;">Catégories du backlog</span>
+          <button class="icon-link-btn" id="manage-categories-btn" title="Gérer les catégories">✎ Gérer</button>
+        </div>
+        <div class="backlog-categories" id="backlog-categories"></div>
       </div>
-      <div class="backlog-categories" id="backlog-categories"></div>
     </section>
 
   </div>
@@ -4227,9 +4239,6 @@ document.getElementById('mobile-backdrop').addEventListener('click', closeMobile
 document.getElementById('collection-filter-toggle')?.addEventListener('click', () => {
   toggleMobileDrawer(document.getElementById('collection-sidebar'));
 });
-document.getElementById('backlog-filter-toggle')?.addEventListener('click', () => {
-  toggleMobileDrawer(document.getElementById('backlog-sidebar'));
-});
 window.addEventListener('resize', () => {
   if(window.innerWidth > 1100) closeMobileDrawers();
 });
@@ -4983,12 +4992,16 @@ function completionRowHtml(c){
   </div>`;
 }
 
-function yearBlockHtml(year, list, hideTitle){
+function yearBlockHtml(year, list){
   const sorted = [...list].sort((a,b) => (a.date||'').localeCompare(b.date||''));
   const rowsHtml = sorted.length === 0
     ? `<div class="board-empty">Aucune complétion pour ${year}.</div>`
     : sorted.map(completionRowHtml).join('');
-  const titleHtml = hideTitle ? '' : `<div class="year-block-title">📅 ${year}<span class="board-count">${sorted.length}</span></div>`;
+  const titleHtml = `<div class="year-block-title">
+    <button type="button" class="mobile-filter-toggle" data-backlog-toggle aria-label="Afficher les statistiques et filtres">☰</button>
+    <span class="year-block-year">📅 ${year}<span class="board-count">${sorted.length}</span></span>
+    <button type="button" class="add-btn add-btn-inline" data-add-completion>+ Ajouter une complétion</button>
+  </div>`;
   return `
     <div class="year-block" data-year="${year}">
       ${titleHtml}
@@ -5006,7 +5019,6 @@ function yearBlockHtml(year, list, hideTitle){
 function renderCompletionTable(){
   populateYearFilter();
   const wrapper = document.getElementById('completion-tables-wrapper');
-  document.getElementById('completion-count').textContent = getVisibleCompletions().length;
 
   if(backlogYearFilter === 'all'){
     const years = getBacklogAvailableYears();
@@ -5016,11 +5028,17 @@ function renderCompletionTable(){
       wrapper.innerHTML = years.map(y => yearBlockHtml(y, BACKLOG_COMPLETIONS.filter(c => (c.date||'').slice(0,4) === y))).join('');
     }
   } else {
-    wrapper.innerHTML = yearBlockHtml(backlogYearFilter, getVisibleCompletions(), true);
+    wrapper.innerHTML = yearBlockHtml(backlogYearFilter, getVisibleCompletions());
   }
 
   wrapper.querySelectorAll('.completion-row').forEach(row => {
     row.addEventListener('click', () => openCompletionModal(row.dataset.id));
+  });
+  wrapper.querySelectorAll('[data-add-completion]').forEach(btn => {
+    btn.addEventListener('click', () => openCompletionModal(null));
+  });
+  wrapper.querySelectorAll('[data-backlog-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => toggleMobileDrawer(document.getElementById('backlog-sidebar')));
   });
 
   wireCompletionsDropZone();
@@ -5506,7 +5524,6 @@ function addCategory(){
 }
 
 /* ---------- Événements Backlog ---------- */
-document.getElementById('add-completion-btn').addEventListener('click', () => openCompletionModal(null));
 document.getElementById('backlog-year-select').addEventListener('change', (e) => {
   backlogYearFilter = e.target.value;
   renderBacklogStats();
