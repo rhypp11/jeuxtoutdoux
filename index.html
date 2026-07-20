@@ -4421,12 +4421,21 @@ function linkModalToGame(prefix, game){
   document.getElementById(prefix+'-unlink-btn').classList.remove('hidden');
 
   const formatEl = document.getElementById(prefix+'-format');
+  const typeEl = document.getElementById(prefix+'-type');
+  const fullGame = GAMES.find(g => g.id === game.id);
   if(formatEl){
-    const fullGame = GAMES.find(g => g.id === game.id);
     const srcFormat = (fullGame && fullGame.format) || game.format;
     if(srcFormat){
       setSelectValueAndSync(prefix+'-format', collectionFormatToBacklog(srcFormat));
     }
+    formatEl.disabled = true;
+  }
+  if(typeEl){
+    const srcType = fullGame && fullGame.type;
+    if(srcType){
+      setSelectValueAndSync(prefix+'-type', srcType);
+    }
+    typeEl.disabled = true;
   }
 }
 
@@ -4434,9 +4443,13 @@ function unlinkModalGame(prefix, clearAll){
   const nomEl = document.getElementById(prefix+'-nom');
   const platEl = document.getElementById(prefix+'-plateforme');
   const imgEl = document.getElementById(prefix+'-image');
+  const formatEl = document.getElementById(prefix+'-format');
+  const typeEl = document.getElementById(prefix+'-type');
   nomEl.disabled = false;
   platEl.disabled = false;
   imgEl.disabled = false;
+  if(formatEl) formatEl.disabled = false;
+  if(typeEl) typeEl.disabled = false;
   const platWrap = platEl.closest('.icon-select-wrap');
   if(platWrap) platWrap.querySelector('.icon-select-trigger').disabled = false;
   document.getElementById(prefix+'-linked-id').value = '';
