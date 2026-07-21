@@ -1124,6 +1124,7 @@
   }
   .linked-game-card-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}
   #cp-manual-fields,#pl-manual-fields,#cg-manual-fields{display:flex;flex-direction:column;gap:14px;}
+  #f-quick-hide-fields{display:flex;flex-direction:column;gap:14px;}
   .linked-chip{font-size:11px;}
   .collection-search-wrap{position:relative;}
   .collection-search-list{
@@ -2081,6 +2082,12 @@
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
 
+    <label class="replay-switch-row hidden" for="f-quick-toggle" id="f-quick-toggle-row">
+      <input type="checkbox" id="f-quick-toggle">
+      <span class="replay-switch"></span>
+      <span class="replay-switch-label">⚡ Ajout rapide (juste l'essentiel — tu complètes le reste plus tard)</span>
+    </label>
+
     <div class="field">
       <label for="f-nom">Nom du jeu</label>
       <input type="text" id="f-nom" placeholder="ex. Hollow Knight">
@@ -2091,26 +2098,7 @@
         <label for="f-plateforme">Plateforme</label>
         <select id="f-plateforme"></select>
       </div>
-    </div>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="f-prix">Prix (€)</label>
-        <input type="text" id="f-prix" placeholder="ex. 39,99">
-      </div>
-      <div class="field">
-        <label for="f-date">Date d'achat</label>
-        <input type="date" id="f-date">
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="f-source">Source d'achat</label>
-      <input type="text" id="f-source" placeholder="ex. Fnac">
-    </div>
-
-    <div class="field-row">
-      <div class="field">
+      <div class="field" style="flex:1;">
         <label for="f-format">Format</label>
         <select id="f-format">
           <option value="Physique">Physique</option>
@@ -2118,6 +2106,25 @@
           <option value="Collector">Collector</option>
         </select>
       </div>
+    </div>
+
+    <div id="f-quick-hide-fields">
+      <div class="field-row">
+        <div class="field">
+          <label for="f-prix">Prix (€)</label>
+          <input type="text" id="f-prix" placeholder="ex. 39,99">
+        </div>
+        <div class="field">
+          <label for="f-date">Date d'achat</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-source">Source d'achat</label>
+        <input type="text" id="f-source" placeholder="ex. Fnac">
+      </div>
+
       <div class="field">
         <label for="f-type">Type</label>
         <select id="f-type">
@@ -2128,12 +2135,12 @@
           <option value="Mise à niveau">Mise à niveau</option>
         </select>
       </div>
-    </div>
 
-    <div class="field">
-      <label for="f-image">Image (URL, ex. depuis DekuDeals)</label>
-      <input type="text" id="f-image" placeholder="https://...">
-      <div class="image-preview" id="image-preview"><span>Aperçu de l'image</span></div>
+      <div class="field">
+        <label for="f-image">Image (URL, ex. depuis DekuDeals)</label>
+        <input type="text" id="f-image" placeholder="https://...">
+        <div class="image-preview" id="image-preview"><span>Aperçu de l'image</span></div>
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -3450,6 +3457,25 @@ function setSelectValueAndSync(selectId, value){
   syncIconSelectTrigger(selectId);
 }
 
+function getLastUsed(key, fallback){
+  try {
+    const v = localStorage.getItem('jtd-last-'+key);
+    return (v !== null && v !== '') ? v : fallback;
+  } catch(e){ return fallback; }
+}
+function setLastUsed(key, value){
+  try { localStorage.setItem('jtd-last-'+key, value); } catch(e){}
+}
+
+function setQuickMode(on){
+  document.getElementById('f-quick-hide-fields').classList.toggle('hidden', on);
+  document.getElementById('f-quick-toggle').checked = on;
+}
+document.getElementById('f-quick-toggle').addEventListener('change', (e) => {
+  setQuickMode(e.target.checked);
+  setLastUsed('quickmode', e.target.checked ? '1' : '0');
+});
+
 function openModal(id){
   editingId = id || null;
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
@@ -3461,6 +3487,8 @@ function openModal(id){
     const g = GAMES.find(x => x.id === editingId);
     title.textContent = 'Modifier ce jeu';
     deleteBtn.classList.remove('hidden');
+    document.getElementById('f-quick-toggle-row').classList.add('hidden');
+    document.getElementById('f-quick-hide-fields').classList.remove('hidden');
     document.getElementById('f-nom').value = g.nom || '';
     setSelectValueAndSync('f-format', g.format || 'Physique');
     populatePlatformSelect('f-plateforme', g.format === 'Numérique');
@@ -3474,18 +3502,24 @@ function openModal(id){
   } else {
     title.textContent = 'Ajouter un jeu';
     deleteBtn.classList.add('hidden');
+    document.getElementById('f-quick-toggle-row').classList.remove('hidden');
     document.getElementById('f-nom').value = '';
-    setSelectValueAndSync('f-format', 'Physique');
-    populatePlatformSelect('f-plateforme', false);
+    const lastFormat = getLastUsed('format', 'Physique');
+    setSelectValueAndSync('f-format', lastFormat);
+    populatePlatformSelect('f-plateforme', lastFormat === 'Numérique');
     if(state.platform){
       setSelectValueAndSync('f-plateforme', state.platform);
+    } else {
+      const lastPlatform = getLastUsed('platform', '');
+      if(lastPlatform) setSelectValueAndSync('f-plateforme', lastPlatform);
     }
-    populateTypeSelect('f-type', 'Physique');
+    populateTypeSelect('f-type', lastFormat);
     setSelectValueAndSync('f-type', 'Jeu simple');
     document.getElementById('f-prix').value = '';
     document.getElementById('f-date').value = '';
     document.getElementById('f-source').value = '';
     document.getElementById('f-image').value = '';
+    setQuickMode(getLastUsed('quickmode', '0') === '1');
   }
   updateImagePreview();
   document.getElementById('modal-overlay').classList.remove('hidden');
@@ -3541,6 +3575,8 @@ function saveModal(){
   }
 
   saveGames();
+  setLastUsed('platform', plateforme);
+  setLastUsed('format', format);
   closeModal();
   buildPlatformList();
   render();
@@ -4708,7 +4744,7 @@ function handleDropOnCompletions(){
 function openQuickCompleteModal(item){
   document.getElementById('qc-preview-name').textContent = item.nom;
   document.getElementById('qc-preview-plat').innerHTML = joinMetaSegs(platformTagHtml(item.plateforme), formatTagHtml(item.format), typeTagHtml(item.type));
-  document.getElementById('qc-date').value = '';
+  document.getElementById('qc-date').value = new Date().toISOString().slice(0,10);
   document.getElementById('qc-statut').value = 'Fini';
   document.getElementById('quick-complete-modal-overlay').classList.remove('hidden');
   document.getElementById('qc-date').focus();
@@ -5102,7 +5138,7 @@ function openCompletionModal(id, prefill){
   } else {
     title.textContent = 'Ajouter une complétion';
     deleteBtn.classList.add('hidden');
-    document.getElementById('cp-date').value = '';
+    document.getElementById('cp-date').value = new Date().toISOString().slice(0,10);
     setSelectValueAndSync('cp-format', 'Physique');
     setSelectValueAndSync('cp-type', 'Jeu simple');
     document.getElementById('cp-statut').value = 'Fini';
