@@ -1513,11 +1513,11 @@
   .backlog-mini-stat .num{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;color:var(--muted);}
 
   .backlog-main{
-    margin:8px 0 8px 8px;
-    padding:14px 10px 40px;
+    margin:8px 8px 8px 8px;
+    padding:0 10px 40px;
     display:flex;
     flex-direction:column;
-    gap:16px;
+    gap:0;
     min-width:0;
     background:var(--surface-raised);
     border:1px solid var(--hairline);
@@ -1557,13 +1557,7 @@
   .meta-sep{opacity:0.4;}
 
   .backlog-year-filter-section{
-    position:sticky;
-    top:0;
-    z-index:6;
-    background:var(--surface-raised);
-    padding-top:2px;
-    padding-bottom:10px;
-    margin-bottom:-2px;
+    background:var(--surface);
   }
   #backlog-year-select{
     width:100%;
@@ -1576,13 +1570,34 @@
     font-family:'JetBrains Mono',monospace;
     cursor:pointer;
   }
+  .backlog-columns-head{
+    position:sticky;
+    top:0;
+    z-index:6;
+    display:grid;
+    grid-template-columns:52px 110px 1fr 104px 70px 28px;
+    gap:12px;
+    align-items:center;
+    padding:12px 16px;
+    margin:0 -10px;
+    background:var(--surface-raised);
+    border-bottom:1px solid var(--hairline);
+    border-top-left-radius:17px;
+    border-top-right-radius:17px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    letter-spacing:0.07em;
+    text-transform:uppercase;
+    color:var(--muted);
+    box-shadow:0 8px 20px rgba(0,0,0,0.22);
+  }
   .completion-table-zone{display:flex;flex-direction:column;gap:0;}
   .year-block{display:flex;flex-direction:column;}
   .year-block + .year-block{margin-top:20px;}
   .year-block-title{
     position:sticky;
-    top:0;
-    z-index:4;
+    top:36px;
+    z-index:5;
     display:flex;align-items:center;gap:12px;
     background:var(--surface-raised);
     border-bottom:1px solid var(--hairline);
@@ -1610,23 +1625,12 @@
     border-radius:12px;
     overflow:hidden;
   }
-  .completion-head,
   .completion-row{
     display:grid;
     grid-template-columns:52px 110px 1fr 104px 70px 28px;
     gap:12px;
     align-items:center;
     padding:12px 16px;
-  }
-  .completion-head{
-    background:var(--surface-raised);
-    font-family:'JetBrains Mono',monospace;
-    font-size:9px;
-    letter-spacing:0.07em;
-    text-transform:uppercase;
-    color:var(--muted);
-  }
-  .completion-row{
     border-top:1px solid var(--hairline);
     border-left:4px solid var(--spine, var(--hairline));
     position:relative;
@@ -1828,7 +1832,7 @@
     #backlog-sidebar.mobile-open{transform:translateX(0);}
     #backlog-sidebar .side-section{min-width:0;}
     .backlog-main,.backlog-board{margin:8px;overflow-y:visible;}
-    .completion-head,.completion-row{grid-template-columns:44px 84px 1fr 60px 54px 22px;gap:8px;padding:10px 12px;}
+    .backlog-columns-head,.completion-row{grid-template-columns:44px 84px 1fr 60px 54px 22px;gap:8px;padding:10px 12px;}
     .media-thumb{width:96px;}
   }
 </style>
@@ -2227,6 +2231,9 @@
     </aside>
 
     <main class="backlog-main">
+      <div class="backlog-columns-head">
+        <span>Date</span><span></span><span>Jeu</span><span>Statut</span><span>Note</span><span></span>
+      </div>
       <div class="completion-table-zone" id="completion-table-zone">
         <div id="completion-tables-wrapper"></div>
       </div>
@@ -5065,9 +5072,6 @@ function yearBlockHtml(year, list){
     <div class="year-block" data-year="${year}">
       ${titleHtml}
       <div class="completion-table">
-        <div class="completion-head">
-          <span>Date</span><span></span><span>Jeu</span><span>Statut</span><span>Note</span><span></span>
-        </div>
         ${rowsHtml}
       </div>
     </div>
