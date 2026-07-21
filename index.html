@@ -1127,6 +1127,7 @@
   #f-quick-hide-fields{display:flex;flex-direction:column;gap:14px;}
   .linked-chip{font-size:11px;}
   .collection-search-wrap{position:relative;}
+  .collection-search-wrap input{width:100%;}
   .collection-search-list{
     position:absolute;
     top:calc(100% + 4px);
@@ -2300,21 +2301,19 @@
       </div>
     </div>
 
-    <div class="field">
-      <label for="cp-date">Date de complétion</label>
-      <input type="date" id="cp-date">
-    </div>
-
-    <div class="field">
-      <label for="cp-statut">Statut</label>
-      <select id="cp-statut">
-        <option value="Fini">Fini</option>
-        <option value="100%">100%</option>
-        <option value="Succès">Succès</option>
-      </select>
-    </div>
-
     <div class="field-row">
+      <div class="field">
+        <label for="cp-date">Date de complétion</label>
+        <input type="date" id="cp-date">
+      </div>
+      <div class="field">
+        <label for="cp-statut">Statut</label>
+        <select id="cp-statut">
+          <option value="Fini">Fini</option>
+          <option value="100%">100%</option>
+          <option value="Succès">Succès</option>
+        </select>
+      </div>
       <div class="field">
         <label for="cp-note">Note</label>
         <select id="cp-note">
@@ -2325,10 +2324,11 @@
           <option value="C">C</option>
         </select>
       </div>
-      <div class="field" style="flex:2;">
-        <label for="cp-commentaire">Commentaire (optionnel)</label>
-        <input type="text" id="cp-commentaire" placeholder="Impressions, souvenir, ce qui t'a marqué...">
-      </div>
+    </div>
+
+    <div class="field">
+      <label for="cp-commentaire">Commentaire (optionnel)</label>
+      <textarea id="cp-commentaire" rows="3" placeholder="Impressions, souvenir, ce qui t'a marqué..."></textarea>
     </div>
 
     <div class="modal-actions">
@@ -4561,16 +4561,16 @@ function unlinkModalGame(prefix, clearAll){
   }
   const card = document.getElementById(prefix+'-linked-card');
   if(card) card.classList.add('hidden');
+  document.getElementById(prefix+'-collection-search').value = '';
+  hideCollectionSearchResults(prefix);
 
   if(clearAll){
     const nomEl = document.getElementById(prefix+'-nom');
     const imgEl = document.getElementById(prefix+'-image');
-    document.getElementById(prefix+'-collection-search').value = '';
     nomEl.value = '';
     imgEl.value = '';
     setSelectValueAndSync(prefix+'-plateforme', getBacklogPlatformNames()[0] || '');
     updateImagePreviewFor(prefix+'-image', prefix+'-image-preview');
-    hideCollectionSearchResults(prefix);
   }
 }
 
@@ -4586,7 +4586,7 @@ function wireCollectionSearch(prefix){
   search.addEventListener('keydown', (e) => {
     if(e.key === 'Escape') hideCollectionSearchResults(prefix);
   });
-  document.getElementById(prefix+'-unlink-btn').addEventListener('click', () => unlinkModalGame(prefix, true));
+  document.getElementById(prefix+'-unlink-btn').addEventListener('click', () => unlinkModalGame(prefix, false));
 }
 
 /* ---------- Replay : rejouer à un jeu déjà présent dans les complétions ---------- */
@@ -5301,7 +5301,9 @@ function openPlayingModal(id){
   }
   updateImagePreviewFor('pl-image','pl-image-preview');
   document.getElementById('playing-modal-overlay').classList.remove('hidden');
-  document.getElementById('pl-collection-search').focus();
+  if(!document.getElementById('pl-linked-id').value){
+    document.getElementById('pl-nom').focus();
+  }
 }
 
 function closePlayingModal(){
@@ -5442,7 +5444,9 @@ function openCategoryGameModal(catId, gameId){
   }
   updateImagePreviewFor('cg-image','cg-image-preview');
   document.getElementById('category-game-modal-overlay').classList.remove('hidden');
-  document.getElementById('cg-collection-search').focus();
+  if(!document.getElementById('cg-linked-id').value){
+    document.getElementById('cg-nom').focus();
+  }
 }
 
 function closeCategoryGameModal(){
