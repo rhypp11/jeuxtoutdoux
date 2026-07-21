@@ -1670,12 +1670,16 @@
   .completion-comment-icon{font-size:14px;cursor:help;opacity:0.85;}
 
   .backlog-board{
-    padding:24px 18px 0;
+    margin:16px 16px 16px 0;
+    padding:20px 16px 16px;
     display:flex;
     flex-direction:column;
     gap:16px;
     min-width:0;
-    background:var(--surface);
+    background:var(--surface-raised);
+    border:1px solid var(--hairline);
+    border-radius:18px;
+    box-shadow:0 10px 28px rgba(0,0,0,0.22);
     overflow:hidden;
   }
   .backlog-board-pinned{flex-shrink:0;}
@@ -1686,7 +1690,9 @@
     display:flex;
     flex-direction:column;
     gap:16px;
-    padding-bottom:24px;
+    padding:14px 14px 20px;
+    background:var(--surface);
+    border-radius:14px;
   }
   .backlog-board-title{
     font-family:'Segoe UI','Roboto',sans-serif;
@@ -1728,7 +1734,7 @@
   }
   .backlog-categories{display:flex;flex-direction:column;gap:14px;}
   .backlog-category{
-    background:var(--surface);
+    background:var(--surface-raised);
     border:1px solid var(--hairline);
     border-radius:10px;
     overflow:hidden;
@@ -1746,6 +1752,28 @@
     min-width:0;
   }
   .backlog-category-head h3 .cat-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .backlog-category-head h3 .cat-count{
+    flex-shrink:0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--muted);
+    background:var(--surface);
+    border-radius:20px;
+    padding:2px 7px;
+  }
+  .backlog-category-add-icon{
+    flex-shrink:0;
+    width:22px;height:22px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:50%;
+    color:var(--muted);
+    font-size:14px;line-height:1;
+    cursor:pointer;
+  }
+  .backlog-category-add-icon:hover{color:var(--teal);border-color:var(--teal);}
   .backlog-category-games{display:flex;flex-direction:column;}
   .backlog-category-game{
     display:flex;align-items:flex-start;gap:10px;
@@ -1761,16 +1789,6 @@
   .backlog-category-game .icon-btn svg{width:13px;height:13px;}
   @media (hover:none){ .backlog-category-game .icon-btn{opacity:1;} }
   .backlog-category-empty{padding:12px;text-align:center;color:var(--muted);font-size:11px;}
-  .backlog-category-add{
-    display:flex;align-items:center;gap:6px;
-    padding:8px 12px;
-    border-top:1px solid var(--hairline);
-    color:var(--muted);
-    font-size:11px;
-    cursor:pointer;
-    background:none;border:none;width:100%;text-align:left;
-  }
-  .backlog-category-add:hover{color:var(--teal);}
   .backlog-categories-empty{
     text-align:center;color:var(--muted);font-size:12px;
     padding:20px 10px;
@@ -5370,11 +5388,10 @@ function renderBacklogCategories(){
     return `
       <div class="backlog-category" style="--spine:${cat.couleur}" data-cat-id="${cat.id}">
         <div class="backlog-category-head">
-          <h3><span class="spine-chip" style="--spine:${cat.couleur}"></span><span class="cat-name">${cat.titre}</span></h3>
-          <span class="board-count">${cat.jeux.length}</span>
+          <h3><span class="spine-chip" style="--spine:${cat.couleur}"></span><span class="cat-name">${cat.titre}</span><span class="cat-count">${cat.jeux.length}</span></h3>
+          <button type="button" class="backlog-category-add-icon" data-cat="${cat.id}" title="Ajouter un jeu" aria-label="Ajouter un jeu">+</button>
         </div>
         <div class="backlog-category-games">${gamesHtml}</div>
-        <button type="button" class="backlog-category-add" data-cat="${cat.id}">+ Ajouter un jeu</button>
       </div>
     `;
   }).join('');
@@ -5383,7 +5400,7 @@ function renderBacklogCategories(){
     row.addEventListener('click', () => openCategoryGameModal(row.dataset.cat, row.dataset.game));
     wireDragSource(row);
   });
-  container.querySelectorAll('.backlog-category-add').forEach(btn => {
+  container.querySelectorAll('.backlog-category-add-icon').forEach(btn => {
     btn.addEventListener('click', () => openCategoryGameModal(btn.dataset.cat, null));
   });
   container.querySelectorAll('.backlog-category').forEach(catEl => wireCategoryDropZone(catEl));
