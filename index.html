@@ -625,6 +625,7 @@
     white-space:nowrap;
     flex-shrink:0;
   }
+  .top-row .add-btn-inline{margin-left:auto;}
 
   .reset-btn{
     margin-top:auto;
@@ -740,7 +741,6 @@
     gap:16px;
     flex-wrap:wrap;
     align-items:center;
-    justify-content:space-between;
   }
   .search-wrap{
     position:relative;
@@ -1208,6 +1208,98 @@
   }
   .field-row{display:flex;gap:10px;}
   .field-row .field{flex:1;}
+
+  /* ---------- Toasts (avec annulation) ---------- */
+  .toast-stack{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%);
+    z-index:200;
+    display:flex;
+    flex-direction:column-reverse;
+    gap:8px;
+    align-items:center;
+    pointer-events:none;
+  }
+  .toast{
+    pointer-events:auto;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--surface-raised);
+    border:1px solid var(--hairline);
+    border-radius:10px;
+    padding:11px 14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    font-size:13px;
+    color:var(--text);
+    max-width:90vw;
+    animation:toast-in .18s ease;
+  }
+  @keyframes toast-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .toast.leaving{animation:toast-out .15s ease forwards;}
+  @keyframes toast-out{to{opacity:0;transform:translateY(8px);}}
+  .toast-message{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .toast-action{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+    color:var(--teal);
+    background:none;
+    border:none;
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .toast-action:hover{filter:brightness(1.15);}
+  .toast-close{
+    color:var(--muted);
+    background:none;border:none;cursor:pointer;
+    font-size:14px;
+    flex-shrink:0;
+    line-height:1;
+    padding:2px;
+  }
+  .toast-close:hover{color:var(--text);}
+
+  /* ---------- Modale de confirmation ---------- */
+  .confirm-modal{max-width:400px;gap:16px;}
+  .confirm-modal-message{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0;}
+
+  .results-bar{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    font-size:12.5px;
+    color:var(--muted);
+    margin:-4px 0 2px;
+  }
+  .results-bar .results-count{
+    font-weight:600;
+    color:var(--text);
+  }
+  .results-bar .results-filters{
+    color:var(--muted);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .results-bar .results-filters b{color:var(--teal);font-weight:600;}
+  .results-reset-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    background:none;
+    border:1px solid var(--hairline);
+    border-radius:20px;
+    padding:3px 10px;
+    cursor:pointer;
+    margin-left:auto;
+    flex-shrink:0;
+  }
+  .results-reset-btn:hover{color:var(--teal);border-color:var(--teal);}
 
   /* ---------- Carte "identité du jeu" commune à toutes les modales ---------- */
   .modal-game-card{
@@ -1892,6 +1984,20 @@
 
 <div class="mobile-backdrop" id="mobile-backdrop"></div>
 
+<div class="toast-stack" id="toast-stack"></div>
+
+<div class="modal-overlay hidden" id="confirm-modal-overlay">
+  <div class="modal confirm-modal">
+    <h2 id="confirm-modal-title">Confirmer</h2>
+    <p id="confirm-modal-message" class="confirm-modal-message"></p>
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" id="confirm-modal-cancel-btn">Annuler</button>
+      <button class="btn btn-danger" id="confirm-modal-confirm-btn">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <nav class="topnav">
   <div class="topnav-inner">
     <button class="nav-tab active" data-page="home"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg>Accueil</button>
@@ -2132,6 +2238,7 @@
       <button class="add-btn add-btn-inline" id="add-btn">+ Ajouter un jeu</button>
     </div>
 
+    <div class="results-bar" id="results-bar"></div>
     <div class="grid" id="grid"></div>
   </main>
 </div>
@@ -2819,6 +2926,57 @@ let state = {
   sort: "name-asc"
 };
 
+/* ---------- Toasts & confirmation réutilisables ---------- */
+let toastTimer = null;
+function showToast(message, actionLabel, onAction, duration){
+  const stack = document.getElementById('toast-stack');
+  if(!stack) return;
+  stack.innerHTML = '';
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  const actionHtml = actionLabel ? `<button type="button" class="toast-action">${actionLabel}</button>` : '';
+  toast.innerHTML = `<span class="toast-message">${message}</span>${actionHtml}<button type="button" class="toast-close" aria-label="Fermer">✕</button>`;
+  stack.appendChild(toast);
+
+  const remove = () => {
+    toast.classList.add('leaving');
+    setTimeout(() => toast.remove(), 160);
+  };
+  if(actionLabel){
+    toast.querySelector('.toast-action').addEventListener('click', () => {
+      clearTimeout(toastTimer);
+      remove();
+      onAction && onAction();
+    });
+  }
+  toast.querySelector('.toast-close').addEventListener('click', () => {
+    clearTimeout(toastTimer);
+    remove();
+  });
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(remove, duration || 6000);
+}
+
+function confirmAction(message, onConfirm, opts){
+  const overlay = document.getElementById('confirm-modal-overlay');
+  document.getElementById('confirm-modal-title').textContent = (opts && opts.title) || 'Confirmer la suppression';
+  document.getElementById('confirm-modal-message').textContent = message;
+  const confirmBtn = document.getElementById('confirm-modal-confirm-btn');
+  confirmBtn.textContent = (opts && opts.confirmLabel) || 'Supprimer';
+  overlay.classList.remove('hidden');
+
+  const cleanup = () => {
+    overlay.classList.add('hidden');
+    confirmBtn.removeEventListener('click', onConfirmClick);
+    cancelBtn.removeEventListener('click', onCancelClick);
+  };
+  const onConfirmClick = () => { cleanup(); onConfirm(); };
+  const onCancelClick = () => { cleanup(); };
+  const cancelBtn = document.getElementById('confirm-modal-cancel-btn');
+  confirmBtn.addEventListener('click', onConfirmClick);
+  cancelBtn.addEventListener('click', onCancelClick);
+}
+
 function euros(n){
   if(n === null || n === undefined) return "—";
   return n.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
@@ -3402,9 +3560,34 @@ function renderCard(g){
   return card;
 }
 
+function renderResultsBar(count){
+  const bar = document.getElementById('results-bar');
+  if(!bar) return;
+
+  const filters = [];
+  if(state.platform) filters.push(state.platform);
+  if(state.collector) filters.push('⭐ Collector');
+  if(state.type) filters.push((TYPE_META[state.type] || {}).label || state.type);
+  if(state.status){
+    const s = STATUS_OPTIONS.find(x => x.key === state.status);
+    filters.push(state.status === '__none__' ? 'Sans statut' : (s ? s.label : state.status));
+  }
+  if(state.search.trim()) filters.push(`« ${state.search.trim()} »`);
+
+  let html = `<span class="results-count">${count} jeu${count > 1 ? 'x' : ''}</span>`;
+  if(filters.length){
+    html += `<span class="results-filters">${filters.map(f => `<b>${f}</b>`).join(' · ')}</span>`;
+    html += `<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>`;
+  }
+  bar.innerHTML = html;
+  const resetBtn = document.getElementById('results-reset-btn');
+  if(resetBtn) resetBtn.addEventListener('click', () => document.getElementById('reset-btn').click());
+}
+
 function render(){
   const games = sortGames(filteredGames());
   renderPlatformBanner(games);
+  renderResultsBar(games.length);
 
   const grid = document.getElementById('grid');
   grid.innerHTML = "";
@@ -3697,12 +3880,22 @@ function saveModal(){
 
 function deleteGame(){
   if(!editingId) return;
-  if(!confirm('Supprimer ce jeu de la ludothèque ?')) return;
-  GAMES = GAMES.filter(g => g.id !== editingId);
-  saveGames();
-  closeModal();
-  buildPlatformList();
-  render();
+  const g = GAMES.find(x => x.id === editingId);
+  if(!g) return;
+  confirmAction(`Supprimer « ${g.nom} » de la ludothèque ?`, () => {
+    const idx = GAMES.indexOf(g);
+    GAMES = GAMES.filter(x => x.id !== editingId);
+    saveGames();
+    closeModal();
+    buildPlatformList();
+    render();
+    showToast(`« ${g.nom} » supprimé`, 'Annuler', () => {
+      GAMES.splice(Math.min(idx, GAMES.length), 0, g);
+      saveGames();
+      buildPlatformList();
+      render();
+    });
+  });
 }
 
 /* ---------- Accueil : Stats ---------- */
@@ -4007,11 +4200,20 @@ function saveArrivalModal(){
 
 function deleteArrival(){
   if(!editingArrivalId) return;
-  if(!confirm('Supprimer cet arrivage ?')) return;
-  ARRIVALS = ARRIVALS.filter(x => x.id !== editingArrivalId);
-  saveArrivals();
-  closeArrivalModal();
-  renderArrivals();
+  const item = ARRIVALS.find(x => x.id === editingArrivalId);
+  if(!item) return;
+  confirmAction(`Supprimer l'arrivage « ${item.nom} » ?`, () => {
+    const idx = ARRIVALS.indexOf(item);
+    ARRIVALS = ARRIVALS.filter(x => x.id !== editingArrivalId);
+    saveArrivals();
+    closeArrivalModal();
+    renderArrivals();
+    showToast(`« ${item.nom} » supprimé`, 'Annuler', () => {
+      ARRIVALS.splice(Math.min(idx, ARRIVALS.length), 0, item);
+      saveArrivals();
+      renderArrivals();
+    });
+  });
 }
 
 function addArrivalToCollection(id){
@@ -4102,11 +4304,20 @@ function saveWishlistModal(){
 
 function deleteWishlist(){
   if(!editingWishlistId) return;
-  if(!confirm('Retirer ce jeu de la wishlist ?')) return;
-  WISHLIST = WISHLIST.filter(x => x.id !== editingWishlistId);
-  saveWishlist();
-  closeWishlistModal();
-  renderWishlist();
+  const item = WISHLIST.find(x => x.id === editingWishlistId);
+  if(!item) return;
+  confirmAction(`Retirer « ${item.nom} » de la wishlist ?`, () => {
+    const idx = WISHLIST.indexOf(item);
+    WISHLIST = WISHLIST.filter(x => x.id !== editingWishlistId);
+    saveWishlist();
+    closeWishlistModal();
+    renderWishlist();
+    showToast(`« ${item.nom} » retiré de la wishlist`, 'Annuler', () => {
+      WISHLIST.splice(Math.min(idx, WISHLIST.length), 0, item);
+      saveWishlist();
+      renderWishlist();
+    });
+  });
 }
 
 function moveWishlistToArrivals(id){
@@ -4600,7 +4811,7 @@ function renderCollectionSearchResults(prefix, query){
   if(!resultsEl) return;
   const all = getFilteredCollectionGames(prefix).sort((a,b) => a.nom.localeCompare(b.nom,'fr'));
   const q = (query||'').trim().toLowerCase();
-  const matches = q ? all.filter(g => g.nom.toLowerCase().includes(q)) : all;
+  const matches = q ? all.filter(g => g.nom.toLowerCase().includes(q) || (g.plateforme||'').toLowerCase().includes(q)) : all;
   const shown = matches.slice(0, 40);
   if(shown.length === 0){
     resultsEl.innerHTML = `<div class="collection-search-empty">Aucun jeu trouvé.</div>`;
@@ -5010,8 +5221,8 @@ function typeTagHtml(type){
 /* Version condensée : rien pour le physique (déjà signalé par l'étoile devant le nom si collector),
    sinon soit le format (Numérique/Abonnement/...), soit — si un type particulier est renseigné — son icône colorée à la place */
 function formatOrTypeTagHtml(format, type){
-  if(!format || format === 'Physique') return '';
-  if(type && type !== 'Jeu simple'){
+  if(!format) return '';
+  if(format !== 'Physique' && type && type !== 'Jeu simple'){
     const meta = TYPE_META[type] || TYPE_META['Jeu simple'];
     return `<span class="meta-seg meta-seg-type" title="${meta.label}" style="color:var(--status-done);">${meta.icon}<span>${meta.label}</span></span>`;
   }
@@ -5162,7 +5373,7 @@ function completionRowHtml(c){
     <span class="completion-date">${dateDM(c.date)}</span>
     ${backlogThumbHtml(r,'media-thumb')}
     <span class="completion-name">
-      <span class="completion-title">${r.collector ? `<span class="row-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
+      <span class="completion-title">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
       <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(c.format, c.type), replayTagHtml(c))}</span>
     </span>
     <span class="completion-status"><span class="status-pill ${statutMeta.cls}">${statutMeta.emoji} ${c.statut}</span></span>
@@ -5350,12 +5561,23 @@ function saveCompletionModal(){
 
 function deleteCompletion(){
   if(!editingCompletionId) return;
-  if(!confirm('Supprimer cette complétion ?')) return;
-  BACKLOG_COMPLETIONS = BACKLOG_COMPLETIONS.filter(c => c.id !== editingCompletionId);
-  saveBacklogCompletions();
-  closeCompletionModal();
-  renderBacklogPage();
-  render();
+  const c = BACKLOG_COMPLETIONS.find(x => x.id === editingCompletionId);
+  if(!c) return;
+  const name = resolveBacklogItem(c).nom;
+  confirmAction(`Supprimer la complétion « ${name} » ?`, () => {
+    const idx = BACKLOG_COMPLETIONS.indexOf(c);
+    BACKLOG_COMPLETIONS = BACKLOG_COMPLETIONS.filter(x => x.id !== editingCompletionId);
+    saveBacklogCompletions();
+    closeCompletionModal();
+    renderBacklogPage();
+    render();
+    showToast(`Complétion « ${name} » supprimée`, 'Annuler', () => {
+      BACKLOG_COMPLETIONS.splice(Math.min(idx, BACKLOG_COMPLETIONS.length), 0, c);
+      saveBacklogCompletions();
+      renderBacklogPage();
+      render();
+    });
+  });
 }
 
 /* ---------- En cours ---------- */
@@ -5368,7 +5590,7 @@ function renderPlayingRows(){
     <div class="playing-slot" style="--spine:${getPlatformColor(r.plateforme)}" data-id="${p.id}" draggable="true" data-source-type="playing">
       ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
       <div class="playing-info">
-        <span class="playing-name">${r.collector ? `<span class="row-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${r.nom}${r.linked ? ' <span class="linked-chip" title="Lié à ta collection">🔗</span>' : ''}</span>
+        <span class="playing-name">${r.nom}${r.linked ? ' <span class="linked-chip" title="Lié à ta collection">🔗</span>' : ''}</span>
         <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(p.format, p.type))}</span>
       </div>
     </div>
@@ -5480,11 +5702,23 @@ function savePlayingModal(){
 
 function deletePlaying(){
   if(!editingPlayingId) return;
-  BACKLOG_PLAYING = BACKLOG_PLAYING.filter(p => p.id !== editingPlayingId);
-  saveBacklogPlaying();
-  closePlayingModal();
-  renderBacklogPage();
-  render();
+  const p = BACKLOG_PLAYING.find(x => x.id === editingPlayingId);
+  if(!p) return;
+  const name = resolveBacklogItem(p).nom;
+  confirmAction(`Retirer « ${name} » des jeux en cours ?`, () => {
+    const idx = BACKLOG_PLAYING.indexOf(p);
+    BACKLOG_PLAYING = BACKLOG_PLAYING.filter(x => x.id !== editingPlayingId);
+    saveBacklogPlaying();
+    closePlayingModal();
+    renderBacklogPage();
+    render();
+    showToast(`« ${name} » retiré des jeux en cours`, 'Annuler', () => {
+      BACKLOG_PLAYING.splice(Math.min(idx, BACKLOG_PLAYING.length), 0, p);
+      saveBacklogPlaying();
+      renderBacklogPage();
+      render();
+    });
+  }, { confirmLabel: 'Retirer' });
 }
 
 /* ---------- Catégories du backlog ---------- */
@@ -5503,7 +5737,7 @@ function renderBacklogCategories(){
         <div class="backlog-category-game" data-cat="${cat.id}" data-game="${item.id}" draggable="true" data-source-type="category" data-source-cat="${cat.id}">
           ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
           <div class="cat-game-info">
-            <span class="cat-game-name">${r.collector ? `<span class="row-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
+            <span class="cat-game-name">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
             <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(item.format, item.type))}</span>
           </div>
         </div>
@@ -5626,11 +5860,24 @@ function saveCategoryGameModal(){
 function deleteCategoryGame(){
   if(!editingCategoryCtx || !editingCategoryCtx.gameId) return;
   const cat = BACKLOG_CATEGORIES.find(c => c.id === editingCategoryCtx.catId);
-  if(cat) cat.jeux = cat.jeux.filter(g => g.id !== editingCategoryCtx.gameId);
-  saveBacklogCategories();
-  closeCategoryGameModal();
-  renderBacklogCategories();
-  render();
+  if(!cat) return;
+  const item = cat.jeux.find(g => g.id === editingCategoryCtx.gameId);
+  if(!item) return;
+  const name = resolveBacklogItem(item).nom;
+  confirmAction(`Retirer « ${name} » de « ${cat.titre} » ?`, () => {
+    const idx = cat.jeux.indexOf(item);
+    cat.jeux = cat.jeux.filter(g => g.id !== editingCategoryCtx.gameId);
+    saveBacklogCategories();
+    closeCategoryGameModal();
+    renderBacklogCategories();
+    render();
+    showToast(`« ${name} » retiré de « ${cat.titre} »`, 'Annuler', () => {
+      cat.jeux.splice(Math.min(idx, cat.jeux.length), 0, item);
+      saveBacklogCategories();
+      renderBacklogCategories();
+      render();
+    });
+  }, { confirmLabel: 'Retirer' });
 }
 
 /* ---------- Gestion des catégories (modal) ---------- */
