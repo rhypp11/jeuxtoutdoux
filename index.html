@@ -353,7 +353,6 @@
     align-items:center;
     padding:14px 18px;
     border-top:1px solid var(--hairline);
-    border-left:3px solid var(--spine, var(--hairline));
     position:relative;
     cursor:pointer;
   }
@@ -789,7 +788,6 @@
     display:flex;
     flex-direction:column;
     position:relative;
-    border-top:3px solid var(--spine, var(--hairline));
     cursor:pointer;
     transition:transform .15s ease, box-shadow .15s ease, background-color .15s ease;
   }
@@ -894,6 +892,10 @@
   .format-icon.download-icon{color:var(--teal);}
   .type-icon-wrap{display:inline-flex;align-items:center;color:var(--muted);flex-shrink:0;}
   .type-icon-wrap svg{width:14px;height:14px;flex-shrink:0;}
+  .card-title-icon{display:inline-flex;vertical-align:-2px;margin-right:5px;}
+  .card-title-icon svg{width:14px;height:14px;}
+  .row-title-icon{display:inline-flex;vertical-align:-2px;margin-right:4px;}
+  .row-title-icon svg{width:13px;height:13px;}
 
   .status-row{position:relative;height:30px;}
   .backlog-status-row{height:auto;}
@@ -1650,7 +1652,8 @@
     align-items:center;
     padding:12px 16px;
     border-top:1px solid var(--hairline);
-    border-left:4px solid var(--spine, var(--hairline));
+    border-left:6px solid var(--spine, var(--hairline));
+    box-shadow:inset 2px 0 0 rgba(0,0,0,0.15);
     position:relative;
     cursor:pointer;
   }
@@ -1732,7 +1735,6 @@
     display:flex;align-items:center;gap:12px;
     background:var(--surface);
     border:1px solid var(--hairline);
-    border-left:3px solid var(--spine, var(--teal));
     border-radius:10px;
     padding:10px 12px;
     position:relative;
@@ -1830,6 +1832,10 @@
   @media (max-width:1100px){
     .backlog-app{grid-template-columns:1fr;height:auto;}
     .mobile-filter-toggle{display:inline-flex;}
+    .backlog-meta-line{flex-wrap:nowrap;}
+    .backlog-meta-line .meta-seg span{display:none;}
+    .backlog-meta-line .meta-sep{display:none;}
+    .backlog-meta-line .meta-seg{gap:0;}
     #backlog-sidebar{
       position:fixed;
       top:50px;
@@ -2147,33 +2153,29 @@
         <input type="text" id="f-nom" placeholder="ex. Hollow Knight">
       </div>
 
+      <input type="hidden" id="f-format" value="Physique">
+
       <div class="field-row">
         <div class="field" style="flex:1;">
           <label for="f-plateforme">Plateforme</label>
           <select id="f-plateforme"></select>
         </div>
-        <div class="field" style="flex:1;">
-          <label for="f-format">Format</label>
-          <select id="f-format">
-            <option value="Physique">Physique</option>
-            <option value="Numérique">Numérique</option>
+        <div class="field" style="flex:1;" id="f-collector-field">
+          <label for="f-collector">Édition</label>
+          <label class="digital-check-row" for="f-collector" style="height:38px;">
+            <input type="checkbox" id="f-collector">
+            <span>⭐ Collector</span>
+          </label>
+        </div>
+        <div class="field" style="flex:1;" id="f-type-field">
+          <label for="f-type">Type</label>
+          <select id="f-type">
+            <option value="Jeu simple">Jeu simple</option>
+            <option value="DLC extension">DLC</option>
+            <option value="Mise à niveau">Mise à niveau</option>
+            <option value="Complete Edition">Complete Edition</option>
           </select>
         </div>
-      </div>
-
-      <label class="digital-check-row hidden" id="f-collector-row" for="f-collector">
-        <input type="checkbox" id="f-collector">
-        <span>⭐ Édition collector</span>
-      </label>
-
-      <div class="field" id="f-type-field">
-        <label for="f-type">Type</label>
-        <select id="f-type">
-          <option value="Jeu simple">Jeu simple</option>
-          <option value="DLC extension">DLC</option>
-          <option value="Mise à niveau">Mise à niveau</option>
-          <option value="Complete Edition">Complete Edition</option>
-        </select>
       </div>
 
       <div class="field">
@@ -3354,27 +3356,34 @@ function renderCard(g){
     ? `<div class="card-banner"><img src="${g.image}" alt="${g.nom}" onerror="this.parentElement.outerHTML='<div class=\\'card-banner placeholder\\'><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>'"></div>`
     : `<div class="card-banner placeholder"><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>`;
 
-  const typeMeta = TYPE_META[g.type] || TYPE_META['Jeu simple'];
-  const typeColor = g.collector ? 'var(--amber)' : g.format === 'Numérique' ? 'var(--status-done)' : 'var(--muted)';
-  const typeIconHtml = `<span class="type-icon-wrap" style="color:${typeColor};" title="${typeMeta.label} · ${g.format}">${typeMeta.icon}</span>`;
+  let titleIconHtml = '';
+  if(g.collector){
+    titleIconHtml = `<span class="card-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>`;
+  } else if(g.format === 'Numérique' && g.type && g.type !== 'Jeu simple'){
+    const typeMeta = TYPE_META[g.type] || TYPE_META['Jeu simple'];
+    titleIconHtml = `<span class="card-title-icon" style="color:var(--status-done);" title="${typeMeta.label}">${typeMeta.icon}</span>`;
+  }
 
   const platformLineHtml = state.platform
     ? ''
     : `<div class="card-platform">${logo ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\' style=\\'--spine:${color}\\'></span>'">` : `<span class="dot" style="--spine:${color}"></span>`}${g.plateforme}</div>`;
 
+  const showPurchaseInfo = ['price-desc','price-asc','date-desc','date-asc'].includes(state.sort);
+  const metaHtml = showPurchaseInfo ? `
+      <div class="card-meta">
+        <span class="price">${euros(g.prix)}</span>
+        <span>${dateFR(g.date)}</span>
+        <span class="card-source" title="${g.source || ''}">${g.source || '—'}</span>
+      </div>` : '';
+
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
       <div class="card-top">
-        <div class="card-name" title="${g.nom}">${g.nom}</div>
+        <div class="card-name" title="${g.nom}">${titleIconHtml}${g.nom}</div>
       </div>
       ${platformLineHtml}
-      <div class="card-meta">
-        ${typeIconHtml}
-        <span class="price">${euros(g.prix)}</span>
-        <span>${dateFR(g.date)}</span>
-        <span class="card-source" title="${g.source || ''}">${g.source || '—'}</span>
-      </div>
+      ${metaHtml}
       ${statusRowHtml}
     </div>
   `;
@@ -3588,13 +3597,14 @@ function openModal(id){
     document.getElementById('f-quick-toggle-row').classList.add('hidden');
     document.getElementById('f-quick-hide-fields').classList.remove('hidden');
     document.getElementById('f-nom').value = g.nom || '';
-    setSelectValueAndSync('f-format', g.format || 'Physique');
-    populatePlatformSelect('f-plateforme', g.format === 'Numérique');
+    const lockedFormat = state.format || g.format || 'Physique';
+    setSelectValueAndSync('f-format', lockedFormat);
+    populatePlatformSelect('f-plateforme', lockedFormat === 'Numérique');
     setSelectValueAndSync('f-plateforme', g.plateforme);
-    populateTypeSelect('f-type', g.format || 'Physique');
+    populateTypeSelect('f-type', lockedFormat);
     setSelectValueAndSync('f-type', g.type || 'Jeu simple');
     document.getElementById('f-collector').checked = !!g.collector;
-    toggleFormatDependentFields(g.format || 'Physique');
+    toggleFormatDependentFields(lockedFormat);
     document.getElementById('f-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
     document.getElementById('f-date').value = g.date || '';
     document.getElementById('f-source').value = g.source || '';
@@ -4020,6 +4030,10 @@ function addArrivalToCollection(id){
   document.getElementById('f-date').value = item.date || '';
   document.getElementById('f-source').value = item.source || '';
   setSelectValueAndSync('f-format', 'Physique');
+  populateTypeSelect('f-type', 'Physique');
+  setSelectValueAndSync('f-type', 'Jeu simple');
+  document.getElementById('f-collector').checked = false;
+  toggleFormatDependentFields('Physique');
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
   document.getElementById('modal-overlay').classList.remove('hidden');
@@ -4316,16 +4330,9 @@ document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
 function toggleFormatDependentFields(format){
   const isPhysical = format !== 'Numérique';
-  document.getElementById('f-collector-row').classList.toggle('hidden', !isPhysical);
+  document.getElementById('f-collector-field').classList.toggle('hidden', !isPhysical);
   document.getElementById('f-type-field').classList.toggle('hidden', isPhysical);
 }
-
-document.getElementById('f-format').addEventListener('change', () => {
-  const format = document.getElementById('f-format').value;
-  populatePlatformSelect('f-plateforme', format === 'Numérique');
-  populateTypeSelect('f-type', format);
-  toggleFormatDependentFields(format);
-});
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') closeModal();
@@ -4546,9 +4553,9 @@ function getGameBacklogRef(gameId){
 function resolveBacklogItem(item){
   if(item.gameId){
     const g = GAMES.find(x => x.id === item.gameId);
-    if(g) return { nom: g.nom, plateforme: g.plateforme, image: g.image, linked: true };
+    if(g) return { nom: g.nom, plateforme: g.plateforme, image: g.image, linked: true, collector: !!g.collector };
   }
-  return { nom: item.nom, plateforme: item.plateforme, image: item.image, linked: false };
+  return { nom: item.nom, plateforme: item.plateforme, image: item.image, linked: false, collector: false };
 }
 
 /* ---------- Import depuis la collection (En cours / Catégories / Complétions) ---------- */
@@ -4938,7 +4945,7 @@ const ICON_FORMAT_ABONNEMENT = `<svg viewBox="0 0 24 24" fill="none" stroke="cur
 const ICON_FORMAT_EMULATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15V4a1 1 0 0 1 1-1h13l-3 6 3 6H5a1 1 0 0 1-1-1Z"></path><path d="M4 21v-6"></path></svg>`;
 const ICON_TYPE_COMPILATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`;
 const ICON_TYPE_SIMPLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"></rect></svg>`;
-const ICON_TYPE_GAME_DLC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="13" height="14" rx="3"></rect><path d="M18.5 8v6"></path><path d="M15.5 11h6"></path></svg>`;
+const ICON_TYPE_PUZZLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2a1.6 1.6 0 1 1 3.2 0H14a1 1 0 0 1 1 1v3.6a1.6 1.6 0 1 1 0 3.2V19a1 1 0 0 1-1 1h-3.6a1.6 1.6 0 1 0-3.2 0H4a1 1 0 0 1-1-1v-3.6a1.6 1.6 0 1 0 0-3.2V9a1 1 0 0 1 1-1Z"></path></svg>`;
 const ICON_TYPE_UPGRADE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M12 16V8"></path><path d="M8.5 11.5 12 8l3.5 3.5"></path></svg>`;
 
 const FORMAT_META = {
@@ -4954,9 +4961,9 @@ function getBacklogFormatOptionIconHtml(value){
 
 const TYPE_META = {
   'Jeu simple':       { icon: ICON_TYPE_SIMPLE, label:'Jeu simple' },
-  'DLC extension':    { icon: ICON_FORMAT_DLC, label:'DLC' },
+  'DLC extension':    { icon: ICON_TYPE_PUZZLE, label:'DLC' },
   'Mise à niveau':    { icon: ICON_TYPE_UPGRADE, label:'Mise à niveau' },
-  'Complete Edition': { icon: ICON_TYPE_GAME_DLC, label:'Complete Edition' }
+  'Complete Edition': { icon: ICON_TYPE_COMPILATION, label:'Complete Edition' }
 };
 function getBacklogTypeOptionIconHtml(value){
   return (TYPE_META[value] || TYPE_META['Jeu simple']).icon;
@@ -4998,6 +5005,17 @@ function formatTagHtml(format){
 function typeTagHtml(type){
   if(!type) return '';
   const meta = TYPE_META[type] || TYPE_META['Jeu simple'];
+  return metaSegHtml(meta.icon, meta.label);
+}
+/* Version condensée : rien pour le physique (déjà signalé par l'étoile devant le nom si collector),
+   sinon soit le format (Numérique/Abonnement/...), soit — si un type particulier est renseigné — son icône colorée à la place */
+function formatOrTypeTagHtml(format, type){
+  if(!format || format === 'Physique') return '';
+  if(type && type !== 'Jeu simple'){
+    const meta = TYPE_META[type] || TYPE_META['Jeu simple'];
+    return `<span class="meta-seg meta-seg-type" title="${meta.label}" style="color:var(--status-done);">${meta.icon}<span>${meta.label}</span></span>`;
+  }
+  const meta = FORMAT_META[format] || FORMAT_META['Numérique'];
   return metaSegHtml(meta.icon, meta.label);
 }
 
@@ -5144,8 +5162,8 @@ function completionRowHtml(c){
     <span class="completion-date">${dateDM(c.date)}</span>
     ${backlogThumbHtml(r,'media-thumb')}
     <span class="completion-name">
-      <span class="completion-title">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
-      <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatTagHtml(c.format), typeTagHtml(c.type), replayTagHtml(c))}</span>
+      <span class="completion-title">${r.collector ? `<span class="row-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
+      <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(c.format, c.type), replayTagHtml(c))}</span>
     </span>
     <span class="completion-status"><span class="status-pill ${statutMeta.cls}">${statutMeta.emoji} ${c.statut}</span></span>
     <span class="completion-note"><span class="note-badge note-lg ${noteClass}">${c.note || '—'}</span></span>
@@ -5350,8 +5368,8 @@ function renderPlayingRows(){
     <div class="playing-slot" style="--spine:${getPlatformColor(r.plateforme)}" data-id="${p.id}" draggable="true" data-source-type="playing">
       ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
       <div class="playing-info">
-        <span class="playing-name">${r.nom}${r.linked ? ' <span class="linked-chip" title="Lié à ta collection">🔗</span>' : ''}</span>
-        <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatTagHtml(p.format), typeTagHtml(p.type))}</span>
+        <span class="playing-name">${r.collector ? `<span class="row-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${r.nom}${r.linked ? ' <span class="linked-chip" title="Lié à ta collection">🔗</span>' : ''}</span>
+        <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(p.format, p.type))}</span>
       </div>
     </div>
   `;
@@ -5485,8 +5503,8 @@ function renderBacklogCategories(){
         <div class="backlog-category-game" data-cat="${cat.id}" data-game="${item.id}" draggable="true" data-source-type="category" data-source-cat="${cat.id}">
           ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
           <div class="cat-game-info">
-            <span class="cat-game-name">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
-            <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatTagHtml(item.format), typeTagHtml(item.type))}</span>
+            <span class="cat-game-name">${r.collector ? `<span class="row-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
+            <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(item.format, item.type))}</span>
           </div>
         </div>
       `;
@@ -5840,7 +5858,6 @@ async function initApp(){
   iconSelectify('f-plateforme', getPlatformOptionIconHtml);
   iconSelectify('a-plateforme', getPlatformOptionIconHtml);
   iconSelectify('w-plateforme', getPlatformOptionIconHtml);
-  iconSelectify('f-format', getFormatOptionIconHtml);
   iconSelectify('f-type', getBacklogTypeOptionIconHtml);
   iconSelectify('cp-plateforme', getPlatformOptionIconHtml);
   iconSelectify('pl-plateforme', getPlatformOptionIconHtml);
