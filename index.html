@@ -1123,7 +1123,6 @@
     font-family:'Segoe UI','Roboto',sans-serif;
   }
   .linked-game-card-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}
-  #cp-manual-fields,#pl-manual-fields,#cg-manual-fields{display:flex;flex-direction:column;gap:14px;}
   #f-quick-hide-fields{display:flex;flex-direction:column;gap:14px;}
   .linked-chip{font-size:11px;}
   .collection-search-wrap{position:relative;}
@@ -1207,6 +1206,25 @@
   }
   .field-row{display:flex;gap:10px;}
   .field-row .field{flex:1;}
+
+  /* ---------- Carte "identité du jeu" commune à toutes les modales ---------- */
+  .modal-game-card{
+    background:var(--surface-raised);
+    border:1px solid var(--hairline);
+    border-radius:10px;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .modal-extra-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.07em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:2px 0 -4px;
+  }
 
   /* ---------- Combo avec icône (plateforme / format) ---------- */
   .icon-select-wrap{
@@ -1959,18 +1977,27 @@
   <div class="modal">
     <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
 
-    <div class="field">
-      <label for="a-nom">Nom du jeu</label>
-      <input type="text" id="a-nom" placeholder="ex. Splatoon Raiders">
-    </div>
+    <div class="modal-game-card">
+      <div class="field">
+        <label for="a-nom">Nom du jeu</label>
+        <input type="text" id="a-nom" placeholder="ex. Splatoon Raiders">
+      </div>
 
-    <div class="field-row">
-      <div class="field" style="flex:1;">
-        <label for="a-plateforme">Plateforme</label>
-        <select id="a-plateforme"></select>
+      <div class="field-row">
+        <div class="field" style="flex:1;">
+          <label for="a-plateforme">Plateforme</label>
+          <select id="a-plateforme"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="a-image">Image (URL)</label>
+        <input type="text" id="a-image" placeholder="https://...">
+        <div class="image-preview" id="a-image-preview"><span>Aperçu de l'image</span></div>
       </div>
     </div>
 
+    <div class="modal-extra-label">Infos d'arrivage</div>
     <div class="field-row">
       <div class="field">
         <label for="a-date">Date prévue</label>
@@ -1987,12 +2014,6 @@
       <input type="text" id="a-source" placeholder="ex. Fnac">
     </div>
 
-    <div class="field">
-      <label for="a-image">Image (URL)</label>
-      <input type="text" id="a-image" placeholder="https://...">
-      <div class="image-preview" id="a-image-preview"><span>Aperçu de l'image</span></div>
-    </div>
-
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
       <div style="flex:1;"></div>
@@ -2006,18 +2027,27 @@
   <div class="modal">
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
-    <div class="field">
-      <label for="w-nom">Nom du jeu</label>
-      <input type="text" id="w-nom" placeholder="ex. Metaphor: ReFantazio">
-    </div>
+    <div class="modal-game-card">
+      <div class="field">
+        <label for="w-nom">Nom du jeu</label>
+        <input type="text" id="w-nom" placeholder="ex. Metaphor: ReFantazio">
+      </div>
 
-    <div class="field-row">
-      <div class="field" style="flex:1;">
-        <label for="w-plateforme">Plateforme</label>
-        <select id="w-plateforme"></select>
+      <div class="field-row">
+        <div class="field" style="flex:1;">
+          <label for="w-plateforme">Plateforme</label>
+          <select id="w-plateforme"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="w-image">Image (URL)</label>
+        <input type="text" id="w-image" placeholder="https://...">
+        <div class="image-preview" id="w-image-preview"><span>Aperçu de l'image</span></div>
       </div>
     </div>
 
+    <div class="modal-extra-label">Infos de wishlist</div>
     <div class="field-row">
       <div class="field">
         <label for="w-date">Date de sortie</label>
@@ -2028,12 +2058,6 @@
     <div class="field">
       <label for="w-lien">Lien (bon plan, fiche jeu...)</label>
       <input type="text" id="w-lien" placeholder="https://...">
-    </div>
-
-    <div class="field">
-      <label for="w-image">Image (URL)</label>
-      <input type="text" id="w-image" placeholder="https://...">
-      <div class="image-preview" id="w-image-preview"><span>Aperçu de l'image</span></div>
     </div>
 
     <div class="modal-actions">
@@ -2117,46 +2141,30 @@
       <span class="replay-switch-label">⚡ Ajout rapide (juste l'essentiel — tu complètes le reste plus tard)</span>
     </label>
 
-    <div class="field">
-      <label for="f-nom">Nom du jeu</label>
-      <input type="text" id="f-nom" placeholder="ex. Hollow Knight">
-    </div>
-
-    <div class="field-row">
-      <div class="field" style="flex:1;">
-        <label for="f-plateforme">Plateforme</label>
-        <select id="f-plateforme"></select>
-      </div>
-      <div class="field" style="flex:1;">
-        <label for="f-format">Format</label>
-        <select id="f-format">
-          <option value="Physique">Physique</option>
-          <option value="Numérique">Numérique</option>
-        </select>
-      </div>
-    </div>
-
-    <label class="digital-check-row hidden" id="f-collector-row" for="f-collector" style="margin:-6px 0 4px;">
-      <input type="checkbox" id="f-collector">
-      <span>⭐ Édition collector</span>
-    </label>
-
-    <div id="f-quick-hide-fields">
-      <div class="field-row">
-        <div class="field">
-          <label for="f-prix">Prix (€)</label>
-          <input type="text" id="f-prix" placeholder="ex. 39,99">
-        </div>
-        <div class="field">
-          <label for="f-date">Date d'achat</label>
-          <input type="date" id="f-date">
-        </div>
-      </div>
-
+    <div class="modal-game-card">
       <div class="field">
-        <label for="f-source">Source d'achat</label>
-        <input type="text" id="f-source" placeholder="ex. Fnac">
+        <label for="f-nom">Nom du jeu</label>
+        <input type="text" id="f-nom" placeholder="ex. Hollow Knight">
       </div>
+
+      <div class="field-row">
+        <div class="field" style="flex:1;">
+          <label for="f-plateforme">Plateforme</label>
+          <select id="f-plateforme"></select>
+        </div>
+        <div class="field" style="flex:1;">
+          <label for="f-format">Format</label>
+          <select id="f-format">
+            <option value="Physique">Physique</option>
+            <option value="Numérique">Numérique</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="digital-check-row hidden" id="f-collector-row" for="f-collector">
+        <input type="checkbox" id="f-collector">
+        <span>⭐ Édition collector</span>
+      </label>
 
       <div class="field" id="f-type-field">
         <label for="f-type">Type</label>
@@ -2172,6 +2180,25 @@
         <label for="f-image">Image (URL, ex. depuis DekuDeals)</label>
         <input type="text" id="f-image" placeholder="https://...">
         <div class="image-preview" id="image-preview"><span>Aperçu de l'image</span></div>
+      </div>
+    </div>
+
+    <div id="f-quick-hide-fields">
+      <div class="modal-extra-label">Infos d'achat</div>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-prix">Prix (€)</label>
+          <input type="text" id="f-prix" placeholder="ex. 39,99">
+        </div>
+        <div class="field">
+          <label for="f-date">Date d'achat</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-source">Source d'achat</label>
+        <input type="text" id="f-source" placeholder="ex. Fnac">
       </div>
     </div>
 
@@ -2294,19 +2321,18 @@
       <button type="button" class="btn btn-ghost btn-sm" id="cp-unlink-btn">🔗 Délier</button>
     </div>
 
-    <div id="cp-manual-fields">
+    <div class="modal-game-card" id="cp-manual-fields">
       <div class="field">
         <label for="cp-nom">Nom du jeu</label>
         <input type="text" id="cp-nom" placeholder="ex. Hollow Knight">
       </div>
 
-      <div class="field">
-        <label for="cp-plateforme">Plateforme</label>
-        <select id="cp-plateforme"></select>
-      </div>
-
       <div class="field-row">
-        <div class="field">
+        <div class="field" style="flex:1;">
+          <label for="cp-plateforme">Plateforme</label>
+          <select id="cp-plateforme"></select>
+        </div>
+        <div class="field" style="flex:1;">
           <label for="cp-format">Format</label>
           <select id="cp-format">
             <option value="Physique">Physique</option>
@@ -2316,15 +2342,16 @@
             <option value="Émulation / Pirate">Émulation / Pirate</option>
           </select>
         </div>
-        <div class="field">
-          <label for="cp-type">Type</label>
-          <select id="cp-type">
-            <option value="Jeu simple">Jeu simple</option>
-            <option value="DLC extension">DLC</option>
-            <option value="Mise à niveau">Mise à niveau</option>
-            <option value="Complete Edition">Complete Edition</option>
-          </select>
-        </div>
+      </div>
+
+      <div class="field" id="cp-type-field">
+        <label for="cp-type">Type</label>
+        <select id="cp-type">
+          <option value="Jeu simple">Jeu simple</option>
+          <option value="DLC extension">DLC</option>
+          <option value="Mise à niveau">Mise à niveau</option>
+          <option value="Complete Edition">Complete Edition</option>
+        </select>
       </div>
 
       <div class="field">
@@ -2333,6 +2360,8 @@
         <div class="image-preview" id="cp-image-preview"><span>Aperçu de l'image</span></div>
       </div>
     </div>
+
+    <div class="modal-extra-label">Infos de complétion</div>
 
     <div class="field-row">
       <div class="field">
@@ -2395,19 +2424,18 @@
       <button type="button" class="btn btn-ghost btn-sm" id="pl-unlink-btn">🔗 Délier</button>
     </div>
 
-    <div id="pl-manual-fields">
+    <div class="modal-game-card" id="pl-manual-fields">
       <div class="field">
         <label for="pl-nom">Nom du jeu</label>
         <input type="text" id="pl-nom" placeholder="ex. Rhythm Doctor">
       </div>
 
-      <div class="field">
-        <label for="pl-plateforme">Plateforme</label>
-        <select id="pl-plateforme"></select>
-      </div>
-
       <div class="field-row">
-        <div class="field">
+        <div class="field" style="flex:1;">
+          <label for="pl-plateforme">Plateforme</label>
+          <select id="pl-plateforme"></select>
+        </div>
+        <div class="field" style="flex:1;">
           <label for="pl-format">Format</label>
           <select id="pl-format">
             <option value="Physique">Physique</option>
@@ -2417,15 +2445,16 @@
             <option value="Émulation / Pirate">Émulation / Pirate</option>
           </select>
         </div>
-        <div class="field">
-          <label for="pl-type">Type</label>
-          <select id="pl-type">
-            <option value="Jeu simple">Jeu simple</option>
-            <option value="DLC extension">DLC</option>
-            <option value="Mise à niveau">Mise à niveau</option>
-            <option value="Complete Edition">Complete Edition</option>
-          </select>
-        </div>
+      </div>
+
+      <div class="field" id="pl-type-field">
+        <label for="pl-type">Type</label>
+        <select id="pl-type">
+          <option value="Jeu simple">Jeu simple</option>
+          <option value="DLC extension">DLC</option>
+          <option value="Mise à niveau">Mise à niveau</option>
+          <option value="Complete Edition">Complete Edition</option>
+        </select>
       </div>
 
       <div class="field">
@@ -2482,19 +2511,18 @@
       <button type="button" class="btn btn-ghost btn-sm" id="cg-unlink-btn">🔗 Délier</button>
     </div>
 
-    <div id="cg-manual-fields">
+    <div class="modal-game-card" id="cg-manual-fields">
       <div class="field">
         <label for="cg-nom">Nom du jeu</label>
         <input type="text" id="cg-nom" placeholder="ex. Mass Effect 3">
       </div>
 
-      <div class="field">
-        <label for="cg-plateforme">Plateforme</label>
-        <select id="cg-plateforme"></select>
-      </div>
-
       <div class="field-row">
-        <div class="field">
+        <div class="field" style="flex:1;">
+          <label for="cg-plateforme">Plateforme</label>
+          <select id="cg-plateforme"></select>
+        </div>
+        <div class="field" style="flex:1;">
           <label for="cg-format">Format</label>
           <select id="cg-format">
             <option value="Physique">Physique</option>
@@ -2504,15 +2532,16 @@
             <option value="Émulation / Pirate">Émulation / Pirate</option>
           </select>
         </div>
-        <div class="field">
-          <label for="cg-type">Type</label>
-          <select id="cg-type">
-            <option value="Jeu simple">Jeu simple</option>
-            <option value="DLC extension">DLC</option>
-            <option value="Mise à niveau">Mise à niveau</option>
-            <option value="Complete Edition">Complete Edition</option>
-          </select>
-        </div>
+      </div>
+
+      <div class="field" id="cg-type-field">
+        <label for="cg-type">Type</label>
+        <select id="cg-type">
+          <option value="Jeu simple">Jeu simple</option>
+          <option value="DLC extension">DLC</option>
+          <option value="Mise à niveau">Mise à niveau</option>
+          <option value="Complete Edition">Complete Edition</option>
+        </select>
       </div>
 
       <div class="field">
@@ -5258,6 +5287,7 @@ function openCompletionModal(id, prefill){
     populateBacklogPlatformSelect('cp-plateforme', document.getElementById('cp-format').value === 'Numérique');
     setSelectValueAndSync('cp-plateforme', document.getElementById('cp-plateforme').value);
   }
+  toggleTypeFieldVisibility('cp-type-field', document.getElementById('cp-format').value);
   updateImagePreviewFor('cp-image','cp-image-preview');
   document.getElementById('completion-modal-overlay').classList.remove('hidden');
   document.getElementById(document.getElementById('cp-linked-id').value ? 'cp-date' : 'cp-nom').focus();
@@ -5280,7 +5310,7 @@ function saveCompletionModal(){
     plateforme: document.getElementById('cp-plateforme').value,
     date,
     format: document.getElementById('cp-format').value,
-    type: document.getElementById('cp-type').value,
+    type: document.getElementById('cp-format').value === 'Physique' ? null : document.getElementById('cp-type').value,
     statut: document.getElementById('cp-statut').value,
     note: document.getElementById('cp-note').value,
     commentaire: document.getElementById('cp-commentaire').value.trim() || null,
@@ -5392,6 +5422,7 @@ function openPlayingModal(id){
     populateBacklogPlatformSelect('pl-plateforme', document.getElementById('pl-format').value === 'Numérique');
     setSelectValueAndSync('pl-plateforme', document.getElementById('pl-plateforme').value);
   }
+  toggleTypeFieldVisibility('pl-type-field', document.getElementById('pl-format').value);
   updateImagePreviewFor('pl-image','pl-image-preview');
   document.getElementById('playing-modal-overlay').classList.remove('hidden');
   if(!document.getElementById('pl-linked-id').value){
@@ -5412,7 +5443,7 @@ function savePlayingModal(){
     nom,
     plateforme: document.getElementById('pl-plateforme').value,
     format: document.getElementById('pl-format').value,
-    type: document.getElementById('pl-type').value,
+    type: document.getElementById('pl-format').value === 'Physique' ? null : document.getElementById('pl-type').value,
     image: document.getElementById('pl-image').value.trim() || null,
     gameId
   };
@@ -5534,6 +5565,7 @@ function openCategoryGameModal(catId, gameId){
     populateBacklogPlatformSelect('cg-plateforme', document.getElementById('cg-format').value === 'Numérique');
     setSelectValueAndSync('cg-plateforme', document.getElementById('cg-plateforme').value);
   }
+  toggleTypeFieldVisibility('cg-type-field', document.getElementById('cg-format').value);
   updateImagePreviewFor('cg-image','cg-image-preview');
   document.getElementById('category-game-modal-overlay').classList.remove('hidden');
   if(!document.getElementById('cg-linked-id').value){
@@ -5557,7 +5589,7 @@ function saveCategoryGameModal(){
     nom,
     plateforme: document.getElementById('cg-plateforme').value,
     format: document.getElementById('cg-format').value,
-    type: document.getElementById('cg-type').value,
+    type: document.getElementById('cg-format').value === 'Physique' ? null : document.getElementById('cg-type').value,
     image: document.getElementById('cg-image').value.trim() || null,
     gameId
   };
@@ -5667,9 +5699,15 @@ document.getElementById('cp-cancel-btn').addEventListener('click', closeCompleti
 document.getElementById('cp-save-btn').addEventListener('click', saveCompletionModal);
 document.getElementById('cp-delete-btn').addEventListener('click', deleteCompletion);
 document.getElementById('cp-image').addEventListener('input', () => updateImagePreviewFor('cp-image','cp-image-preview'));
+function toggleTypeFieldVisibility(fieldId, format){
+  const field = document.getElementById(fieldId);
+  if(field) field.classList.toggle('hidden', format === 'Physique');
+}
+
 document.getElementById('cp-format').addEventListener('change', () => {
   if(document.getElementById('cp-linked-id').value) return;
   populateBacklogPlatformSelect('cp-plateforme', document.getElementById('cp-format').value === 'Numérique');
+  toggleTypeFieldVisibility('cp-type-field', document.getElementById('cp-format').value);
 });
 
 document.getElementById('pl-cancel-btn').addEventListener('click', closePlayingModal);
@@ -5679,6 +5717,7 @@ document.getElementById('pl-image').addEventListener('input', () => updateImageP
 document.getElementById('pl-format').addEventListener('change', () => {
   if(document.getElementById('pl-linked-id').value) return;
   populateBacklogPlatformSelect('pl-plateforme', document.getElementById('pl-format').value === 'Numérique');
+  toggleTypeFieldVisibility('pl-type-field', document.getElementById('pl-format').value);
 });
 
 document.getElementById('cg-cancel-btn').addEventListener('click', closeCategoryGameModal);
@@ -5688,6 +5727,7 @@ document.getElementById('cg-image').addEventListener('input', () => updateImageP
 document.getElementById('cg-format').addEventListener('change', () => {
   if(document.getElementById('cg-linked-id').value) return;
   populateBacklogPlatformSelect('cg-plateforme', document.getElementById('cg-format').value === 'Numérique');
+  toggleTypeFieldVisibility('cg-type-field', document.getElementById('cg-format').value);
 });
 
 document.getElementById('manage-categories-btn').addEventListener('click', openCategoryModal);
