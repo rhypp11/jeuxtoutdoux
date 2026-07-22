@@ -1871,7 +1871,8 @@
 <nav class="topnav">
   <div class="topnav-inner">
     <button class="nav-tab active" data-page="home"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg>Accueil</button>
-    <button class="nav-tab" data-page="collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>Collection</button>
+    <button class="nav-tab" data-page="collection" data-format="Physique"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>Collection physique</button>
+    <button class="nav-tab" data-page="collection" data-format="Numérique"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>Collection numérique</button>
     <button class="nav-tab" data-page="backlog"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Backlog</button>
     <div class="topnav-actions">
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
@@ -2048,7 +2049,7 @@
 <div class="app">
   <aside class="sidebar" id="collection-sidebar">
     <div class="brand">
-      <span class="eyebrow">Collection perso</span>
+      <span class="eyebrow" id="collection-eyebrow">Collection perso</span>
       <h1>JeuxToutDoux</h1>
     </div>
 
@@ -2063,12 +2064,12 @@
       <div id="platform-list"></div>
     </div>
 
-    <div class="side-section">
-      <div class="side-label">Format</div>
+    <div class="side-section" id="collector-filter-section">
+      <div class="side-label">Édition</div>
       <div class="format-toggles" id="format-toggles"></div>
     </div>
 
-    <div class="side-section">
+    <div class="side-section" id="type-filter-section">
       <div class="side-label">Type</div>
       <div class="format-toggles" id="type-toggles"></div>
     </div>
@@ -2131,10 +2132,14 @@
         <select id="f-format">
           <option value="Physique">Physique</option>
           <option value="Numérique">Numérique</option>
-          <option value="Collector">Collector</option>
         </select>
       </div>
     </div>
+
+    <label class="digital-check-row hidden" id="f-collector-row" for="f-collector" style="margin:-6px 0 4px;">
+      <input type="checkbox" id="f-collector">
+      <span>⭐ Édition collector</span>
+    </label>
 
     <div id="f-quick-hide-fields">
       <div class="field-row">
@@ -2153,14 +2158,13 @@
         <input type="text" id="f-source" placeholder="ex. Fnac">
       </div>
 
-      <div class="field">
+      <div class="field" id="f-type-field">
         <label for="f-type">Type</label>
         <select id="f-type">
           <option value="Jeu simple">Jeu simple</option>
-          <option value="Compilation">Compilation</option>
-          <option value="Jeu + DLC">Jeu + DLC</option>
           <option value="DLC extension">DLC</option>
           <option value="Mise à niveau">Mise à niveau</option>
+          <option value="Complete Edition">Complete Edition</option>
         </select>
       </div>
 
@@ -2316,10 +2320,9 @@
           <label for="cp-type">Type</label>
           <select id="cp-type">
             <option value="Jeu simple">Jeu simple</option>
-            <option value="Compilation">Compilation</option>
-            <option value="Jeu + DLC">Jeu + DLC</option>
             <option value="DLC extension">DLC</option>
             <option value="Mise à niveau">Mise à niveau</option>
+            <option value="Complete Edition">Complete Edition</option>
           </select>
         </div>
       </div>
@@ -2418,10 +2421,9 @@
           <label for="pl-type">Type</label>
           <select id="pl-type">
             <option value="Jeu simple">Jeu simple</option>
-            <option value="Compilation">Compilation</option>
-            <option value="Jeu + DLC">Jeu + DLC</option>
             <option value="DLC extension">DLC</option>
             <option value="Mise à niveau">Mise à niveau</option>
+            <option value="Complete Edition">Complete Edition</option>
           </select>
         </div>
       </div>
@@ -2506,10 +2508,9 @@
           <label for="cg-type">Type</label>
           <select id="cg-type">
             <option value="Jeu simple">Jeu simple</option>
-            <option value="Compilation">Compilation</option>
-            <option value="Jeu + DLC">Jeu + DLC</option>
             <option value="DLC extension">DLC</option>
             <option value="Mise à niveau">Mise à niveau</option>
+            <option value="Complete Edition">Complete Edition</option>
           </select>
         </div>
       </div>
@@ -2781,6 +2782,7 @@ let state = {
   platform: null,
   format: null,
   type: null,
+  collector: false,
   status: null,
   search: "",
   sort: "name-asc"
@@ -2817,8 +2819,27 @@ async function loadGames(){
   await saveGames();
 }
 
+function migrateTypeValue(type){
+  if(type === 'Compilation') return 'Jeu simple';
+  if(type === 'Jeu + DLC') return 'Complete Edition';
+  return type;
+}
+
 function migrateGameTypes(){
-  GAMES.forEach(g => { if(!g.type) g.type = 'Jeu simple'; });
+  GAMES.forEach(g => {
+    if(g.format === 'Collector'){
+      g.format = 'Physique';
+      g.collector = true;
+    } else if(g.collector === undefined){
+      g.collector = false;
+    }
+    g.type = migrateTypeValue(g.type);
+    if(g.format === 'Numérique' && !g.type) g.type = 'Jeu simple';
+    if(g.format !== 'Numérique') g.type = null;
+  });
+  [...BACKLOG_COMPLETIONS, ...BACKLOG_PLAYING, ...BACKLOG_CATEGORIES.flatMap(c => c.jeux)].forEach(item => {
+    if(item.type) item.type = migrateTypeValue(item.type);
+  });
 }
 
 async function saveGames(){
@@ -2927,6 +2948,7 @@ function mergeImportGames(file){
         const key = nameKeyOf(g.nom, g.plateforme);
         if(existingKeys.has(key)){ skipped++; return; }
         existingKeys.add(key);
+        const incomingFormat = g.format === 'Collector' ? 'Physique' : (g.format || 'Physique');
         GAMES.push({
           id: 'imp-' + Date.now() + '-' + i,
           nom: g.nom,
@@ -2934,7 +2956,9 @@ function mergeImportGames(file){
           date: g.date || null,
           source: g.source || null,
           prix: typeof g.prix === 'number' ? g.prix : null,
-          format: g.format || 'Physique',
+          format: incomingFormat,
+          collector: g.collector === true || g.format === 'Collector',
+          type: incomingFormat === 'Numérique' ? migrateTypeValue(g.type) || 'Jeu simple' : null,
           image: g.image || null,
           status: g.status || null
         });
@@ -2980,6 +3004,12 @@ function importGames(file){
       saveBacklogCategories();
       savePlatformMeta();
       savePlatformOrder();
+      reconcileBacklogLinks();
+      migrateGameTypes();
+      saveGames();
+      saveBacklogCompletions();
+      saveBacklogPlaying();
+      saveBacklogCategories();
       buildPlatformList();
       render();
       renderArrivals();
@@ -3002,8 +3032,9 @@ function setStatus(id, statusKey){
 }
 
 function buildPlatformList(){
+  const scoped = state.format ? GAMES.filter(g => g.format === state.format) : GAMES;
   const counts = {};
-  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
+  scoped.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
   const platforms = platformSortMode === 'custom'
     ? getOrderedPlatformNames().filter(p => counts[p])
     : Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
@@ -3017,7 +3048,7 @@ function buildPlatformList(){
   allItem.className = 'plat-item' + (state.platform === null ? ' active' : '');
   allItem.style.setProperty('--spine', 'var(--muted)');
   allItem.tabIndex = 0;
-  allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><span class="plat-name">Toutes</span><span class="plat-count">${GAMES.length}</span>`;
+  allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><span class="plat-name">Toutes</span><span class="plat-count">${scoped.length}</span>`;
   allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); closeMobileDrawers(); };
   container.appendChild(allItem);
 
@@ -3037,17 +3068,25 @@ function buildPlatformList(){
   });
 }
 
+function applyCollectionSupportUI(format){
+  const isPhysical = format !== 'Numérique';
+  document.getElementById('collector-filter-section').classList.toggle('hidden', !isPhysical);
+  document.getElementById('type-filter-section').classList.toggle('hidden', isPhysical);
+  const addBtn = document.getElementById('add-btn');
+  if(addBtn) addBtn.textContent = isPhysical ? '+ Ajouter un jeu physique' : '+ Ajouter un jeu numérique';
+  const eyebrow = document.getElementById('collection-eyebrow');
+  if(eyebrow) eyebrow.textContent = isPhysical ? 'Collection physique' : 'Collection numérique';
+}
+
 function buildFormatToggles(){
   const container = document.getElementById('format-toggles');
   container.innerHTML = "";
-  ["Physique","Numérique","Collector"].forEach(f => {
-    const chip = document.createElement('div');
-    chip.className = 'toggle-chip' + (state.format === f ? ' active' : '');
-    chip.tabIndex = 0;
-    chip.innerHTML = `<span class="toggle-chip-label">${getFormatOptionIconHtml(f)}<span>${f}</span></span>`;
-    chip.onclick = () => { state.format = (state.format === f ? null : f); buildFormatToggles(); render(); };
-    container.appendChild(chip);
-  });
+  const collectorChip = document.createElement('div');
+  collectorChip.className = 'toggle-chip' + (state.collector ? ' active' : '');
+  collectorChip.tabIndex = 0;
+  collectorChip.innerHTML = `<span class="toggle-chip-label">${FORMAT_ICON_STAR}<span>Collector</span></span>`;
+  collectorChip.onclick = () => { state.collector = !state.collector; buildFormatToggles(); render(); };
+  container.appendChild(collectorChip);
 }
 
 function buildTypeToggles(){
@@ -3106,6 +3145,7 @@ function filteredGames(){
   return GAMES.filter(g => {
       if(state.platform && g.plateforme !== state.platform) return false;
       if(state.format && g.format !== state.format) return false;
+      if(state.collector && !g.collector) return false;
       if(state.type && (g.type || 'Jeu simple') !== state.type) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
       if(state.status){
@@ -3144,18 +3184,18 @@ function renderPlatformBanner(games){
   const banner = document.getElementById('platform-banner');
   if(!banner) return;
 
+  const isPhysical = state.format !== 'Numérique';
   const total = games.length;
-  const physiqueCount = games.filter(g => g.format === 'Physique').length;
-  const numeriqueCount = games.filter(g => g.format === 'Numérique').length;
   const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
-  const collectors = games.filter(g => g.format === 'Collector').length;
+  const collectors = games.filter(g => g.collector).length;
+  const extras = games.filter(g => g.type && g.type !== 'Jeu simple').length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
 
   let group1Html = `
-    <div class="platform-banner-stat"><span class="num"><svg class="banner-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>${physiqueCount}</span><span class="label">Physique</span></div>
-    <div class="platform-banner-stat"><span class="num"><svg class="banner-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>${numeriqueCount}</span><span class="label">Numérique</span></div>
     <div class="platform-banner-stat"><span class="num">${iconWithClass(ICON_BOOKS_VERTICAL,'banner-stat-icon')}${total}</span><span class="label">Total</span></div>
-    <div class="platform-banner-stat"><span class="num">${iconWithClass(ICON_STAR,'banner-stat-icon')}${collectors}</span><span class="label">Collectors</span></div>
+    ${isPhysical
+      ? `<div class="platform-banner-stat"><span class="num">${iconWithClass(ICON_STAR,'banner-stat-icon')}${collectors}</span><span class="label">Collectors</span></div>`
+      : `<div class="platform-banner-stat"><span class="num"><svg class="banner-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M2 12h20"></path></svg>${extras}</span><span class="label">DLC / Extras</span></div>`}
     <div class="platform-banner-stat"><span class="num">${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span><span class="label">Dépensé</span></div>
   `;
   if(!state.platform){
@@ -3232,7 +3272,7 @@ function renderCard(g){
   const logo = getPlatformLogo(g.plateforme);
 
   const card = document.createElement('div');
-  card.className = 'card' + (g.format === 'Collector' ? ' collector' : '');
+  card.className = 'card' + (g.collector ? ' collector' : '');
   card.style.setProperty('--spine', color);
 
   const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
@@ -3286,7 +3326,7 @@ function renderCard(g){
     : `<div class="card-banner placeholder"><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>`;
 
   const typeMeta = TYPE_META[g.type] || TYPE_META['Jeu simple'];
-  const typeColor = g.format === 'Collector' ? 'var(--amber)' : g.format === 'Numérique' ? 'var(--status-done)' : 'var(--muted)';
+  const typeColor = g.collector ? 'var(--amber)' : g.format === 'Numérique' ? 'var(--status-done)' : 'var(--muted)';
   const typeIconHtml = `<span class="type-icon-wrap" style="color:${typeColor};" title="${typeMeta.label} · ${g.format}">${typeMeta.icon}</span>`;
 
   const platformLineHtml = state.platform
@@ -3465,13 +3505,12 @@ function populatePlatformSelect(selectId, digitalOnly){
   syncIconSelectTrigger(selectId);
 }
 
-const TYPE_OPTIONS_DIGITAL = ['Jeu simple','Compilation','Jeu + DLC','DLC extension','Mise à niveau'];
-const TYPE_OPTIONS_PHYSICAL = ['Jeu simple','Compilation','Jeu + DLC'];
+const TYPE_OPTIONS_DIGITAL = ['Jeu simple','DLC extension','Mise à niveau','Complete Edition'];
 
 function populateTypeSelect(selectId, format){
   const select = document.getElementById(selectId);
   if(!select) return;
-  const options = format === 'Numérique' ? TYPE_OPTIONS_DIGITAL : TYPE_OPTIONS_PHYSICAL;
+  const options = TYPE_OPTIONS_DIGITAL;
   const current = select.value;
   select.innerHTML = options.map(t => `<option value="${t}">${TYPE_META[t].label}</option>`).join('');
   if(current && options.includes(current)) select.value = current;
@@ -3525,6 +3564,8 @@ function openModal(id){
     setSelectValueAndSync('f-plateforme', g.plateforme);
     populateTypeSelect('f-type', g.format || 'Physique');
     setSelectValueAndSync('f-type', g.type || 'Jeu simple');
+    document.getElementById('f-collector').checked = !!g.collector;
+    toggleFormatDependentFields(g.format || 'Physique');
     document.getElementById('f-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
     document.getElementById('f-date').value = g.date || '';
     document.getElementById('f-source').value = g.source || '';
@@ -3534,7 +3575,7 @@ function openModal(id){
     deleteBtn.classList.add('hidden');
     document.getElementById('f-quick-toggle-row').classList.remove('hidden');
     document.getElementById('f-nom').value = '';
-    const lastFormat = getLastUsed('format', 'Physique');
+    const lastFormat = state.format || getLastUsed('format', 'Physique');
     setSelectValueAndSync('f-format', lastFormat);
     populatePlatformSelect('f-plateforme', lastFormat === 'Numérique');
     if(state.platform){
@@ -3545,6 +3586,8 @@ function openModal(id){
     }
     populateTypeSelect('f-type', lastFormat);
     setSelectValueAndSync('f-type', 'Jeu simple');
+    document.getElementById('f-collector').checked = false;
+    toggleFormatDependentFields(lastFormat);
     document.getElementById('f-prix').value = '';
     document.getElementById('f-date').value = '';
     document.getElementById('f-source').value = '';
@@ -3583,16 +3626,17 @@ function saveModal(){
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
   const format = document.getElementById('f-format').value;
-  const type = document.getElementById('f-type').value;
+  const collector = document.getElementById('f-collector').checked;
+  const type = format === 'Numérique' ? document.getElementById('f-type').value : null;
   const image = document.getElementById('f-image').value.trim() || null;
 
   if(editingId){
     const g = GAMES.find(x => x.id === editingId);
-    Object.assign(g, { nom, plateforme, prix, date, source, format, type, image });
+    Object.assign(g, { nom, plateforme, prix, date, source, format, collector, type, image });
   } else {
     GAMES.push({
       id: 'custom-' + Date.now(),
-      nom, plateforme, prix, date, source, format, type, image,
+      nom, plateforme, prix, date, source, format, collector, type, image,
       status:null
     });
   }
@@ -3631,7 +3675,7 @@ function renderHomeStats(){
 
   const total = GAMES.length;
   const spent = GAMES.reduce((sum,g) => sum + (g.prix || 0), 0);
-  const collectors = GAMES.filter(g => g.format === 'Collector').length;
+  const collectors = GAMES.filter(g => g.collector).length;
   const platformsCount = new Set(GAMES.map(g => g.plateforme)).size;
 
   cardsEl.innerHTML = `
@@ -4241,10 +4285,17 @@ document.getElementById('cancel-btn').addEventListener('click', closeModal);
 document.getElementById('save-btn').addEventListener('click', saveModal);
 document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
+function toggleFormatDependentFields(format){
+  const isPhysical = format !== 'Numérique';
+  document.getElementById('f-collector-row').classList.toggle('hidden', !isPhysical);
+  document.getElementById('f-type-field').classList.toggle('hidden', isPhysical);
+}
+
 document.getElementById('f-format').addEventListener('change', () => {
   const format = document.getElementById('f-format').value;
   populatePlatformSelect('f-plateforme', format === 'Numérique');
   populateTypeSelect('f-type', format);
+  toggleFormatDependentFields(format);
 });
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 document.addEventListener('keydown', (e) => {
@@ -4262,7 +4313,8 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  state = { platform:null, format:null, type:null, status:null, search:"", sort:"name-asc" };
+  const keepFormat = state.format;
+  state = { platform:null, format:keepFormat, type:null, collector:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
@@ -4281,6 +4333,21 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     document.getElementById('page-collection').classList.toggle('hidden', page !== 'collection');
     document.getElementById('page-backlog').classList.toggle('hidden', page !== 'backlog');
     if(page === 'backlog') renderBacklogPage();
+    if(page === 'collection'){
+      const format = btn.dataset.format || 'Physique';
+      if(state.format !== format){
+        state.format = format;
+        state.platform = null;
+        state.collector = false;
+        state.type = null;
+      }
+      applyCollectionSupportUI(format);
+      buildPlatformList();
+      buildFormatToggles();
+      buildTypeToggles();
+      buildStatusToggles();
+      render();
+    }
     closeMobileDrawers();
   });
 });
@@ -4431,7 +4498,7 @@ function getGameBacklogRef(gameId){
   if(!gameId) return null;
   const game = GAMES.find(g => g.id === gameId);
   const nameKey = game ? nameKeyOf(game.nom, game.plateforme) : null;
-  const matches = (c) => c.gameId === gameId || (nameKey && nameKeyOf(c.nom, c.plateforme) === nameKey);
+  const matches = (c) => c.gameId ? c.gameId === gameId : (nameKey && nameKeyOf(c.nom, c.plateforme) === nameKey);
   const completions = BACKLOG_COMPLETIONS.filter(matches);
   if(completions.length){
     const sorted = [...completions].sort((a,b) => (a.date||'').localeCompare(b.date||''));
@@ -4857,11 +4924,10 @@ function getBacklogFormatOptionIconHtml(value){
 }
 
 const TYPE_META = {
-  'Compilation':    { icon: ICON_TYPE_COMPILATION, label:'Compilation' },
-  'Jeu simple':     { icon: ICON_TYPE_SIMPLE, label:'Jeu simple' },
-  'Jeu + DLC':      { icon: ICON_TYPE_GAME_DLC, label:'Jeu + DLC' },
-  'DLC extension':  { icon: ICON_FORMAT_DLC, label:'DLC' },
-  'Mise à niveau':  { icon: ICON_TYPE_UPGRADE, label:'Mise à niveau' }
+  'Jeu simple':       { icon: ICON_TYPE_SIMPLE, label:'Jeu simple' },
+  'DLC extension':    { icon: ICON_FORMAT_DLC, label:'DLC' },
+  'Mise à niveau':    { icon: ICON_TYPE_UPGRADE, label:'Mise à niveau' },
+  'Complete Edition': { icon: ICON_TYPE_GAME_DLC, label:'Complete Edition' }
 };
 function getBacklogTypeOptionIconHtml(value){
   return (TYPE_META[value] || TYPE_META['Jeu simple']).icon;
