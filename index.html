@@ -10,6 +10,7 @@
 <style>
   :root{
     --ink:#14151A;
+    --sidebar-bg:#0E0F13;
     --surface:#1D1F26;
     --surface-raised:#262933;
     --text:#ECEDF1;
@@ -48,13 +49,24 @@
   .topnav{
     background:var(--surface);
     border-bottom:1px solid var(--hairline);
-    padding:0 28px;
+    padding:0 28px 0 0;
     flex-shrink:0;
   }
   .topnav-inner{
     display:flex;
     align-items:center;
     gap:4px;
+  }
+  .topnav-brand{
+    width:260px;
+    flex-shrink:0;
+    align-self:stretch;
+    display:flex;
+    align-items:center;
+    padding:0 24px;
+    margin-right:8px;
+    border-right:1px solid var(--hairline);
+    background:var(--sidebar-bg);
   }
   .nav-tab{
     background:none;
@@ -292,7 +304,32 @@
     border-color:rgba(79,199,181,0.55);
     box-shadow:0 0 0 1px rgba(79,199,181,0.12), 0 8px 24px rgba(79,199,181,0.06);
   }
-  .playing-widget{flex-shrink:0;}
+  .playing-widget{
+    flex-shrink:0;
+    border-color:rgba(217,164,65,0.55);
+    box-shadow:0 0 0 1px rgba(217,164,65,0.12), 0 8px 24px rgba(217,164,65,0.06);
+  }
+  .playing-widget .board-head{background:rgba(217,164,65,0.07);}
+  .playing-widget-body{
+    display:flex;
+    gap:20px;
+    padding:16px 18px 18px;
+    align-items:stretch;
+  }
+  .playing-widget-body .playing-rows{flex:1 1 60%;min-width:0;}
+  .home-quick-stats{
+    flex:1 1 40%;
+    min-width:190px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding-left:20px;
+    border-left:1px solid var(--hairline);
+  }
+  @media (max-width:900px){
+    .playing-widget-body{flex-direction:column;}
+    .home-quick-stats{padding-left:0;border-left:none;padding-top:14px;border-top:1px solid var(--hairline);}
+  }
   .board-head{
     display:flex;
     align-items:center;
@@ -563,7 +600,7 @@
 
   /* ---------- Sidebar ---------- */
   .sidebar{
-    background:var(--surface);
+    background:var(--sidebar-bg);
     border-right:1px solid var(--hairline);
     padding:28px 18px 24px;
     display:flex;
@@ -571,27 +608,14 @@
     gap:26px;
     overflow-y:auto;
   }
-  .brand{
+  .brand-logo{
     display:flex;
-    flex-direction:column;
-    gap:4px;
-    padding:0 6px;
-  }
-  .brand .eyebrow{
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--amber);
-  }
-  .brand h1{
-    font-family:'Segoe UI','Roboto',sans-serif;
-    font-size:22px;
+    align-items:center;
+    gap:8px;
     font-weight:700;
     margin:0;
     line-height:1.15;
   }
-  .brand-logo{display:flex;align-items:center;gap:8px;}
   .brand-badge{
     background:#22C55E;
     color:#0B0B0D;
@@ -1713,7 +1737,7 @@
   /* ================= Backlog ================= */
   .backlog-app{
     display:grid;
-    grid-template-columns:250px minmax(420px,1fr) 520px;
+    grid-template-columns:260px minmax(420px,1fr) 520px;
     height:calc(100vh - 50px);
   }
   .backlog-sidebar{overflow-y:auto;}
@@ -1897,34 +1921,23 @@
 
   .backlog-board{
     margin:8px 8px 8px 0;
-    padding:14px 8px 8px;
+    padding:8px;
     display:flex;
     flex-direction:column;
-    gap:16px;
+    gap:14px;
     min-width:0;
-    background:var(--surface-raised);
-    border:1px solid var(--hairline);
-    border-radius:18px;
-    box-shadow:0 10px 28px rgba(0,0,0,0.22);
     overflow:hidden;
   }
   .backlog-board-pinned{flex-shrink:0;}
   .backlog-categories-scroll{
     flex:1;
     min-height:0;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-    padding:10px 8px 14px;
-    background:var(--surface);
-    border-radius:14px;
   }
-  .backlog-board-title{
-    font-family:'Segoe UI','Roboto',sans-serif;
-    font-size:15px;font-weight:700;
-    display:flex;align-items:center;gap:8px;
-    margin:0;
+  .backlog-categories-body{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    padding:14px 14px 16px;
   }
   .playing-rows{display:flex;flex-direction:column;gap:10px;}
   .playing-slot{
@@ -1953,28 +1966,26 @@
   }
   .playing-empty-slot:hover{border-color:var(--teal);color:var(--teal);}
 
-  .backlog-categories-head{
-    display:flex;align-items:center;justify-content:space-between;
-    margin-top:4px;
-  }
   .backlog-categories{display:flex;flex-direction:column;gap:14px;}
   .backlog-category{
     background:var(--surface-raised);
     border:1px solid var(--hairline);
     border-radius:10px;
     overflow:hidden;
-    border-left:3px solid var(--spine, var(--hairline));
   }
   .backlog-category-head{
     display:flex;align-items:center;justify-content:space-between;
     padding:10px 12px;
     gap:8px;
+    background:color-mix(in srgb, var(--spine, var(--hairline)) 18%, transparent);
+    border-bottom:1px solid var(--hairline);
   }
   .backlog-category-head h3{
     margin:0;font-size:12.5px;font-weight:700;
     display:flex;align-items:center;gap:7px;
     font-family:'Segoe UI','Roboto',sans-serif;
     min-width:0;
+    color:var(--spine, var(--text));
   }
   .backlog-category-head h3 .cat-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .backlog-category-head h3 .cat-count{
@@ -2104,6 +2115,12 @@
 
 <nav class="topnav">
   <div class="topnav-inner">
+    <div class="topnav-brand">
+      <h1 class="brand-logo">
+        <span class="brand-badge">JTD</span>
+        <span class="brand-word"><span class="w-plain">JEUX</span><span class="w-green">TOUT</span><span class="w-plain">DOUX</span></span>
+      </h1>
+    </div>
     <button class="nav-tab active" data-page="home"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg>Accueil</button>
     <button class="nav-tab" data-page="collection" data-format="Physique"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>Collection physique</button>
     <button class="nav-tab" data-page="collection" data-format="Numérique"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>Collection numérique</button>
@@ -2142,13 +2159,6 @@
 <div class="page" id="page-home">
   <div class="home-app">
   <aside class="sidebar home-sidebar">
-    <div class="brand">
-      <span class="eyebrow">Vue d'ensemble</span>
-      <h1 class="brand-logo">
-        <span class="brand-badge">JTD</span>
-        <span class="brand-word"><span class="w-plain">JEUX</span><span class="w-green">TOUT</span><span class="w-plain">DOUX</span></span>
-      </h1>
-    </div>
     <div class="side-section">
       <div class="side-label">Statistiques</div>
       <div class="home-stat-cards" id="home-stat-cards"></div>
@@ -2167,7 +2177,10 @@
         </div>
         <button class="board-add-btn" id="home-playing-see-all-btn">Voir le backlog →</button>
       </div>
-      <div class="playing-rows" id="home-playing-rows"></div>
+      <div class="playing-widget-body">
+        <div class="playing-rows" id="home-playing-rows"></div>
+        <div class="home-quick-stats" id="home-quick-stats"></div>
+      </div>
     </section>
 
     <div class="home-boards">
@@ -2317,14 +2330,6 @@
 <div class="page hidden" id="page-collection">
 <div class="app">
   <aside class="sidebar" id="collection-sidebar">
-    <div class="brand">
-      <span class="eyebrow" id="collection-eyebrow">Collection perso</span>
-      <h1 class="brand-logo">
-        <span class="brand-badge">JTD</span>
-        <span class="brand-word"><span class="w-plain">JEUX</span><span class="w-green">TOUT</span><span class="w-plain">DOUX</span></span>
-      </h1>
-    </div>
-
     <div class="side-section">
       <div class="side-label-row">
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
@@ -2476,13 +2481,6 @@
   <div class="backlog-app">
 
     <aside class="sidebar backlog-sidebar" id="backlog-sidebar">
-      <div class="brand">
-        <span class="eyebrow">Complétions</span>
-        <h1 class="brand-logo">
-        <span class="brand-badge">JTD</span>
-        <span class="brand-word"><span class="w-plain">JEUX</span><span class="w-green">TOUT</span><span class="w-plain">DOUX</span></span>
-      </h1>
-      </div>
       <div class="side-section backlog-year-filter-section" id="backlog-year-filter-section">
         <div class="side-label">Année</div>
         <select id="backlog-year-select"></select>
@@ -2519,17 +2517,25 @@
     </main>
 
     <section class="backlog-board">
-      <div class="backlog-board-pinned">
-        <div class="backlog-board-title">▶ En cours <span class="board-count" id="playing-count">0/3</span></div>
+      <div class="board backlog-board-pinned">
+        <div class="board-head">
+          <div>
+            <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours <span class="board-count" id="playing-count">0/3</span></h2>
+          </div>
+        </div>
         <div class="playing-rows" id="playing-rows"></div>
       </div>
 
-      <div class="backlog-categories-scroll">
-        <div class="backlog-categories-head">
-          <span class="side-label" style="margin:0;">Catégories du backlog</span>
-          <button class="icon-link-btn" id="manage-categories-btn" title="Gérer les catégories">✎ Gérer</button>
+      <div class="board backlog-categories-scroll">
+        <div class="board-head">
+          <div>
+            <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h9a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path></svg>Catégories</h2>
+          </div>
+          <button class="board-add-btn" id="manage-categories-btn" title="Gérer les catégories">✎ Gérer</button>
         </div>
-        <div class="backlog-categories" id="backlog-categories"></div>
+        <div class="backlog-categories-body">
+          <div class="backlog-categories" id="backlog-categories"></div>
+        </div>
       </div>
     </section>
 
@@ -3401,8 +3407,6 @@ function applyCollectionSupportUI(format){
   document.getElementById('type-filter-section').classList.toggle('hidden', isPhysical);
   const addBtn = document.getElementById('add-btn');
   if(addBtn) addBtn.textContent = isPhysical ? '+ Ajouter un jeu physique' : '+ Ajouter un jeu numérique';
-  const eyebrow = document.getElementById('collection-eyebrow');
-  if(eyebrow) eyebrow.textContent = isPhysical ? 'Collection physique' : 'Collection numérique';
 }
 
 function buildFormatToggles(){
@@ -5870,6 +5874,39 @@ function renderHomePlaying(){
     seeAllBtn.dataset.wired = '1';
     seeAllBtn.addEventListener('click', () => goToPage('backlog'));
   }
+  renderHomeQuickStats();
+}
+
+function renderHomeQuickStats(){
+  const el = document.getElementById('home-quick-stats');
+  if(!el) return;
+  const year = String(new Date().getFullYear());
+
+  const finishedThisYear = BACKLOG_COMPLETIONS.filter(c => (c.date||'').slice(0,4) === year).length;
+  const todoCount = GAMES.filter(g => g.statut === 'a_jouer').length;
+
+  const monthCounts = {};
+  BACKLOG_COMPLETIONS.forEach(c => {
+    if((c.date||'').slice(0,4) !== year) return;
+    const m = c.date.slice(5,7);
+    monthCounts[m] = (monthCounts[m]||0) + 1;
+  });
+  let topMonth = null, topMonthCount = 0;
+  Object.keys(monthCounts).forEach(m => {
+    if(monthCounts[m] > topMonthCount){ topMonthCount = monthCounts[m]; topMonth = m; }
+  });
+  const topMonthLabel = topMonth ? MONTH_NAMES_FULL[parseInt(topMonth,10)-1] : '—';
+
+  const platformCounts = {};
+  GAMES.forEach(g => { platformCounts[g.plateforme] = (platformCounts[g.plateforme]||0) + 1; });
+  const favPlatform = Object.keys(platformCounts).sort((a,b) => platformCounts[b]-platformCounts[a])[0] || '—';
+
+  el.innerHTML = `
+    <div class="backlog-mini-stat"><span class="label">✅ Finis en ${year}</span><span class="num">${finishedThisYear}</span></div>
+    <div class="backlog-mini-stat"><span class="label">🕹️ À faire</span><span class="num">${todoCount}</span></div>
+    <div class="backlog-mini-stat"><span class="label">📅 Mois le plus actif</span><span class="num">${topMonth ? `${topMonthLabel} (${topMonthCount})` : '—'}</span></div>
+    <div class="backlog-mini-stat"><span class="label">🏆 Plateforme préférée</span><span class="num">${favPlatform}</span></div>
+  `;
 }
 
 function wirePlayingDropZone(){
