@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JeuxToutDoux</title>
+<title>JTD | Accueil</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2322C55E'/%3E%3Ctext x='16' y='22' font-family='Segoe UI, Arial, sans-serif' font-weight='800' font-size='13' letter-spacing='-0.5' text-anchor='middle' fill='%230B0B0D'%3EJTD%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -190,7 +190,7 @@
   .home-app{
     display:grid;
     grid-template-columns:260px 1fr;
-    height:calc(100vh - 50px);
+    height:calc(100vh - 51px);
   }
   .home-sidebar{overflow-y:auto;}
   .home-stat-cards{
@@ -595,7 +595,7 @@
   .app{
     display:grid;
     grid-template-columns:260px 1fr;
-    height:calc(100vh - 50px);
+    height:calc(100vh - 51px);
   }
 
   /* ---------- Sidebar ---------- */
@@ -611,30 +611,19 @@
   .brand-logo{
     display:flex;
     align-items:center;
-    gap:8px;
+    width:100%;
     font-weight:700;
     margin:0;
     line-height:1.15;
   }
-  .brand-badge{
-    background:#22C55E;
-    color:#0B0B0D;
-    font-family:'Segoe UI','Roboto',sans-serif;
-    font-weight:800;
-    font-size:12px;
-    letter-spacing:0.02em;
-    padding:4px 6px;
-    border-radius:6px;
-    line-height:1;
-    flex-shrink:0;
-  }
   .brand-word{
     font-family:'Segoe UI','Roboto',sans-serif;
     font-weight:800;
-    font-size:19px;
+    font-size:21px;
     letter-spacing:-0.01em;
     text-transform:uppercase;
     color:var(--text);
+    white-space:nowrap;
   }
   .brand-word .w-green{color:#22C55E;}
   .side-section{
@@ -1739,7 +1728,7 @@
   .backlog-app{
     display:grid;
     grid-template-columns:260px minmax(420px,1fr) 520px;
-    height:calc(100vh - 50px);
+    height:calc(100vh - 51px);
   }
   .backlog-sidebar{overflow-y:auto;}
   .backlog-mini-stats{display:flex;flex-direction:column;gap:8px;}
@@ -1752,6 +1741,15 @@
   .backlog-mini-stat .label svg{width:14px;height:14px;flex-shrink:0;color:var(--muted);}
   .backlog-mini-stat .swatch{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
   .backlog-mini-stat .num{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;color:var(--muted);}
+  .backlog-mini-stat-sub{
+    margin-left:16px;
+    padding:6px 10px;
+    background:none;
+    border-left:2px solid var(--hairline);
+    border-radius:0;
+  }
+  .backlog-mini-stat-sub .label{font-size:11.5px;color:var(--muted);}
+  .backlog-mini-stat-sub .num{font-size:12px;}
 
   .backlog-main{
     margin:8px 8px 8px 8px;
@@ -1840,16 +1838,24 @@
     top:36px;
     z-index:5;
     display:flex;align-items:center;gap:12px;
-    background:var(--surface-raised);
-    border-bottom:1px solid var(--hairline);
+    background:var(--ink);
+    border-bottom:2px solid var(--amber);
     margin:0 -10px;
-    padding:10px 10px;
+    padding:11px 10px;
     font-family:'Segoe UI','Roboto',sans-serif;
     font-size:14px;
     font-weight:700;
     color:var(--amber);
-    box-shadow:0 6px 16px rgba(0,0,0,0.2);
+    box-shadow:0 6px 16px rgba(0,0,0,0.28);
   }
+  .year-block-title .add-btn-inline{
+    background:none;
+    color:var(--muted);
+    border:1px solid var(--hairline);
+    padding:6px 12px;
+    font-size:11px;
+  }
+  .year-block-title .add-btn-inline:hover{color:var(--teal);border-color:var(--teal);filter:none;}
   .year-block-title.compact{
     font-size:11.5px;
     font-weight:600;
@@ -1860,14 +1866,6 @@
     padding:8px 10px;
     box-shadow:none;
   }
-  .year-block-title.compact .add-btn-inline{
-    background:none;
-    color:var(--muted);
-    border:1px solid var(--hairline);
-    padding:6px 12px;
-    font-size:11px;
-  }
-  .year-block-title.compact .add-btn-inline:hover{color:var(--teal);border-color:var(--teal);filter:none;}
   .year-block-title .year-block-year{display:flex;align-items:center;gap:10px;}
   .year-block-title .board-count{font-size:12px;}
   .year-block-title .add-btn-inline{margin-left:auto;flex-shrink:0;}
@@ -2138,7 +2136,6 @@
   <div class="topnav-inner">
     <div class="topnav-brand">
       <h1 class="brand-logo">
-        <span class="brand-badge">JTD</span>
         <span class="brand-word"><span class="w-plain">JEUX</span><span class="w-green">TOUT</span><span class="w-plain">DOUX</span></span>
       </h1>
     </div>
@@ -2521,10 +2518,6 @@
       <div class="side-section">
         <div class="side-label">Format</div>
         <div class="backlog-mini-stats" id="backlog-format-stats"></div>
-      </div>
-      <div class="side-section">
-        <div class="side-label">Type</div>
-        <div class="backlog-mini-stats" id="backlog-type-stats"></div>
       </div>
     </aside>
 
@@ -4800,10 +4793,18 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   render();
 });
 
+const PAGE_TITLES = {
+  home: 'Accueil',
+  backlog: 'Backlog',
+  'collection-Physique': 'Collection physique',
+  'collection-Numérique': 'Collection numérique'
+};
 function goToPage(page, format){
   document.querySelectorAll('.nav-tab').forEach(b => {
     b.classList.toggle('active', b.dataset.page === page && (page !== 'collection' || b.dataset.format === (format || 'Physique')));
   });
+  const titleKey = page === 'collection' ? `collection-${format || 'Physique'}` : page;
+  document.title = `JTD | ${PAGE_TITLES[titleKey] || 'Accueil'}`;
   document.getElementById('page-home').classList.toggle('hidden', page !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', page !== 'collection');
   document.getElementById('page-backlog').classList.toggle('hidden', page !== 'backlog');
@@ -5488,7 +5489,7 @@ let backlogYearFilter = String(new Date().getFullYear());
 
 function getBacklogAvailableYears(){
   const years = new Set(BACKLOG_COMPLETIONS.map(c => (c.date||'').slice(0,4)).filter(Boolean));
-  return Array.from(years).sort((a,b) => b.localeCompare(a));
+  return Array.from(years).sort((a,b) => a.localeCompare(b));
 }
 
 function getVisibleCompletions(){
@@ -5562,17 +5563,22 @@ function renderBacklogStats(){
   const formatCounts = {};
   formatKeys.forEach(k => formatCounts[k] = 0);
   visible.forEach(c => { const f = c.format || 'Physique'; if(f in formatCounts) formatCounts[f]++; });
-  document.getElementById('backlog-format-stats').innerHTML = formatKeys.map(k => `
-    <div class="backlog-mini-stat"><span class="label">${FORMAT_META[k].icon}${FORMAT_META[k].label}</span><span class="num">${formatCounts[k]}</span></div>
-  `).join('');
 
   const typeKeys = Object.keys(TYPE_META);
   const typeCounts = {};
   typeKeys.forEach(k => typeCounts[k] = 0);
-  visible.forEach(c => { const t = c.type || 'Jeu simple'; if(t in typeCounts) typeCounts[t]++; });
-  document.getElementById('backlog-type-stats').innerHTML = typeKeys.map(k => `
-    <div class="backlog-mini-stat"><span class="label">${TYPE_META[k].icon}${TYPE_META[k].label}</span><span class="num">${typeCounts[k]}</span></div>
-  `).join('');
+  visible.forEach(c => { if((c.format||'Physique') !== 'Numérique') return; const t = c.type || 'Jeu simple'; if(t in typeCounts) typeCounts[t]++; });
+
+  const formatRow = k => `<div class="backlog-mini-stat"><span class="label">${FORMAT_META[k].icon}${FORMAT_META[k].label}</span><span class="num">${formatCounts[k]}</span></div>`;
+  const typeRow = k => `<div class="backlog-mini-stat backlog-mini-stat-sub"><span class="label">${TYPE_META[k].icon}${TYPE_META[k].label}</span><span class="num">${typeCounts[k]}</span></div>`;
+
+  document.getElementById('backlog-format-stats').innerHTML =
+    formatRow('Physique') +
+    formatRow('Numérique') +
+    typeKeys.map(typeRow).join('') +
+    formatRow('Abonnement') +
+    formatRow('Partage familial') +
+    formatRow('Émulation / Pirate');
 }
 
 function completionGameKey(c){
