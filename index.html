@@ -247,8 +247,23 @@
     height:8px;border-radius:4px;
     background:var(--surface-raised);
     overflow:hidden;
+    display:flex;
   }
-  .home-platform-bar-fill{height:100%;border-radius:4px;}
+  .home-platform-bar-fill{height:100%;}
+  .home-platform-bar-fill:first-child{border-radius:4px 0 0 4px;}
+  .home-platform-bar-fill:last-child{border-radius:0 4px 4px 0;}
+  .home-platform-bar-fill:only-child{border-radius:4px;}
+  .home-platform-bar-fill.digi-seg{opacity:0.4;border-left:1px solid var(--surface-raised);}
+  .plat-seg-clickable{cursor:pointer;transition:filter .12s ease;}
+  .plat-seg-clickable:hover{filter:brightness(1.35);}
+  .plat-bar-legend{
+    display:flex;gap:12px;
+    font-size:10.5px;color:var(--muted);
+    margin:-4px 0 2px;
+  }
+  .plat-bar-legend span{display:flex;align-items:center;gap:4px;}
+  .legend-swatch{width:8px;height:8px;border-radius:2px;background:var(--muted);display:inline-block;}
+  .legend-swatch.digi{opacity:0.4;}
 
   .home-main{
     padding:28px 32px 60px;
@@ -308,6 +323,28 @@
   }
   .board.arrivals .board-count{color:var(--teal);background:rgba(79,199,181,0.14);}
   .board.wishlist .board-count{color:var(--orange);background:rgba(221,127,53,0.16);}
+  .board-total-estimate{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+  .board-month-head{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    background:var(--surface-raised);
+    padding:6px 18px;
+    border-top:1px solid var(--hairline);
+    border-bottom:1px solid var(--hairline);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .board-month-head .board-month-count{color:var(--text);font-weight:600;}
   .board-head-icon{
     width:17px;height:17px;
     flex-shrink:0;
@@ -1267,6 +1304,37 @@
   .confirm-modal{max-width:400px;gap:16px;}
   .confirm-modal-message{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0;}
 
+  .priority-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+  .priority-pill{
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:20px;
+    padding:6px 12px;
+    cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+  }
+  .priority-pill::before{
+    content:'';
+    width:7px;height:7px;border-radius:50%;
+    background:var(--pcolor,var(--muted));
+    flex-shrink:0;
+  }
+  .priority-pill.active{
+    color:var(--text);
+    border-color:var(--pcolor,var(--hairline));
+    background:color-mix(in srgb, var(--pcolor,var(--muted)) 14%, var(--surface));
+  }
+  .wishlist-priority-dot{
+    width:7px;height:7px;border-radius:50%;
+    display:inline-block;
+    margin-right:6px;
+    flex-shrink:0;
+  }
+
   .results-bar{
     display:flex;
     align-items:center;
@@ -2048,16 +2116,28 @@
     </div>
     <div class="side-section">
       <div class="side-label">Répartition par plateforme</div>
+      <div class="plat-bar-legend"><span><i class="legend-swatch"></i>Physique</span><span><i class="legend-swatch digi"></i>Numérique</span></div>
       <div class="home-platform-bars" id="home-platform-bars"></div>
     </div>
   </aside>
   <main class="home-main">
+    <section class="board playing-widget hidden" id="home-playing-widget">
+      <div class="board-head">
+        <div>
+          <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours <span class="board-count" id="home-playing-count">0</span></h2>
+        </div>
+        <button class="board-add-btn" id="home-playing-see-all-btn">Voir le backlog →</button>
+      </div>
+      <div class="playing-rows" id="home-playing-rows"></div>
+    </section>
+
     <div class="home-boards">
 
       <section class="board wishlist">
         <div class="board-head">
           <div>
             <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>Wishlist <span class="board-count" id="wishlist-count">0</span></h2>
+            <span class="board-total-estimate" id="wishlist-total"></span>
           </div>
           <button class="board-add-btn" id="add-wishlist-btn">+ Ajouter</button>
         </div>
@@ -2071,6 +2151,7 @@
         <div class="board-head">
           <div>
             <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="7" width="14" height="10"></rect><path d="M15 10h4l3 3v4h-7z"></path><circle cx="6" cy="19" r="2"></circle><circle cx="17.5" cy="19" r="2"></circle></svg>Arrivages <span class="board-count" id="arrivals-count">0</span></h2>
+            <span class="board-total-estimate" id="arrivals-total"></span>
           </div>
           <button class="board-add-btn" id="add-arrival-btn">+ Ajouter</button>
         </div>
@@ -2160,10 +2241,23 @@
     </div>
 
     <div class="modal-extra-label">Infos de wishlist</div>
+    <div class="field">
+      <label>Priorité</label>
+      <div class="priority-pills" id="w-priorite-pills">
+        <button type="button" class="priority-pill" data-value="forte" style="--pcolor:var(--danger);">Envie forte</button>
+        <button type="button" class="priority-pill" data-value="curieux" style="--pcolor:var(--teal);">Curieux</button>
+        <button type="button" class="priority-pill" data-value="peut-etre" style="--pcolor:var(--muted);">Peut-être</button>
+      </div>
+      <input type="hidden" id="w-priorite" value="peut-etre">
+    </div>
     <div class="field-row">
       <div class="field">
         <label for="w-date">Date de sortie</label>
         <input type="text" id="w-date" placeholder="ex. 12/11/2026, 2026 ou TBD">
+      </div>
+      <div class="field">
+        <label for="w-prix">Prix estimé (€)</label>
+        <input type="text" id="w-prix" placeholder="ex. 59,99">
       </div>
     </div>
 
@@ -3917,28 +4011,40 @@ function renderHomeStats(){
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_GAMEPAD,'home-stat-icon')}Plateformes</span><span class="num">${platformsCount}</span></div>
   `;
 
-  const counts = {};
-  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
-  const platformNames = Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
-  const max = platformNames.length ? counts[platformNames[0]] : 1;
+  const physCounts = {}, digiCounts = {}, totalCounts = {};
+  GAMES.forEach(g => {
+    totalCounts[g.plateforme] = (totalCounts[g.plateforme]||0) + 1;
+    const map = g.format === 'Numérique' ? digiCounts : physCounts;
+    map[g.plateforme] = (map[g.plateforme]||0) + 1;
+  });
+  const platformNames = Object.keys(totalCounts).sort((a,b) => totalCounts[b]-totalCounts[a]);
+  const max = platformNames.length ? totalCounts[platformNames[0]] : 1;
 
   if(platformNames.length === 0){
     barsEl.innerHTML = `<div style="font-size:12px;color:var(--muted);">Aucun jeu pour l'instant.</div>`;
   } else {
     barsEl.innerHTML = platformNames.map(p => {
-      const c = counts[p];
-      const pct = Math.max(4, Math.round((c/max)*100));
+      const totalC = totalCounts[p];
+      const physC = physCounts[p] || 0;
+      const digiC = digiCounts[p] || 0;
+      const physPct = physC ? Math.max(3, Math.round((physC/max)*100)) : 0;
+      const digiPct = digiC ? Math.max(3, Math.round((digiC/max)*100)) : 0;
       const color = getPlatformColor(p);
       const logo = getPlatformLogo(p);
-      const initials = p.slice(0,2).toUpperCase();
       const iconHtml = logo
         ? `<img class="home-plat-icon" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'home-plat-icon-fallback\\' style=\\'background:${color}\\'></span>'">`
         : `<span class="home-plat-icon-fallback" style="background:${color}"></span>`;
       return `<div class="home-platform-bar-row">
-        <div class="plat-bar-label">${iconHtml}<span class="plat-name">${p}</span><span class="count">${c}</span></div>
-        <div class="home-platform-bar-track"><div class="home-platform-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="plat-bar-label">${iconHtml}<span class="plat-name">${p}</span><span class="count">${totalC}</span></div>
+        <div class="home-platform-bar-track">
+          ${physC ? `<div class="home-platform-bar-fill plat-seg-clickable" data-plat="${p}" data-fmt="Physique" style="width:${physPct}%;background:${color};" title="${p} · ${physC} physique"></div>` : ''}
+          ${digiC ? `<div class="home-platform-bar-fill plat-seg-clickable digi-seg" data-plat="${p}" data-fmt="Numérique" style="width:${digiPct}%;background:${color};" title="${p} · ${digiC} numérique"></div>` : ''}
+        </div>
       </div>`;
     }).join('');
+    barsEl.querySelectorAll('.plat-seg-clickable').forEach(el => {
+      el.addEventListener('click', () => goToCollectionPlatform(el.dataset.fmt, el.dataset.plat));
+    });
   }
 }
 
@@ -3947,6 +4053,15 @@ function renderHomeStats(){
 const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>`;
 const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
 const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+
+const WISHLIST_PRIORITY_META = {
+  'forte':     { label: 'Envie forte', tier: 0, color: 'var(--danger)' },
+  'curieux':   { label: 'Curieux',     tier: 1, color: 'var(--teal)' },
+  'peut-etre': { label: 'Peut-être',   tier: 2, color: 'var(--muted)' }
+};
+function wishlistPriorityMeta(p){
+  return WISHLIST_PRIORITY_META[p] || WISHLIST_PRIORITY_META['peut-etre'];
+}
 
 function boardThumb(item){
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
@@ -3961,34 +4076,14 @@ function boardThumb(item){
   return `<div class="board-thumb">${fallback}</div>`;
 }
 
-function renderArrivals(){
-  const container = document.getElementById('arrivals-rows');
-  if(!container) return;
-  container.innerHTML = "";
-
-  const countEl = document.getElementById('arrivals-count');
-  if(countEl) countEl.textContent = ARRIVALS.length;
-
-  renderHomeStats();
-  wireArrivalsDropZone();
-
-  if(ARRIVALS.length === 0){
-    container.innerHTML = `<div class="board-empty">Aucun jeu en précommande pour l'instant.</div>`;
-    return;
-  }
-
-  const sorted = [...ARRIVALS].sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999'));
-
-  sorted.forEach(item => {
-    const color = getPlatformColor(item.plateforme);
-    const logo = getPlatformLogo(item.plateforme);
-    const platIconHtml = logo
-      ? `<img class="mini-logo-sm" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\'></span>'">`
-      : `<span class="dot"></span>`;
-    const row = document.createElement('div');
-    row.className = 'board-row';
-    row.style.setProperty('--spine', color);
-    row.innerHTML = `
+function arrivalRowHtml(item){
+  const color = getPlatformColor(item.plateforme);
+  const logo = getPlatformLogo(item.plateforme);
+  const platIconHtml = logo
+    ? `<img class="mini-logo-sm" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\'></span>'">`
+    : `<span class="dot"></span>`;
+  return `
+    <div class="board-row" data-id="${item.id}" style="--spine:${color}">
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${item.nom}">${item.nom}</div>
@@ -4000,16 +4095,62 @@ function renderArrivals(){
       <div class="board-actions">
         <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_PLUS}</button>
       </div>
-    `;
+    </div>`;
+}
+
+function renderArrivals(){
+  const container = document.getElementById('arrivals-rows');
+  if(!container) return;
+  container.innerHTML = "";
+
+  const countEl = document.getElementById('arrivals-count');
+  if(countEl) countEl.textContent = ARRIVALS.length;
+
+  const totalEl = document.getElementById('arrivals-total');
+  if(totalEl){
+    const total = ARRIVALS.reduce((sum,a) => sum + (a.prix || 0), 0);
+    totalEl.textContent = total > 0 ? `≈ ${total.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimés` : '';
+  }
+
+  renderHomeStats();
+  wireArrivalsDropZone();
+
+  if(ARRIVALS.length === 0){
+    container.innerHTML = `<div class="board-empty">Aucun jeu en précommande pour l'instant.</div>`;
+    return;
+  }
+
+  const sorted = [...ARRIVALS].sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999'));
+
+  const groups = [];
+  const groupMap = new Map();
+  sorted.forEach(item => {
+    const m = (item.date || '').match(/^(\d{4})-(\d{2})/);
+    const key = m ? `${m[1]}-${m[2]}` : '__none__';
+    const label = m ? `${MONTH_NAMES_FULL[parseInt(m[2],10)-1]} ${m[1]}` : 'Date à préciser';
+    if(!groupMap.has(key)){
+      const g = { key, label, items: [] };
+      groupMap.set(key, g);
+      groups.push(g);
+    }
+    groupMap.get(key).items.push(item);
+  });
+
+  container.innerHTML = groups.map(g => `
+    <div class="board-month-head">${g.label} <span class="board-month-count">${g.items.length}</span></div>
+    ${g.items.map(arrivalRowHtml).join('')}
+  `).join('');
+
+  container.querySelectorAll('.board-row').forEach(row => {
+    const id = row.dataset.id;
     row.addEventListener('click', (e) => {
       if(e.target.closest('[data-action="to-collection"]')) return;
-      openArrivalModal(item.id);
+      openArrivalModal(id);
     });
     row.querySelector('[data-action="to-collection"]').onclick = (e) => {
       e.stopPropagation();
-      addArrivalToCollection(item.id);
+      addArrivalToCollection(id);
     };
-    container.appendChild(row);
   });
 }
 
@@ -4070,6 +4211,12 @@ function renderWishlist(){
   const countEl = document.getElementById('wishlist-count');
   if(countEl) countEl.textContent = WISHLIST.length;
 
+  const totalEl = document.getElementById('wishlist-total');
+  if(totalEl){
+    const total = WISHLIST.reduce((sum,w) => sum + (w.prix || 0), 0);
+    totalEl.textContent = total > 0 ? `≈ ${total.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimés` : '';
+  }
+
   renderHomeStats();
 
   if(WISHLIST.length === 0){
@@ -4078,6 +4225,8 @@ function renderWishlist(){
   }
 
   const sorted = [...WISHLIST].sort((a,b) => {
+    const tierDiff = wishlistPriorityMeta(a.priorite).tier - wishlistPriorityMeta(b.priorite).tier;
+    if(tierDiff !== 0) return tierDiff;
     const ia = parseWishlistDate(a.date);
     const ib = parseWishlistDate(b.date);
     if(ia.priority !== ib.priority) return ia.priority - ib.priority;
@@ -4098,10 +4247,12 @@ function renderWishlist(){
     const linkHtml = item.lien
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}">Voir le lien ↗</a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
+    const prioMeta = wishlistPriorityMeta(item.priorite);
+    const prioDotHtml = prioMeta.tier < 2 ? `<span class="wishlist-priority-dot" style="background:${prioMeta.color}" title="${prioMeta.label}"></span>` : '';
     row.innerHTML = `
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.nom}</div>
+        <div class="board-name" title="${item.nom} · ${prioMeta.label}">${prioDotHtml}${item.nom}</div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
       <div class="board-date">${parseWishlistDate(item.date).label}</div>
@@ -4244,6 +4395,13 @@ function addArrivalToCollection(id){
 
 /* ----- Modal Wishlist ----- */
 
+function setWishlistPriorityUI(value){
+  document.getElementById('w-priorite').value = value || 'peut-etre';
+  document.querySelectorAll('#w-priorite-pills .priority-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.value === (value || 'peut-etre'));
+  });
+}
+
 function openWishlistModal(id){
   editingWishlistId = id || null;
   populatePlatformSelect('w-plateforme');
@@ -4259,6 +4417,8 @@ function openWishlistModal(id){
     document.getElementById('w-date').value = item.date || '';
     document.getElementById('w-lien').value = item.lien || '';
     document.getElementById('w-image').value = item.image || '';
+    document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
+    setWishlistPriorityUI(item.priorite);
   } else {
     title.textContent = 'Ajouter à la wishlist';
     deleteBtn.classList.add('hidden');
@@ -4267,6 +4427,8 @@ function openWishlistModal(id){
     document.getElementById('w-date').value = '';
     document.getElementById('w-lien').value = '';
     document.getElementById('w-image').value = '';
+    document.getElementById('w-prix').value = '';
+    setWishlistPriorityUI('peut-etre');
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
@@ -4287,12 +4449,14 @@ function saveWishlistModal(){
   const date = document.getElementById('w-date').value.trim() || null;
   const lien = document.getElementById('w-lien').value.trim() || null;
   const image = document.getElementById('w-image').value.trim() || null;
+  const priorite = document.getElementById('w-priorite').value || 'peut-etre';
+  const prix = parsePriceInput(document.getElementById('w-prix').value);
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, image });
+    Object.assign(item, { nom, plateforme, date, lien, image, priorite, prix });
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, priorite, prix });
   }
   ensurePlatformMeta(plateforme);
   savePlatformMeta();
@@ -4365,6 +4529,9 @@ document.getElementById('w-cancel-btn').addEventListener('click', closeWishlistM
 document.getElementById('w-save-btn').addEventListener('click', saveWishlistModal);
 document.getElementById('w-delete-btn').addEventListener('click', deleteWishlist);
 document.getElementById('w-image').addEventListener('input', () => updateImagePreviewFor('w-image','w-image-preview'));
+document.querySelectorAll('#w-priorite-pills .priority-pill').forEach(btn => {
+  btn.addEventListener('click', () => setWishlistPriorityUI(btn.dataset.value));
+});
 /* Un clic en dehors de la fenêtre d'édition d'un élément wishlist ne la ferme plus (évite les pertes accidentelles) */
 
 /* ---------- Modal gestion des plateformes ---------- */
@@ -4571,31 +4738,42 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   render();
 });
 
+function goToPage(page, format){
+  document.querySelectorAll('.nav-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === page && (page !== 'collection' || b.dataset.format === (format || 'Physique')));
+  });
+  document.getElementById('page-home').classList.toggle('hidden', page !== 'home');
+  document.getElementById('page-collection').classList.toggle('hidden', page !== 'collection');
+  document.getElementById('page-backlog').classList.toggle('hidden', page !== 'backlog');
+  if(page === 'backlog') renderBacklogPage();
+  if(page === 'collection'){
+    const fmt = format || 'Physique';
+    if(state.format !== fmt){
+      state.format = fmt;
+      state.platform = null;
+      state.collector = false;
+      state.type = null;
+    }
+    applyCollectionSupportUI(fmt);
+    buildPlatformList();
+    buildFormatToggles();
+    buildTypeToggles();
+    buildStatusToggles();
+    render();
+  }
+  closeMobileDrawers();
+}
+
+function goToCollectionPlatform(format, platform){
+  goToPage('collection', format);
+  state.platform = platform;
+  buildPlatformList();
+  render();
+}
+
 document.querySelectorAll('.nav-tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const page = btn.dataset.page;
-    document.getElementById('page-home').classList.toggle('hidden', page !== 'home');
-    document.getElementById('page-collection').classList.toggle('hidden', page !== 'collection');
-    document.getElementById('page-backlog').classList.toggle('hidden', page !== 'backlog');
-    if(page === 'backlog') renderBacklogPage();
-    if(page === 'collection'){
-      const format = btn.dataset.format || 'Physique';
-      if(state.format !== format){
-        state.format = format;
-        state.platform = null;
-        state.collector = false;
-        state.type = null;
-      }
-      applyCollectionSupportUI(format);
-      buildPlatformList();
-      buildFormatToggles();
-      buildTypeToggles();
-      buildStatusToggles();
-      render();
-    }
-    closeMobileDrawers();
+    goToPage(btn.dataset.page, btn.dataset.format);
   });
 });
 
@@ -5608,6 +5786,35 @@ function renderPlayingRows(){
   wirePlayingDropZone();
   const addSlot = document.getElementById('playing-add-slot');
   if(addSlot) addSlot.addEventListener('click', () => openPlayingModal(null));
+  renderHomePlaying();
+}
+
+function renderHomePlaying(){
+  const widget = document.getElementById('home-playing-widget');
+  const container = document.getElementById('home-playing-rows');
+  const countEl = document.getElementById('home-playing-count');
+  if(!widget || !container) return;
+  widget.classList.toggle('hidden', BACKLOG_PLAYING.length === 0);
+  if(countEl) countEl.textContent = BACKLOG_PLAYING.length;
+  container.innerHTML = BACKLOG_PLAYING.map(p => {
+    const r = resolveBacklogItem(p);
+    return `
+    <div class="playing-slot" style="--spine:${getPlatformColor(r.plateforme)}" data-id="${p.id}">
+      ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
+      <div class="playing-info">
+        <span class="playing-name">${r.nom}${r.linked ? ' <span class="linked-chip" title="Lié à ta collection">🔗</span>' : ''}</span>
+        <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(p.format, p.type))}</span>
+      </div>
+    </div>`;
+  }).join('');
+  container.querySelectorAll('.playing-slot').forEach(el => {
+    el.addEventListener('click', () => openPlayingModal(el.dataset.id));
+  });
+  const seeAllBtn = document.getElementById('home-playing-see-all-btn');
+  if(seeAllBtn && !seeAllBtn.dataset.wired){
+    seeAllBtn.dataset.wired = '1';
+    seeAllBtn.addEventListener('click', () => goToPage('backlog'));
+  }
 }
 
 function wirePlayingDropZone(){
@@ -6122,6 +6329,7 @@ async function initApp(){
   render();
   renderArrivals();
   renderWishlist();
+  renderHomePlaying();
   updateExportNote();
 }
 </script>
