@@ -316,19 +316,48 @@
     padding:16px 18px 18px;
     align-items:stretch;
   }
-  .playing-widget-body .playing-rows{flex:1 1 60%;min-width:0;}
+  .playing-widget-body .playing-rows{flex:1 1 auto;min-width:0;}
   .home-quick-stats{
-    flex:1 1 40%;
-    min-width:190px;
+    flex:0 0 auto;
+    display:flex;
+    flex-direction:row;
+    gap:10px;
+    padding-right:20px;
+    margin-right:2px;
+    border-right:1px solid var(--hairline);
+  }
+  .home-quick-stat-card{
+    background:var(--surface-raised);
+    border:1px solid var(--hairline);
+    border-radius:10px;
+    padding:10px 14px;
     display:flex;
     flex-direction:column;
-    gap:8px;
-    padding-left:20px;
-    border-left:1px solid var(--hairline);
+    align-items:flex-start;
+    gap:7px;
+    min-width:118px;
+  }
+  .home-quick-stat-card .label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    white-space:nowrap;
+  }
+  .home-quick-stat-card .label svg{width:13px;height:13px;flex-shrink:0;color:var(--amber);}
+  .home-quick-stat-card .num{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:17px;
+    color:var(--text);
+    white-space:nowrap;
   }
   @media (max-width:900px){
     .playing-widget-body{flex-direction:column;}
-    .home-quick-stats{padding-left:0;border-left:none;padding-top:14px;border-top:1px solid var(--hairline);}
+    .home-quick-stats{flex-direction:row;flex-wrap:wrap;padding-right:0;border-right:none;padding-bottom:14px;border-bottom:1px solid var(--hairline);margin-right:0;margin-bottom:2px;}
   }
   .board-head{
     display:flex;
@@ -2196,8 +2225,8 @@
         <button class="board-add-btn" id="home-playing-see-all-btn">Voir le backlog →</button>
       </div>
       <div class="playing-widget-body">
-        <div class="playing-rows" id="home-playing-rows"></div>
         <div class="home-quick-stats" id="home-quick-stats"></div>
+        <div class="playing-rows" id="home-playing-rows"></div>
       </div>
     </section>
 
@@ -3053,6 +3082,7 @@ const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentC
 const ICON_BOOKS_VERTICAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>`;
 const ICON_STAR = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
 const ICON_GAMEPAD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg>`;
+const ICON_FLAME = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`;
 
 function iconWithClass(svgStr, cls){
   return svgStr.replace('<svg ', `<svg class="${cls}" `);
@@ -5397,7 +5427,7 @@ const ICON_FORMAT_ABONNEMENT = `<svg viewBox="0 0 24 24" fill="none" stroke="cur
 const ICON_FORMAT_EMULATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15V4a1 1 0 0 1 1-1h13l-3 6 3 6H5a1 1 0 0 1-1-1Z"></path><path d="M4 21v-6"></path></svg>`;
 const ICON_TYPE_COMPILATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`;
 const ICON_TYPE_SIMPLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"></rect></svg>`;
-const ICON_TYPE_PUZZLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3.2a1.6 1.6 0 1 1 3.2 0H14a1 1 0 0 1 1 1v3.6a1.6 1.6 0 1 1 0 3.2V19a1 1 0 0 1-1 1h-3.6a1.6 1.6 0 1 0-3.2 0H4a1 1 0 0 1-1-1v-3.6a1.6 1.6 0 1 0 0-3.2V9a1 1 0 0 1 1-1Z"></path></svg>`;
+const ICON_TYPE_PUZZLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.5 2.5 0 1 0-3.214 3.214c.446.166.855.498.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"></path></svg>`;
 const ICON_TYPE_UPGRADE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M12 16V8"></path><path d="M8.5 11.5 12 8l3.5 3.5"></path></svg>`;
 
 const FORMAT_META = {
@@ -5914,7 +5944,6 @@ function renderHomeQuickStats(){
   const year = String(new Date().getFullYear());
 
   const finishedThisYear = BACKLOG_COMPLETIONS.filter(c => (c.date||'').slice(0,4) === year).length;
-  const todoCount = GAMES.filter(g => g.statut === 'a_jouer').length;
 
   const monthCounts = {};
   BACKLOG_COMPLETIONS.forEach(c => {
@@ -5933,10 +5962,9 @@ function renderHomeQuickStats(){
   const favPlatform = Object.keys(platformCounts).sort((a,b) => platformCounts[b]-platformCounts[a])[0] || '—';
 
   el.innerHTML = `
-    <div class="backlog-mini-stat"><span class="label">✅ Finis en ${year}</span><span class="num">${finishedThisYear}</span></div>
-    <div class="backlog-mini-stat"><span class="label">🕹️ À faire</span><span class="num">${todoCount}</span></div>
-    <div class="backlog-mini-stat"><span class="label">📅 Mois le plus actif</span><span class="num">${topMonth ? `${topMonthLabel} (${topMonthCount})` : '—'}</span></div>
-    <div class="backlog-mini-stat"><span class="label">🏆 Plateforme préférée</span><span class="num">${favPlatform}</span></div>
+    <div class="home-quick-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'')}Finis en ${year}</span><span class="num">${finishedThisYear}</span></div>
+    <div class="home-quick-stat-card"><span class="label">${iconWithClass(ICON_FLAME,'')}Mois le plus chaud</span><span class="num">${topMonth ? `${topMonthLabel} (${topMonthCount})` : '—'}</span></div>
+    <div class="home-quick-stat-card"><span class="label">${iconWithClass(ICON_STAR,'')}Plateforme favorite</span><span class="num">${favPlatform}</span></div>
   `;
 }
 
