@@ -6611,7 +6611,10 @@ async function initApp(){
 
   let currentUser = null;
   let syncTimer = null;
-  let suppressSync = false;
+  // Reste à true tant que le chargement initial (local + cloud) n'est pas terminé,
+  // pour qu'aucune sauvegarde locale déclenchée pendant l'init ne parte écraser
+  // le document Firestore avant qu'on ait pu lire les vraies données du compte.
+  let suppressSync = true;
   let appInitialized = false;
 
   /* ---------- Construction / application du paquet de données cloud ---------- */
@@ -6704,10 +6707,15 @@ async function initApp(){
     try{
       const snap = await getDoc(ref);
       suppressSync = true;
-      if(snap.exists()){
-        applyCloudPayload(snap.data());
+      const cloudData = snap.exists() ? snap.data() : null;
+      const cloudIsEmpty = !cloudData || !Array.isArray(cloudData.games) || cloudData.games.length === 0;
+      const localHasData = Array.isArray(GAMES) && GAMES.length > 0;
+      if(cloudData && !(cloudIsEmpty && localHasData)){
+        applyCloudPayload(cloudData);
       } else {
-        // Première connexion : on pousse ce qui existe déjà localement comme point de départ
+        // Cloud vide/absent mais des données locales existent (ou premier lancement) :
+        // on considère le local comme référence et on le pousse, plutôt que d'écraser
+        // silencieusement une vraie collection locale avec un cloud vide.
         await setDoc(ref, buildCloudPayload());
       }
       suppressSync = false;
