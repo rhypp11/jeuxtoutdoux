@@ -320,6 +320,18 @@
   }
   .mini-board-body{padding:14px 16px;}
   .mini-board-body .home-stat-cards{gap:9px;}
+  .mini-board-body .home-stat-card{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:5px;
+  }
+  .mini-board-body .home-stat-card .label{white-space:normal;}
+  .mini-board-body .home-stat-card .num{
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:15px;
+  }
   .playing-widget{
     flex:1 1 auto;
     min-width:0;
@@ -5646,7 +5658,7 @@ function completionRowHtml(c){
     : '';
   return `
   <div class="completion-row" style="--spine:${monthColor}" data-id="${c.id}">
-    <span class="completion-date"><span class="spine-chip" style="--spine:${monthColor}"></span>${dateDM(c.date)}</span>
+    <span class="completion-date">${dateDM(c.date)}</span>
     ${backlogThumbHtml(r,'media-thumb')}
     <span class="completion-name">
       <span class="completion-title">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
@@ -5972,7 +5984,7 @@ function renderHomeYearStats(){
   el.innerHTML = `
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'home-stat-icon')}Fini</span><span class="num">${finishedThisYear}</span></div>
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_FLAME,'home-stat-icon')}Mois le + chaud</span><span class="num">${topMonth ? `${topMonthLabel} (${topMonthCount})` : '—'}</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num">${favPlatformYear}</span></div>
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num" title="${favPlatformYear}">${favPlatformYear}</span></div>
   `;
 }
 
@@ -5992,7 +6004,7 @@ function renderHomeGlobalStats(){
 
   el.innerHTML = `
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'home-stat-icon')}Total fini</span><span class="num">${totalFinished}</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num">${favPlatform}</span></div>
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num" title="${favPlatform}">${favPlatform}</span></div>
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_TODO,'home-stat-icon')}Reste à faire</span><span class="num">${remaining}</span></div>
   `;
 }
