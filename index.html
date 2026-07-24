@@ -292,6 +292,16 @@
     gap:20px;
     align-items:start;
   }
+  .home-section-divider{
+    border:none;
+    border-top:1px solid var(--hairline);
+    margin:0;
+  }
+  .home-top-row{
+    display:flex;
+    gap:20px;
+    align-items:stretch;
+  }
   .board{
     background:var(--surface);
     border:1px solid var(--hairline);
@@ -304,60 +314,27 @@
     border-color:rgba(79,199,181,0.55);
     box-shadow:0 0 0 1px rgba(79,199,181,0.12), 0 8px 24px rgba(79,199,181,0.06);
   }
+  .home-mini-board{
+    flex:0 0 auto;
+    width:222px;
+  }
+  .mini-board-body{padding:14px 16px;}
+  .mini-board-body .home-stat-cards{gap:9px;}
   .playing-widget{
-    flex-shrink:0;
+    flex:1 1 auto;
+    min-width:0;
     border-color:rgba(217,164,65,0.55);
     box-shadow:0 0 0 1px rgba(217,164,65,0.12), 0 8px 24px rgba(217,164,65,0.06);
   }
   .playing-widget .board-head{background:rgba(217,164,65,0.07);}
   .playing-widget-body{
-    display:flex;
-    gap:20px;
     padding:16px 18px 18px;
-    align-items:stretch;
   }
-  .playing-widget-body .playing-rows{flex:1 1 auto;min-width:0;}
-  .home-quick-stats{
-    flex:0 0 auto;
-    display:flex;
-    flex-direction:row;
-    gap:10px;
-    padding-right:20px;
-    margin-right:2px;
-    border-right:1px solid var(--hairline);
-  }
-  .home-quick-stat-card{
-    background:var(--surface-raised);
-    border:1px solid var(--hairline);
-    border-radius:10px;
-    padding:10px 14px;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:7px;
-    min-width:118px;
-  }
-  .home-quick-stat-card .label{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:11px;
-    color:var(--muted);
-    text-transform:uppercase;
-    letter-spacing:0.04em;
-    white-space:nowrap;
-  }
-  .home-quick-stat-card .label svg{width:13px;height:13px;flex-shrink:0;color:var(--amber);}
-  .home-quick-stat-card .num{
-    font-family:'JetBrains Mono',monospace;
-    font-weight:700;
-    font-size:17px;
-    color:var(--text);
-    white-space:nowrap;
-  }
-  @media (max-width:900px){
-    .playing-widget-body{flex-direction:column;}
-    .home-quick-stats{flex-direction:row;flex-wrap:wrap;padding-right:0;border-right:none;padding-bottom:14px;border-bottom:1px solid var(--hairline);margin-right:0;margin-bottom:2px;}
+  .playing-widget-body .playing-rows{min-width:0;}
+  @media (max-width:1100px){
+    .home-top-row{flex-wrap:wrap;}
+    .home-mini-board{width:calc(50% - 10px);}
+    .playing-widget{flex:1 1 100%;}
   }
   .board-head{
     display:flex;
@@ -2217,18 +2194,41 @@
     </div>
   </aside>
   <main class="home-main">
-    <section class="board playing-widget hidden" id="home-playing-widget">
-      <div class="board-head">
-        <div>
-          <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours <span class="board-count" id="home-playing-count">0</span></h2>
+    <div class="home-top-row">
+
+      <section class="board home-mini-board">
+        <div class="board-head">
+          <div><h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="16" y1="2" x2="16" y2="6"></line></svg>Cette année</h2></div>
         </div>
-        <button class="board-add-btn" id="home-playing-see-all-btn">Voir le backlog →</button>
-      </div>
-      <div class="playing-widget-body">
-        <div class="home-quick-stats" id="home-quick-stats"></div>
-        <div class="playing-rows" id="home-playing-rows"></div>
-      </div>
-    </section>
+        <div class="mini-board-body">
+          <div class="home-stat-cards" id="home-year-stats"></div>
+        </div>
+      </section>
+
+      <section class="board home-mini-board">
+        <div class="board-head">
+          <div><h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-6 4 3 5-8"></path></svg>Stats globales</h2></div>
+        </div>
+        <div class="mini-board-body">
+          <div class="home-stat-cards" id="home-global-stats"></div>
+        </div>
+      </section>
+
+      <section class="board playing-widget hidden" id="home-playing-widget">
+        <div class="board-head">
+          <div>
+            <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours <span class="board-count" id="home-playing-count">0</span></h2>
+          </div>
+          <button class="board-add-btn" id="home-playing-see-all-btn">Voir le backlog →</button>
+        </div>
+        <div class="playing-widget-body">
+          <div class="playing-rows" id="home-playing-rows"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <hr class="home-section-divider">
 
     <div class="home-boards">
 
@@ -5939,15 +5939,20 @@ function renderHomePlaying(){
 }
 
 function renderHomeQuickStats(){
-  const el = document.getElementById('home-quick-stats');
+  renderHomeYearStats();
+  renderHomeGlobalStats();
+}
+
+function renderHomeYearStats(){
+  const el = document.getElementById('home-year-stats');
   if(!el) return;
   const year = String(new Date().getFullYear());
 
-  const finishedThisYear = BACKLOG_COMPLETIONS.filter(c => (c.date||'').slice(0,4) === year).length;
+  const completionsThisYear = BACKLOG_COMPLETIONS.filter(c => (c.date||'').slice(0,4) === year);
+  const finishedThisYear = completionsThisYear.length;
 
   const monthCounts = {};
-  BACKLOG_COMPLETIONS.forEach(c => {
-    if((c.date||'').slice(0,4) !== year) return;
+  completionsThisYear.forEach(c => {
     const m = c.date.slice(5,7);
     monthCounts[m] = (monthCounts[m]||0) + 1;
   });
@@ -5958,13 +5963,37 @@ function renderHomeQuickStats(){
   const topMonthLabel = topMonth ? MONTH_NAMES_FULL[parseInt(topMonth,10)-1] : '—';
 
   const platformCounts = {};
+  completionsThisYear.forEach(c => {
+    const plat = resolveBacklogItem(c).plateforme;
+    if(plat) platformCounts[plat] = (platformCounts[plat]||0) + 1;
+  });
+  const favPlatformYear = Object.keys(platformCounts).sort((a,b) => platformCounts[b]-platformCounts[a])[0] || '—';
+
+  el.innerHTML = `
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'home-stat-icon')}Fini</span><span class="num">${finishedThisYear}</span></div>
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_FLAME,'home-stat-icon')}Mois le + chaud</span><span class="num">${topMonth ? `${topMonthLabel} (${topMonthCount})` : '—'}</span></div>
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num">${favPlatformYear}</span></div>
+  `;
+}
+
+function renderHomeGlobalStats(){
+  const el = document.getElementById('home-global-stats');
+  if(!el) return;
+
+  const totalFinished = BACKLOG_COMPLETIONS.length;
+
+  const platformCounts = {};
   GAMES.forEach(g => { platformCounts[g.plateforme] = (platformCounts[g.plateforme]||0) + 1; });
   const favPlatform = Object.keys(platformCounts).sort((a,b) => platformCounts[b]-platformCounts[a])[0] || '—';
 
+  const todoCollection = GAMES.filter(g => g.status === 'a_jouer').length;
+  const todoBacklog = BACKLOG_CATEGORIES.reduce((sum,cat) => sum + cat.jeux.length, 0);
+  const remaining = todoCollection + todoBacklog;
+
   el.innerHTML = `
-    <div class="home-quick-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'')}Finis en ${year}</span><span class="num">${finishedThisYear}</span></div>
-    <div class="home-quick-stat-card"><span class="label">${iconWithClass(ICON_FLAME,'')}Mois le plus chaud</span><span class="num">${topMonth ? `${topMonthLabel} (${topMonthCount})` : '—'}</span></div>
-    <div class="home-quick-stat-card"><span class="label">${iconWithClass(ICON_STAR,'')}Plateforme favorite</span><span class="num">${favPlatform}</span></div>
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'home-stat-icon')}Total fini</span><span class="num">${totalFinished}</span></div>
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num">${favPlatform}</span></div>
+    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_TODO,'home-stat-icon')}Reste à faire</span><span class="num">${remaining}</span></div>
   `;
 }
 
