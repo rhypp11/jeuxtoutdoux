@@ -1935,33 +1935,12 @@
     font-family:'JetBrains Mono',monospace;
     cursor:pointer;
   }
-  .backlog-columns-head{
-    position:sticky;
-    top:0;
-    z-index:6;
-    display:grid;
-    grid-template-columns:52px 110px 1fr 104px 70px 28px;
-    gap:12px;
-    align-items:center;
-    padding:12px 16px;
-    margin:0 -10px;
-    background:var(--surface-raised);
-    border-bottom:1px solid var(--hairline);
-    border-top-left-radius:17px;
-    border-top-right-radius:17px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:9px;
-    letter-spacing:0.07em;
-    text-transform:uppercase;
-    color:var(--muted);
-    box-shadow:0 8px 20px rgba(0,0,0,0.22);
-  }
   .completion-table-zone{display:flex;flex-direction:column;gap:0;}
   .year-block{display:flex;flex-direction:column;}
   .year-block + .year-block{margin-top:20px;}
   .year-block-title{
     position:sticky;
-    top:36px;
+    top:0;
     z-index:5;
     display:flex;align-items:center;gap:12px;
     background:var(--ink);
@@ -2206,11 +2185,10 @@
     }
     #backlog-sidebar.mobile-open{transform:translateX(0);}
     #backlog-sidebar .side-section{min-width:0;}
-    .backlog-main,.backlog-board{margin:8px;overflow-y:visible;}
-    .backlog-columns-head,.completion-row{grid-template-columns:44px 84px 1fr 60px 54px 22px;gap:8px;padding:10px 12px;}
+    .backlog-main,.backlog-board{margin:8px;overflow:visible;}
+    .completion-row{grid-template-columns:44px 84px 1fr 60px 54px 22px;gap:8px;padding:10px 12px;}
     .media-thumb{width:96px;}
-    .backlog-columns-head{top:var(--topnav-h, 50px);}
-    .year-block-title{top:calc(var(--topnav-h, 50px) + 36px);}
+    .year-block-title{top:var(--topnav-h, 50px);}
   }
 
   /* Empêche le zoom auto d'iOS Safari au focus d'un champ (déclenché sous 16px) */
@@ -2691,9 +2669,6 @@
     </aside>
 
     <main class="backlog-main">
-      <div class="backlog-columns-head">
-        <span>Date</span><span></span><span>Jeu</span><span>Statut</span><span>Note</span><span></span>
-      </div>
       <div class="completion-table-zone" id="completion-table-zone">
         <div id="completion-tables-wrapper"></div>
       </div>
@@ -5049,8 +5024,15 @@ function updateTopnavHeightVar(){
   document.documentElement.style.setProperty('--topnav-h', h + 'px');
 }
 updateTopnavHeightVar();
+const topnavEl = document.querySelector('.topnav');
+if(topnavEl && window.ResizeObserver){
+  // Recalcule à chaque changement réel de hauteur du nav (chargement de police,
+  // passage 1/2 lignes, rotation d'écran...) plutôt que de deviner le bon moment.
+  new ResizeObserver(updateTopnavHeightVar).observe(topnavEl);
+} else {
+  window.addEventListener('load', updateTopnavHeightVar);
+}
 window.addEventListener('resize', () => {
-  updateTopnavHeightVar();
   if(window.innerWidth > 1100) closeMobileDrawers();
 });
 document.addEventListener('keydown', (e) => {
