@@ -1084,12 +1084,8 @@
   .format-icon.star-icon{color:var(--amber);}
   .format-icon.disc-icon{color:var(--muted);}
   .format-icon.download-icon{color:var(--teal);}
-  .type-icon-wrap{display:inline-flex;align-items:center;color:var(--muted);flex-shrink:0;}
-  .type-icon-wrap svg{width:14px;height:14px;flex-shrink:0;}
   .card-title-icon{display:inline-flex;vertical-align:-2px;margin-right:5px;}
   .card-title-icon svg{width:14px;height:14px;}
-  .row-title-icon{display:inline-flex;vertical-align:-2px;margin-right:4px;}
-  .row-title-icon svg{width:13px;height:13px;}
 
   .status-row{position:relative;height:30px;}
   .backlog-status-row{height:auto;}
@@ -1891,15 +1887,6 @@
     overflow-y:auto;
     overflow-x:hidden;
   }
-  .backlog-section-title{
-    font-family:'Segoe UI','Roboto',sans-serif;
-    font-size:18px;
-    margin:0;
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-
   /* ---- Vignette 500x281 partagée (complétions + catégories) ---- */
   .media-thumb{
     width:130px;
@@ -5065,8 +5052,7 @@ const BACKLOG_PLAYING_KEY = 'ludotheque:backlog-playing-v1';
 const BACKLOG_CATEGORIES_KEY = 'ludotheque:backlog-categories-v1';
 
 const MONTH_NAMES_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-const MONTH_NAMES_SHORT = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-const MONTH_COLORS = ['#4F7CD9','#7C6AD9','#A15FBF','#C4508C','#D96A6A','#DD7F35','#D9A441','#B5C93C','#6FAE79','#4FC7B5','#4FA8D9','#6B8FD9'];
+const MONTH_COLORS =['#4F7CD9','#7C6AD9','#A15FBF','#C4508C','#D96A6A','#DD7F35','#D9A441','#B5C93C','#6FAE79','#4FC7B5','#4FA8D9','#6B8FD9'];
 const NOTE_ORDER = ['S+','S','A','B','C'];
 const STATUT_META = {
   'Fini':   { emoji:'✅', cls:'fini' },
@@ -5583,7 +5569,6 @@ function populateBacklogPlatformSelect(selectId, digitalOnly){
 
 /* ---------- Icônes ---------- */
 const ICON_COOP_LOCAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.2"></circle><circle cx="16" cy="8" r="3.2"></circle><path d="M2 21c0-3.6 2.7-6.5 6-6.5s6 2.9 6 6.5"></path><path d="M12 21c0-3.6 2.7-6.5 6-6.5"></path></svg>`;
-const ICON_FORMAT_DLC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>`;
 const ICON_FORMAT_ABONNEMENT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path><path d="M3 21v-5h5"></path></svg>`;
 const ICON_FORMAT_EMULATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15V4a1 1 0 0 1 1-1h13l-3 6 3 6H5a1 1 0 0 1-1-1Z"></path><path d="M4 21v-6"></path></svg>`;
 const ICON_TYPE_COMPILATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`;
