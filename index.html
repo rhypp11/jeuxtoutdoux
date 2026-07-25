@@ -1989,7 +1989,7 @@
   }
   .completion-row{
     display:grid;
-    grid-template-columns:52px 110px 1fr 104px 70px 28px;
+    grid-template-columns:34px 110px 1fr 96px 50px;
     gap:12px;
     align-items:center;
     padding:12px 16px;
@@ -2001,13 +2001,12 @@
   .completion-row .media-thumb{width:100%;}
   .completion-date{
     font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    color:var(--muted);
+    font-size:14px;
+    font-weight:700;
+    color:var(--spine, var(--muted));
     white-space:nowrap;
     line-height:1.3;
-    display:flex;
-    align-items:center;
-    gap:6px;
+    text-align:center;
   }
   .completion-name{display:flex;flex-direction:column;min-width:0;}
   .completion-title{font-family:'Segoe UI','Roboto',sans-serif;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
@@ -2023,6 +2022,7 @@
   .status-pill.complet{color:var(--amber);background:rgba(217,164,65,0.14);}
   .status-pill.succes{color:var(--status-multi);background:rgba(156,137,184,0.18);}
   .note-badge{
+    position:relative;
     display:flex;align-items:center;justify-content:center;
     width:30px;height:24px;border-radius:6px;
     font-family:'JetBrains Mono',monospace;
@@ -2039,8 +2039,14 @@
   .note-badge.note-A{background:rgba(111,174,121,0.16);color:var(--status-done);}
   .note-badge.note-B{background:rgba(217,164,65,0.16);color:var(--amber);}
   .note-badge.note-C{background:rgba(217,106,106,0.14);color:var(--danger);}
-  .completion-comment{display:flex;align-items:center;justify-content:center;}
-  .completion-comment-icon{font-size:14px;cursor:help;opacity:0.85;}
+  .note-comment-dot{
+    position:absolute;
+    top:-6px;right:-6px;
+    font-size:11px;
+    line-height:1;
+    cursor:help;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+  }
 
   .backlog-board{
     margin:8px 8px 8px 0;
@@ -2186,9 +2192,11 @@
     #backlog-sidebar.mobile-open{transform:translateX(0);}
     #backlog-sidebar .side-section{min-width:0;}
     .backlog-main,.backlog-board{margin:8px;overflow:visible;}
-    .completion-row{grid-template-columns:44px 84px 1fr 60px 54px 22px;gap:8px;padding:10px 12px;}
+    .completion-row{grid-template-columns:26px 84px 1fr 34px 42px;gap:8px;padding:10px 12px;}
     .media-thumb{width:96px;}
     .year-block-title{top:var(--topnav-h, 50px);}
+    .status-pill-label{display:none;}
+    .status-pill{padding:6px;border-radius:50%;}
   }
 
   /* Empêche le zoom auto d'iOS Safari au focus d'un champ (déclenché sous 16px) */
@@ -5654,12 +5662,10 @@ function formatOrTypeTagHtml(format, type){
   return metaSegHtml(meta.icon, meta.label);
 }
 
-function dateDM(iso){
+function dateD(iso){
   if(!iso) return '—';
-  const parts = iso.split('-');
-  const m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
-  if(!m || !d) return '—';
-  return `${d} ${MONTH_NAMES_SHORT[m-1]}`;
+  const d = parseInt(iso.split('-')[2], 10);
+  return d ? String(d) : '—';
 }
 function monthIndexOf(iso){
   if(!iso) return 0;
@@ -5795,19 +5801,18 @@ function completionRowHtml(c){
   const statutMeta = STATUT_META[c.statut] || STATUT_META['Fini'];
   const r = resolveBacklogItem(c);
   const commentHtml = c.commentaire
-    ? `<span class="completion-comment-icon" title="${c.commentaire.replace(/"/g,'&quot;')}">💬</span>`
+    ? `<span class="note-comment-dot" title="${c.commentaire.replace(/"/g,'&quot;')}">💬</span>`
     : '';
   return `
   <div class="completion-row" style="--spine:${monthColor}" data-id="${c.id}">
-    <span class="completion-date">${dateDM(c.date)}</span>
+    <span class="completion-date">${dateD(c.date)}</span>
     ${backlogThumbHtml(r,'media-thumb')}
     <span class="completion-name">
       <span class="completion-title">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
       <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(c.format, c.type), replayTagHtml(c))}</span>
     </span>
-    <span class="completion-status"><span class="status-pill ${statutMeta.cls}">${statutMeta.emoji} ${c.statut}</span></span>
-    <span class="completion-note"><span class="note-badge note-lg ${noteClass}">${c.note || '—'}</span></span>
-    <span class="completion-comment">${commentHtml}</span>
+    <span class="completion-status"><span class="status-pill ${statutMeta.cls}">${statutMeta.emoji}<span class="status-pill-label"> ${c.statut}</span></span></span>
+    <span class="completion-note"><span class="note-badge note-lg ${noteClass}">${c.note || '—'}${commentHtml}</span></span>
   </div>`;
 }
 
