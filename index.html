@@ -22,14 +22,17 @@
     --surface-raised:#363E41;
     --text:#ECEFEF;
     --muted:#97A5A8;
-    --amber:#D9A441;
+    --amber:#FFC20E;
     --orange:#DD7F35;
-    --teal:#5B8E71;
+    --teal:#2CA89B;
     --hairline:#454E51;
-    --danger:#D96A6A;
-    --status-todo:#C7A855;
-    --status-done:#6FAE79;
-    --status-multi:#9C89B8;
+    --danger:#ED1C24;
+    --status-todo:#FFC20E;
+    --status-done:#2FAE4A;
+    --status-progress:#2F8FE0;
+    --status-multi:#8E6FD9;
+    --status-cyan:#1FC2C2;
+    --status-salmon:#E8836D;
   }
   *{box-sizing:border-box;}
   .hidden{display:none !important;}
@@ -111,9 +114,9 @@
     color:var(--muted);
     white-space:nowrap;
   }
-  .cloud-sync-status.ok{color:var(--teal);border-color:rgba(91,142,113,0.4);}
+  .cloud-sync-status.ok{color:var(--teal);border-color:rgba(44,168,155,0.4);}
   .cloud-sync-status.syncing,
-  .cloud-sync-status.pending{color:var(--amber);border-color:rgba(217,164,65,0.4);}
+  .cloud-sync-status.pending{color:var(--amber);border-color:rgba(255,194,14,0.4);}
 
   .topnav-break{display:none;}
   @media (max-width:820px){
@@ -128,7 +131,7 @@
     .nav-tab-label{display:none;}
     .nav-tab-icon{width:19px;height:19px;}
   }
-  .cloud-sync-status.error{color:var(--danger);border-color:rgba(217,106,106,0.4);}
+  .cloud-sync-status.error{color:var(--danger);border-color:rgba(237,28,36,0.4);}
 
   .mobile-filter-toggle{
     display:none;
@@ -204,7 +207,7 @@
   .profile-menu-divider{height:1px;background:var(--hairline);margin:5px 2px;}
   .profile-menu-divider.hidden{display:none;}
   .profile-menu-danger .profile-menu-item-label{color:var(--danger);}
-  .profile-menu-danger:hover{background:rgba(217,106,106,0.1);}
+  .profile-menu-danger:hover{background:rgba(237,28,36,0.1);}
 
   .page{flex:1;min-height:0;}
   .page.hidden{display:none;}
@@ -334,8 +337,8 @@
     flex-direction:column;
   }
   .board.arrivals{
-    border-color:rgba(91,142,113,0.55);
-    box-shadow:0 0 0 1px rgba(91,142,113,0.12), 0 8px 24px rgba(91,142,113,0.06);
+    border-color:rgba(44,168,155,0.55);
+    box-shadow:0 0 0 1px rgba(44,168,155,0.12), 0 8px 24px rgba(44,168,155,0.06);
   }
   .home-mini-board{
     flex:0 0 auto;
@@ -358,10 +361,10 @@
   .playing-widget{
     flex:1 1 auto;
     min-width:0;
-    border-color:rgba(217,164,65,0.55);
-    box-shadow:0 0 0 1px rgba(217,164,65,0.12), 0 8px 24px rgba(217,164,65,0.06);
+    border-color:rgba(47,143,224,0.55);
+    box-shadow:0 0 0 1px rgba(47,143,224,0.12), 0 8px 24px rgba(47,143,224,0.06);
   }
-  .playing-widget .board-head{background:rgba(217,164,65,0.07);}
+  .playing-widget .board-head{background:rgba(47,143,224,0.07);}
   .playing-widget-body{
     padding:16px 18px 18px;
   }
@@ -380,7 +383,7 @@
   }
   .board.arrivals .board-head{
     padding:19px 18px;
-    background:rgba(91,142,113,0.06);
+    background:rgba(44,168,155,0.06);
   }
   .board-head h2{
     font-family:'Segoe UI','Roboto',sans-serif;
@@ -401,7 +404,7 @@
     border-radius:20px;
     padding:2px 8px;
   }
-  .board.arrivals .board-count{color:var(--teal);background:rgba(91,142,113,0.14);}
+  .board.arrivals .board-count{color:var(--teal);background:rgba(44,168,155,0.14);}
   .board.wishlist .board-count{color:var(--orange);background:rgba(221,127,53,0.16);}
   .board-total-estimate{
     display:block;
@@ -674,7 +677,7 @@
     .home-boards-switch-btn.active{
       color:var(--text);
       border-color:var(--teal);
-      background:rgba(91,142,113,0.12);
+      background:rgba(44,168,155,0.12);
     }
     .home-boards .board.wishlist,
     .home-boards .board.arrivals{display:none;}
@@ -793,7 +796,7 @@
   .toggle-chip.active{
     border-color:var(--amber);
     color:var(--text);
-    background:rgba(217,164,65,0.08);
+    background:rgba(255,194,14,0.08);
   }
   .toggle-chip-label{display:flex;align-items:center;gap:8px;}
   .toggle-chip-label .format-icon{width:14px;height:14px;}
@@ -1003,7 +1006,7 @@
   }
   .card-banner.placeholder{
     display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg, var(--spine, var(--hairline)) 0%, var(--surface-raised) 130%);
+    background:var(--spine, var(--surface-raised));
   }
   .card-banner.placeholder span{
     font-family:'Segoe UI','Roboto',sans-serif;
@@ -1074,8 +1077,8 @@
   }
 
   .card.collector{
-    background:linear-gradient(165deg, rgba(217,164,65,0.24) 0%, rgba(217,164,65,0.07) 55%, var(--surface) 100%);
-    border-color:rgba(217,164,65,0.5);
+    background:rgba(255,194,14,0.1);
+    border-color:rgba(255,194,14,0.5);
   }
   .format-icon{
     width:15px;height:15px;
@@ -1256,8 +1259,8 @@
   .login-error{
     font-size:12px;
     color:var(--danger);
-    background:rgba(217,106,106,0.1);
-    border:1px solid rgba(217,106,106,0.3);
+    background:rgba(237,28,36,0.1);
+    border:1px solid rgba(237,28,36,0.3);
     border-radius:8px;
     padding:8px 10px;
   }
@@ -1351,7 +1354,7 @@
     font-size:13px;
   }
   .collection-search-option:hover,
-  .collection-search-option.active{background:rgba(91,142,113,0.12);}
+  .collection-search-option.active{background:rgba(44,168,155,0.12);}
   .collection-search-option img{width:18px;height:18px;border-radius:4px;object-fit:cover;flex-shrink:0;}
   .collection-search-option .tag-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
   .collection-search-option .csopt-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1378,7 +1381,7 @@
     transition:transform .15s ease, background .15s ease;
   }
   .replay-switch-row input:checked + .replay-switch{
-    background:rgba(91,142,113,0.2);
+    background:rgba(44,168,155,0.2);
     border-color:var(--teal);
   }
   .replay-switch-row input:checked + .replay-switch::after{
@@ -1401,7 +1404,7 @@
   #arrivals-board.drag-over{
     outline:2px dashed var(--teal);
     outline-offset:-2px;
-    background:rgba(91,142,113,0.06);
+    background:rgba(44,168,155,0.06);
   }
   #playing-rows.drag-over{
     outline:2px dashed var(--teal);
@@ -1666,7 +1669,7 @@
   .btn-primary{background:var(--teal);color:var(--ink);border:none;font-weight:600;}
   .btn-primary:hover{filter:brightness(1.08);}
   .btn-danger{color:var(--danger);border-color:var(--danger);}
-  .btn-danger:hover{background:rgba(217,106,106,0.1);}
+  .btn-danger:hover{background:rgba(237,28,36,0.1);}
   .btn-ghost{color:var(--muted);}
 
   /* ---------- Logos & gestion des plateformes ---------- */
@@ -2005,9 +2008,9 @@
     white-space:nowrap;
     display:inline-flex;align-items:center;gap:4px;
   }
-  .status-pill.fini{color:var(--status-done);background:rgba(111,174,121,0.14);}
-  .status-pill.complet{color:var(--amber);background:rgba(217,164,65,0.14);}
-  .status-pill.succes{color:var(--status-multi);background:rgba(156,137,184,0.18);}
+  .status-pill.fini{color:var(--status-done);background:rgba(47,174,74,0.14);}
+  .status-pill.complet{color:var(--status-salmon);background:rgba(232,131,109,0.14);}
+  .status-pill.succes{color:var(--status-cyan);background:rgba(31,194,194,0.18);}
   .note-badge{
     position:relative;
     display:flex;align-items:center;justify-content:center;
@@ -2021,11 +2024,11 @@
     font-size:16px;font-weight:800;
     border:1.5px solid currentColor;
   }
-  .note-badge.note-Sp{background:rgba(156,137,184,0.2);color:var(--status-multi);}
-  .note-badge.note-S{background:rgba(91,142,113,0.18);color:var(--teal);}
-  .note-badge.note-A{background:rgba(111,174,121,0.16);color:var(--status-done);}
-  .note-badge.note-B{background:rgba(217,164,65,0.16);color:var(--amber);}
-  .note-badge.note-C{background:rgba(217,106,106,0.14);color:var(--danger);}
+  .note-badge.note-Sp{background:rgba(142,111,217,0.2);color:var(--status-multi);}
+  .note-badge.note-S{background:rgba(44,168,155,0.18);color:var(--teal);}
+  .note-badge.note-A{background:rgba(47,174,74,0.16);color:var(--status-done);}
+  .note-badge.note-B{background:rgba(255,194,14,0.16);color:var(--amber);}
+  .note-badge.note-C{background:rgba(237,28,36,0.14);color:var(--danger);}
   .note-comment-dot{
     position:absolute;
     top:-6px;right:-6px;
@@ -3199,10 +3202,10 @@ function iconWithClass(svgStr, cls){
 }
 
 const STATUS_OPTIONS = [
-  { key: "a_jouer", label: "À jouer", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(199,168,85,0.07)", border: "rgba(199,168,85,0.3)" },
-  { key: "en_cours", label: "En cours", icon: ICON_STATUS_PROGRESS, color: "var(--teal)", bg: "rgba(91,142,113,0.07)", border: "rgba(91,142,113,0.3)" },
-  { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(111,174,121,0.07)", border: "rgba(111,174,121,0.3)" },
-  { key: "multi", label: "Sans fin", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(156,137,184,0.07)", border: "rgba(156,137,184,0.3)" }
+  { key: "a_jouer", label: "À jouer", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(255,194,14,0.07)", border: "rgba(255,194,14,0.3)" },
+  { key: "en_cours", label: "En cours", icon: ICON_STATUS_PROGRESS, color: "var(--status-progress)", bg: "rgba(47,143,224,0.07)", border: "rgba(47,143,224,0.3)" },
+  { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" },
+  { key: "multi", label: "Sans fin", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(142,111,217,0.07)", border: "rgba(142,111,217,0.3)" }
 ];
 
 let GAMES = [];
@@ -3535,7 +3538,11 @@ function buildPlatformList(){
   allItem.className = 'plat-item' + (state.platform === null ? ' active' : '');
   allItem.style.setProperty('--spine', 'var(--muted)');
   allItem.tabIndex = 0;
-  allItem.innerHTML = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg><span class="plat-name">Toutes</span><span class="plat-count">${scoped.length}</span>`;
+  const isNumeriqueScope = state.format === 'Numérique';
+  const allIconSvg = isNumeriqueScope
+    ? `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--teal);"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>`
+    : `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
+  allItem.innerHTML = `${allIconSvg}<span class="plat-name">Toutes</span><span class="plat-count">${scoped.length}</span>`;
   allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); closeMobileDrawers(); };
   container.appendChild(allItem);
 
@@ -3560,7 +3567,10 @@ function applyCollectionSupportUI(format){
   document.getElementById('collector-filter-section').classList.toggle('hidden', !isPhysical);
   document.getElementById('type-filter-section').classList.toggle('hidden', isPhysical);
   const addBtn = document.getElementById('add-btn');
-  if(addBtn) addBtn.textContent = isPhysical ? '+ Ajouter un jeu physique' : '+ Ajouter un jeu numérique';
+  if(addBtn){
+    addBtn.textContent = isPhysical ? '+ Ajouter un jeu physique' : '+ Ajouter un jeu numérique';
+    addBtn.style.background = isPhysical ? 'var(--muted)' : '';
+  }
 }
 
 function buildFormatToggles(){
@@ -3707,12 +3717,12 @@ function renderPlatformBanner(games){
   const group2Html = `
     <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
         <span class="completion-item" style="color:var(--status-todo);" title="À faire (dont catégories du backlog)">${ICON_STATUS_TODO}${aFaireCount}</span>
-        <span class="completion-item" style="color:var(--teal);" title="En cours">▶${enCoursCount}</span>
+        <span class="completion-item" style="color:var(--status-progress);" title="En cours">▶${enCoursCount}</span>
       </span><span class="label">Backlog</span></div>
     <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
         <span class="completion-item" style="color:var(--status-done);" title="Fini">${ICON_STATUS_DONE}${finiCount}</span>
-        <span class="completion-item" style="color:var(--amber);" title="100%">💯${centCount}</span>
-        <span class="completion-item" style="color:var(--status-multi);" title="Succès">🏆${succesCount}</span>
+        <span class="completion-item" style="color:var(--status-salmon);" title="100%">💯${centCount}</span>
+        <span class="completion-item" style="color:var(--status-cyan);" title="Succès">🏆${succesCount}</span>
       </span><span class="label">Complétions</span></div>
   `;
 
@@ -3783,7 +3793,7 @@ function renderCard(g){
       badgeIcon = backlogRef.emoji;
     } else if(backlogRef.type === 'playing'){
       label = 'En cours';
-      badgeColor = 'var(--teal)';
+      badgeColor = 'var(--status-progress)';
       badgeIcon = '▶';
     } else {
       label = backlogRef.titre;
@@ -3815,7 +3825,7 @@ function renderCard(g){
     titleIconHtml = `<span class="card-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>`;
   } else if(g.format === 'Numérique' && g.type && g.type !== 'Jeu simple'){
     const typeMeta = TYPE_META[g.type] || TYPE_META['Jeu simple'];
-    titleIconHtml = `<span class="card-title-icon" style="color:var(--status-done);" title="${typeMeta.label}">${typeMeta.icon}</span>`;
+    titleIconHtml = `<span class="card-title-icon" style="color:var(--teal);" title="${typeMeta.label}">${typeMeta.icon}</span>`;
   }
 
   const platformLineHtml = state.platform
@@ -5170,7 +5180,7 @@ function getGameBacklogRef(gameId){
     const latest = sorted[sorted.length - 1];
     const meta = STATUT_META[latest.statut] || STATUT_META['Fini'];
     const replayCount = completions.filter(c => c.isReplay).length;
-    return { type:'completion', statut: latest.statut, date: latest.date || null, emoji: meta.emoji, replayCount, couleur: meta.cls === 'succes' ? 'var(--status-multi)' : meta.cls === 'complet' ? 'var(--amber)' : 'var(--status-done)' };
+    return { type:'completion', statut: latest.statut, date: latest.date || null, emoji: meta.emoji, replayCount, couleur: meta.cls === 'succes' ? 'var(--status-cyan)' : meta.cls === 'complet' ? 'var(--status-salmon)' : 'var(--status-done)' };
   }
   if(BACKLOG_PLAYING.some(matches)) return { type:'playing' };
   for(const cat of BACKLOG_CATEGORIES){
@@ -5641,7 +5651,7 @@ function formatOrTypeTagHtml(format, type){
   if(!format) return '';
   if(format !== 'Physique' && type && type !== 'Jeu simple'){
     const meta = TYPE_META[type] || TYPE_META['Jeu simple'];
-    return `<span class="meta-seg meta-seg-type" title="${meta.label}" style="color:var(--status-done);">${meta.icon}<span>${meta.label}</span></span>`;
+    return `<span class="meta-seg meta-seg-type" title="${meta.label}" style="color:var(--teal);">${meta.icon}<span>${meta.label}</span></span>`;
   }
   const meta = FORMAT_META[format] || FORMAT_META['Numérique'];
   return metaSegHtml(meta.icon, meta.label);
