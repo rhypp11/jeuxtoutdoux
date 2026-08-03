@@ -196,9 +196,57 @@
     background:var(--surface-raised);
     color:var(--muted);
     cursor:pointer;
+    overflow:hidden;
+    padding:0;
   }
   .profile-menu-btn svg{width:18px;height:18px;}
   .profile-menu-btn:hover{border-color:var(--teal);color:var(--teal);}
+  [data-avatar-img]{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .profile-avatar-initials{
+    width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--teal);color:var(--ink);
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-weight:700;font-size:13px;
+  }
+  .profile-menu-header .profile-avatar-initials{font-size:16px;}
+  .profile-menu-avatar-wrap{width:44px;height:44px;flex-shrink:0;}
+  .profile-menu-avatar-wrap [data-avatar-img],
+  .profile-menu-avatar-wrap .profile-avatar-initials,
+  .profile-menu-avatar-wrap .profile-avatar-fallback{border-radius:50%;}
+  .profile-menu-header{display:flex;align-items:center;gap:10px;padding:6px 6px 10px;}
+  .profile-menu-avatar-wrap{position:relative;}
+  .profile-menu-avatar-edit-btn{
+    position:absolute;bottom:-2px;right:-2px;
+    width:18px;height:18px;border-radius:50%;
+    background:var(--surface-raised);border:1px solid var(--hairline);
+    color:var(--muted);font-size:10px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;padding:0;
+  }
+  .profile-menu-avatar-edit-btn:hover{color:var(--teal);border-color:var(--teal);}
+  .profile-menu-name-input{
+    flex:1;min-width:0;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:6px;
+    padding:8px 10px;
+    color:var(--text);
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-size:13px;
+    font-weight:600;
+  }
+  .profile-menu-name-input:focus{border-color:var(--teal);outline:none;}
+  .profile-avatar-fallback{width:18px;height:18px;}
+  .profile-menu-avatar-wrap{
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:50%;
+    overflow:hidden;
+  }
+  .profile-menu-avatar-wrap .profile-avatar-fallback{width:22px;height:22px;}
+  .profile-menu-avatar-wrap .profile-avatar-initials{border-radius:0;}
   .profile-menu{
     position:absolute;
     top:calc(100% + 8px);
@@ -1358,7 +1406,8 @@
   }
   .linked-game-card-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}
   #f-quick-hide-fields{display:flex;flex-direction:column;gap:14px;}
-  .linked-chip{font-size:11px;}
+  .linked-chip{font-size:11px;color:var(--teal);display:inline-flex;vertical-align:-1px;}
+  .linked-chip svg{width:11px;height:11px;}
   .collection-search-wrap{position:relative;}
   .collection-search-wrap input{width:100%;}
   .collection-search-list{
@@ -2291,9 +2340,21 @@
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
       <div class="profile-menu-wrap">
         <button class="profile-menu-btn" id="profile-menu-btn" title="Menu" aria-label="Menu du profil">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
+          <img class="hidden" data-avatar-img alt="">
+          <span class="profile-avatar-initials hidden" data-avatar-initials></span>
+          <svg class="profile-avatar-fallback" data-avatar-fallback viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
         </button>
         <div class="profile-menu hidden" id="profile-menu">
+          <div class="profile-menu-header">
+            <div class="profile-menu-avatar-wrap">
+              <img class="hidden" data-avatar-img alt="">
+              <span class="profile-avatar-initials hidden" data-avatar-initials></span>
+              <svg class="profile-avatar-fallback" data-avatar-fallback viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
+              <button type="button" class="profile-menu-avatar-edit-btn" id="profile-avatar-edit-btn" title="Changer la photo" aria-label="Changer la photo">✎</button>
+            </div>
+            <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
+          </div>
+          <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="export-btn">
             <span class="profile-menu-item-label">⭳ Exporter</span>
             <span class="profile-menu-sub" id="export-note"></span>
@@ -2314,6 +2375,7 @@
       </div>
       <input type="file" id="import-input" accept="application/json" style="display:none;">
       <input type="file" id="import-merge-input" accept="application/json" style="display:none;">
+      <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
     </div>
   </div>
 </nav>
@@ -3042,6 +3104,61 @@ const SEED_GAMES = [];
 const STORAGE_KEY = 'ludotheque:games-v2';
 const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
 const WISHLIST_KEY = 'ludotheque:wishlist-v1';
+const PROFILE_KEY = 'ludotheque:profile-v1';
+
+let PROFILE_NAME = '';
+let PROFILE_AVATAR = null;
+
+function loadProfile(){
+  try{
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if(raw){
+      const p = JSON.parse(raw);
+      PROFILE_NAME = p.name || '';
+      PROFILE_AVATAR = p.avatar || null;
+    }
+  }catch(e){ /* ignore */ }
+}
+function saveProfile(){
+  try{ localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: PROFILE_NAME, avatar: PROFILE_AVATAR })); }catch(e){ /* ignore */ }
+}
+function profileInitials(){
+  const trimmed = PROFILE_NAME.trim();
+  if(!trimmed) return '';
+  return trimmed.split(/\s+/).slice(0,2).map(w => w[0].toUpperCase()).join('');
+}
+function renderProfileAvatar(){
+  const initials = profileInitials();
+  document.querySelectorAll('[data-avatar-img]').forEach(el => {
+    el.src = PROFILE_AVATAR || '';
+    el.classList.toggle('hidden', !PROFILE_AVATAR);
+  });
+  document.querySelectorAll('[data-avatar-initials]').forEach(el => {
+    el.textContent = initials;
+    el.classList.toggle('hidden', !!PROFILE_AVATAR || !initials);
+  });
+  document.querySelectorAll('[data-avatar-fallback]').forEach(el => {
+    el.classList.toggle('hidden', !!PROFILE_AVATAR || !!initials);
+  });
+  const nameInput = document.getElementById('profile-name-input');
+  if(nameInput && document.activeElement !== nameInput) nameInput.value = PROFILE_NAME;
+}
+function resizeImageToDataUrl(file, size){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 const PLATFORM_COLORS = {
   "Nintendo Switch 2": "#C4342B",
@@ -4320,6 +4437,7 @@ function arrivalRowHtml(item){
   const platIconHtml = logo
     ? `<img class="mini-logo-sm" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\'></span>'">`
     : `<span class="dot"></span>`;
+  const monthColor = item.date ? MONTH_COLORS[monthIndexOf(item.date)] : null;
   return `
     <div class="board-row" data-id="${item.id}" style="--spine:${color}">
       ${boardThumb(item)}
@@ -4327,7 +4445,7 @@ function arrivalRowHtml(item){
         <div class="board-name" title="${item.nom}">${item.nom}</div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
-      <div class="board-date">${item.date ? dateFR(item.date) : '—'}</div>
+      <div class="board-date"${monthColor ? ` style="color:${monthColor}"` : ''}>${item.date ? dateFR(item.date) : '—'}</div>
       <span class="board-price">${euros(item.prix)}</span>
       <span class="board-source" title="${item.source || ''}">${item.source || '—'}</span>
       <div class="board-actions">
@@ -4366,8 +4484,9 @@ function renderArrivals(){
     const m = (item.date || '').match(/^(\d{4})-(\d{2})/);
     const key = m ? `${m[1]}-${m[2]}` : '__none__';
     const label = m ? `${MONTH_NAMES_FULL[parseInt(m[2],10)-1]} ${m[1]}` : 'Date à préciser';
+    const color = m ? MONTH_COLORS[parseInt(m[2],10)-1] : null;
     if(!groupMap.has(key)){
-      const g = { key, label, items: [] };
+      const g = { key, label, color, items: [] };
       groupMap.set(key, g);
       groups.push(g);
     }
@@ -4375,7 +4494,7 @@ function renderArrivals(){
   });
 
   container.innerHTML = groups.map(g => `
-    <div class="board-month-head">${g.label} <span class="board-month-count">${g.items.length}</span></div>
+    <div class="board-month-head${g.color ? ' month-accent' : ''}"${g.color ? ` style="--spine:${g.color}"` : ''}>${g.label} <span class="board-month-count">${g.items.length}</span></div>
     ${g.items.map(arrivalRowHtml).join('')}
   `).join('');
 
@@ -4946,6 +5065,29 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') document.getElementById('profile-menu').classList.add('hidden');
+});
+
+document.getElementById('profile-name-input').addEventListener('click', (e) => e.stopPropagation());
+document.getElementById('profile-name-input').addEventListener('change', (e) => {
+  PROFILE_NAME = e.target.value.trim();
+  saveProfile();
+  renderProfileAvatar();
+});
+document.getElementById('profile-avatar-edit-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('profile-avatar-input').click();
+});
+document.getElementById('profile-avatar-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    PROFILE_AVATAR = await resizeImageToDataUrl(file, 160);
+    saveProfile();
+    renderProfileAvatar();
+  }catch(err){
+    console.error('Impossible de traiter cette image', err);
+  }
+  e.target.value = '';
 });
 
 document.getElementById('add-btn').addEventListener('click', () => openModal(null));
@@ -5861,7 +6003,7 @@ function completionRowHtml(c){
     <span class="completion-date">${dateD(c.date)}</span>
     ${backlogThumbHtml(r,'media-thumb')}
     <span class="completion-name">
-      <span class="completion-title">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
+      <span class="completion-title">${r.nom}${r.linked ? ` <span class=\"linked-chip\" title=\"Lié à ta collection\">${ICON_BOOKS_VERTICAL}</span>` : ''}</span>
       <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(c.format, c.type), replayTagHtml(c))}</span>
     </span>
     <span class="completion-status"><span class="status-pill ${statutMeta.cls}">${statutMeta.emoji}<span class="status-pill-label"> ${c.statut}</span></span></span>
@@ -6094,7 +6236,7 @@ function renderPlayingRows(){
     <div class="playing-slot" style="--spine:${getPlatformColor(r.plateforme)}" data-id="${p.id}" draggable="true" data-source-type="playing">
       ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
       <div class="playing-info">
-        <span class="playing-name">${r.nom}${r.linked ? ' <span class="linked-chip" title="Lié à ta collection">🔗</span>' : ''}</span>
+        <span class="playing-name">${r.nom}${r.linked ? ` <span class="linked-chip" title="Lié à ta collection">${ICON_BOOKS_VERTICAL}</span>` : ''}</span>
         <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(p.format, p.type))}</span>
       </div>
     </div>
@@ -6128,7 +6270,7 @@ function renderHomePlaying(){
     <div class="playing-slot" style="--spine:${getPlatformColor(r.plateforme)}" data-id="${p.id}">
       ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
       <div class="playing-info">
-        <span class="playing-name">${r.nom}${r.linked ? ' <span class="linked-chip" title="Lié à ta collection">🔗</span>' : ''}</span>
+        <span class="playing-name">${r.nom}${r.linked ? ` <span class="linked-chip" title="Lié à ta collection">${ICON_BOOKS_VERTICAL}</span>` : ''}</span>
         <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(p.format, p.type))}</span>
       </div>
     </div>`;
@@ -6330,7 +6472,7 @@ function renderBacklogCategories(){
         <div class="backlog-category-game" data-cat="${cat.id}" data-game="${item.id}" draggable="true" data-source-type="category" data-source-cat="${cat.id}">
           ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
           <div class="cat-game-info">
-            <span class="cat-game-name">${r.nom}${r.linked ? ' <span class=\"linked-chip\" title=\"Lié à ta collection\">🔗</span>' : ''}</span>
+            <span class="cat-game-name">${r.nom}${r.linked ? ` <span class=\"linked-chip\" title=\"Lié à ta collection\">${ICON_BOOKS_VERTICAL}</span>` : ''}</span>
             <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(item.format, item.type))}</span>
           </div>
         </div>
@@ -6686,6 +6828,8 @@ document.getElementById('qc-confirm-btn').addEventListener('click', confirmQuick
 })();
 
 async function initApp(){
+  loadProfile();
+  renderProfileAvatar();
   loadPlatformMeta();
   loadPlatformOrder();
   await loadGames();
@@ -6761,6 +6905,8 @@ async function initApp(){
       backlogCategories: BACKLOG_CATEGORIES,
       platformMeta: platformMeta,
       platformOrder: platformOrder,
+      profileName: PROFILE_NAME,
+      profileAvatar: PROFILE_AVATAR,
       updatedAt: Date.now()
     };
     // Firestore refuse toute valeur "undefined" explicite : ce passage par JSON
@@ -6777,6 +6923,9 @@ async function initApp(){
     if(Array.isArray(data.backlogCategories)) BACKLOG_CATEGORIES = data.backlogCategories;
     if(data.platformMeta && typeof data.platformMeta === 'object') platformMeta = data.platformMeta;
     if(Array.isArray(data.platformOrder)) platformOrder = data.platformOrder;
+    if(typeof data.profileName === 'string') PROFILE_NAME = data.profileName;
+    if(typeof data.profileAvatar === 'string' || data.profileAvatar === null) PROFILE_AVATAR = data.profileAvatar;
+    saveProfile();
   }
 
   function refreshAllViews(){
@@ -6790,6 +6939,7 @@ async function initApp(){
     renderArrivals();
     renderWishlist();
     renderBacklogPage();
+    renderProfileAvatar();
     updateExportNote();
   }
 
@@ -6824,7 +6974,7 @@ async function initApp(){
   // Branche la synchro cloud sur toutes les fonctions de sauvegarde existantes, sans y toucher
   [
     'saveGames','saveArrivals','saveWishlist','saveBacklogCompletions',
-    'saveBacklogPlaying','saveBacklogCategories','savePlatformMeta','savePlatformOrder'
+    'saveBacklogPlaying','saveBacklogCategories','savePlatformMeta','savePlatformOrder','saveProfile'
   ].forEach(name => {
     const orig = window[name];
     if(typeof orig !== 'function') return;
