@@ -96,32 +96,9 @@
     flex-shrink:0;
   }
   .nav-tab-icon{width:16px;height:16px;flex-shrink:0;}
+  .nav-tab-icon-only{padding-left:15px;padding-right:15px;}
+  .nav-tab-icon-only .nav-tab-icon{width:18px;height:18px;}
   .nav-tab:hover{color:var(--text);}
-  .nav-tab-collection{padding-right:10px;}
-  .nav-collection-switch{
-    display:flex;
-    align-items:center;
-    background:var(--sidebar-bg);
-    border-radius:6px;
-    padding:2px;
-    gap:1px;
-    margin-left:2px;
-  }
-  .nav-collection-switch-btn{
-    background:none;
-    border:none;
-    color:var(--muted);
-    padding:5px 7px;
-    border-radius:4px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    line-height:0;
-  }
-  .nav-collection-switch-btn svg{width:13px;height:13px;}
-  .nav-collection-switch-btn:hover{color:var(--text);}
-  .nav-collection-switch-btn[data-format="Physique"].active{background:var(--muted);color:var(--ink);}
-  .nav-collection-switch-btn[data-format="Numérique"].active{background:var(--teal);color:var(--ink);}
   .nav-tab.active{color:var(--text);border-bottom-color:var(--teal);}
 
   .topnav-actions{
@@ -155,8 +132,6 @@
     .nav-tab{order:5;padding:11px 22px;gap:0;flex:1;justify-content:center;}
     .nav-tab-label{display:none;}
     .nav-tab-icon{width:19px;height:19px;}
-    .nav-tab-collection{gap:6px;padding-right:14px;}
-    .nav-collection-switch{margin-left:0;}
   }
   .cloud-sync-status.error{color:var(--danger);border-color:rgba(237,28,36,0.4);}
 
@@ -1406,7 +1381,7 @@
   }
   .linked-game-card-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}
   #f-quick-hide-fields{display:flex;flex-direction:column;gap:14px;}
-  .linked-chip{font-size:11px;color:var(--teal);display:inline-flex;vertical-align:-1px;}
+  .linked-chip{font-size:11px;color:var(--muted);display:inline-flex;vertical-align:-1px;}
   .linked-chip svg{width:11px;height:11px;}
   .collection-search-wrap{position:relative;}
   .collection-search-wrap input{width:100%;}
@@ -1556,36 +1531,6 @@
   .confirm-modal{max-width:400px;gap:16px;}
   .confirm-modal-message{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0;}
 
-  .priority-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
-  .priority-pill{
-    font-family:'Segoe UI','Roboto',sans-serif;
-    font-size:12px;
-    font-weight:600;
-    color:var(--muted);
-    background:var(--surface);
-    border:1px solid var(--hairline);
-    border-radius:20px;
-    padding:6px 12px;
-    cursor:pointer;
-    display:flex;align-items:center;gap:6px;
-  }
-  .priority-pill::before{
-    content:'';
-    width:7px;height:7px;border-radius:50%;
-    background:var(--pcolor,var(--muted));
-    flex-shrink:0;
-  }
-  .priority-pill.active{
-    color:var(--text);
-    border-color:var(--pcolor,var(--hairline));
-    background:color-mix(in srgb, var(--pcolor,var(--muted)) 14%, var(--surface));
-  }
-  .wishlist-priority-dot{
-    width:7px;height:7px;border-radius:50%;
-    display:inline-block;
-    margin-right:6px;
-    flex-shrink:0;
-  }
 
   .results-bar{
     display:flex;
@@ -2325,16 +2270,9 @@
       </h1>
     </div>
     <button type="button" class="mobile-filter-toggle topnav-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres">☰</button>
-    <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
-    <button class="nav-tab" data-page="backlog" title="Backlog"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="nav-tab-label">Backlog</span></button>
-    <div class="nav-tab nav-tab-collection" data-page="collection" title="Collection">
-      <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>
-      <span class="nav-tab-label">Collection</span>
-      <span class="nav-collection-switch">
-        <button type="button" class="nav-collection-switch-btn" data-format="Physique" title="Collection physique" aria-label="Collection physique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg></button>
-        <button type="button" class="nav-collection-switch-btn" data-format="Numérique" title="Collection numérique" aria-label="Collection numérique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg></button>
-      </span>
-    </div>
+    <button class="nav-tab nav-tab-icon-only active" data-page="home" title="Accueil" aria-label="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg></button>
+    <button class="nav-tab" data-page="backlog" title="Progression"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="8 12.5 11 15.5 16 9"></polyline></svg><span class="nav-tab-label">Progression</span></button>
+    <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
@@ -2419,7 +2357,7 @@
           <div>
             <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours <span class="board-count" id="home-playing-count">0</span></h2>
           </div>
-          <button class="board-add-btn" id="home-playing-see-all-btn">Voir le backlog →</button>
+          <button class="board-add-btn" id="home-playing-see-all-btn">Voir Progression →</button>
         </div>
         <div class="playing-widget-body">
           <div class="playing-rows" id="home-playing-rows"></div>
@@ -2551,15 +2489,6 @@
     </div>
 
     <div class="modal-extra-label">Infos de wishlist</div>
-    <div class="field">
-      <label>Priorité</label>
-      <div class="priority-pills" id="w-priorite-pills">
-        <button type="button" class="priority-pill" data-value="forte" style="--pcolor:var(--danger);">Envie forte</button>
-        <button type="button" class="priority-pill" data-value="curieux" style="--pcolor:var(--teal);">Curieux</button>
-        <button type="button" class="priority-pill" data-value="peut-etre" style="--pcolor:var(--muted);">Peut-être</button>
-      </div>
-      <input type="hidden" id="w-priorite" value="peut-etre">
-    </div>
     <div class="field-row">
       <div class="field">
         <label for="w-date">Date de sortie</label>
@@ -3868,7 +3797,7 @@ function renderPlatformBanner(games){
     <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
         <span class="completion-item" style="color:var(--status-todo);" title="À faire (dont catégories du backlog)">${ICON_STATUS_TODO}${aFaireCount}</span>
         <span class="completion-item" style="color:var(--status-progress);" title="En cours">▶${enCoursCount}</span>
-      </span><span class="label">Backlog</span></div>
+      </span><span class="label">Progression</span></div>
     <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
         <span class="completion-item" style="color:var(--status-done);" title="Fini">${ICON_STATUS_DONE}${finiCount}</span>
         <span class="completion-item" style="color:var(--status-salmon);" title="100%">💯${centCount}</span>
@@ -3953,7 +3882,7 @@ function renderCard(g){
     const replayHtml = (backlogRef.type === 'completion' && backlogRef.replayCount > 0)
       ? `<span class="badge-replay">🔁 ${backlogRef.replayCount}</span>`
       : '';
-    statusRowHtml = `<div class="status-row backlog-status-row" title="Statut géré depuis l'onglet Backlog">
+    statusRowHtml = `<div class="status-row backlog-status-row" title="Statut géré depuis l'onglet Progression">
       <div class="backlog-status-badge${replayHtml ? ' has-extra' : ''}" style="border-color:${badgeColor};color:${badgeColor};">
         <span class="badge-main">${badgeIcon}<span>${label}</span></span>
         ${replayHtml}
@@ -4409,14 +4338,6 @@ function renderHomeStats(){
 const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
 const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
 
-const WISHLIST_PRIORITY_META = {
-  'forte':     { label: 'Envie forte', tier: 0, color: 'var(--danger)' },
-  'curieux':   { label: 'Curieux',     tier: 1, color: 'var(--teal)' },
-  'peut-etre': { label: 'Peut-être',   tier: 2, color: 'var(--muted)' }
-};
-function wishlistPriorityMeta(p){
-  return WISHLIST_PRIORITY_META[p] || WISHLIST_PRIORITY_META['peut-etre'];
-}
 
 function boardThumb(item){
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
@@ -4560,6 +4481,37 @@ function parseWishlistDate(str){
   return { priority:3, key:s.toLowerCase(), label:s };
 }
 
+function wishlistMonthColor(str){
+  const parsed = parseWishlistDate(str);
+  if(parsed.priority === 0){
+    const m = parseInt(parsed.key.split('-')[1], 10);
+    return (m >= 1 && m <= 12) ? MONTH_COLORS[m-1] : null;
+  }
+  if(parsed.priority === 1){
+    const m = parseInt(parsed.key.split('-')[0], 10);
+    return (m >= 1 && m <= 12) ? MONTH_COLORS[m-1] : null;
+  }
+  return null;
+}
+
+function wishlistGroupInfo(str){
+  const parsed = parseWishlistDate(str);
+  if(parsed.priority === 0){
+    const [y, m] = parsed.key.split('-');
+    const mi = parseInt(m, 10) - 1;
+    return { key:`${y}-${m}`, label:`${MONTH_NAMES_FULL[mi]} ${y}`, color: MONTH_COLORS[mi], order:0 };
+  }
+  if(parsed.priority === 1){
+    const m = parsed.key.split('-')[0];
+    const mi = parseInt(m, 10) - 1;
+    return { key:`month-${m}`, label:MONTH_NAMES_FULL[mi], color: MONTH_COLORS[mi], order:1 };
+  }
+  if(parsed.priority === 2){
+    return { key:`year-${parsed.key}`, label:parsed.key, color:null, order:2 };
+  }
+  return { key:'__none__', label:'Date à préciser', color:null, order:3 };
+}
+
 function renderWishlist(){
   const container = document.getElementById('wishlist-rows');
   if(!container) return;
@@ -4582,15 +4534,23 @@ function renderWishlist(){
   }
 
   const sorted = [...WISHLIST].sort((a,b) => {
-    const tierDiff = wishlistPriorityMeta(a.priorite).tier - wishlistPriorityMeta(b.priorite).tier;
-    if(tierDiff !== 0) return tierDiff;
-    const ia = parseWishlistDate(a.date);
-    const ib = parseWishlistDate(b.date);
-    if(ia.priority !== ib.priority) return ia.priority - ib.priority;
-    return ia.key.localeCompare(ib.key);
+    const ga = wishlistGroupInfo(a.date), gb = wishlistGroupInfo(b.date);
+    if(ga.order !== gb.order) return ga.order - gb.order;
+    if(ga.key !== gb.key) return ga.key.localeCompare(gb.key);
+    return (a.nom||'').localeCompare(b.nom||'');
   });
 
+  let lastGroupKey = null;
   sorted.forEach(item => {
+    const group = wishlistGroupInfo(item.date);
+    if(group.key !== lastGroupKey){
+      lastGroupKey = group.key;
+      const head = document.createElement('div');
+      head.className = 'board-month-head' + (group.color ? ' month-accent' : '');
+      if(group.color) head.style.setProperty('--spine', group.color);
+      head.textContent = group.label;
+      container.appendChild(head);
+    }
     const color = getPlatformColor(item.plateforme);
     const logo = getPlatformLogo(item.plateforme);
     const platIconHtml = logo
@@ -4604,15 +4564,14 @@ function renderWishlist(){
     const linkHtml = item.lien
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}">Voir le lien ↗</a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
-    const prioMeta = wishlistPriorityMeta(item.priorite);
-    const prioDotHtml = prioMeta.tier < 2 ? `<span class="wishlist-priority-dot" style="background:${prioMeta.color}" title="${prioMeta.label}"></span>` : '';
+    const wMonthColor = wishlistMonthColor(item.date);
     row.innerHTML = `
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom} · ${prioMeta.label}">${prioDotHtml}${item.nom}</div>
+        <div class="board-name" title="${item.nom}">${item.nom}</div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
-      <div class="board-date">${parseWishlistDate(item.date).label}</div>
+      <div class="board-date"${wMonthColor ? ` style="color:${wMonthColor}"` : ''}>${parseWishlistDate(item.date).label}</div>
       ${linkHtml}
     `;
     row.addEventListener('click', (e) => {
@@ -4752,13 +4711,6 @@ function addArrivalToCollection(id){
 
 /* ----- Modal Wishlist ----- */
 
-function setWishlistPriorityUI(value){
-  document.getElementById('w-priorite').value = value || 'peut-etre';
-  document.querySelectorAll('#w-priorite-pills .priority-pill').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.value === (value || 'peut-etre'));
-  });
-}
-
 function openWishlistModal(id){
   editingWishlistId = id || null;
   populatePlatformSelect('w-plateforme');
@@ -4777,7 +4729,6 @@ function openWishlistModal(id){
     document.getElementById('w-lien').value = item.lien || '';
     document.getElementById('w-image').value = item.image || '';
     document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
-    setWishlistPriorityUI(item.priorite);
   } else {
     title.textContent = 'Ajouter à la wishlist';
     deleteBtn.classList.add('hidden');
@@ -4788,7 +4739,6 @@ function openWishlistModal(id){
     document.getElementById('w-lien').value = '';
     document.getElementById('w-image').value = '';
     document.getElementById('w-prix').value = '';
-    setWishlistPriorityUI('peut-etre');
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
@@ -4809,14 +4759,13 @@ function saveWishlistModal(){
   const date = document.getElementById('w-date').value.trim() || null;
   const lien = document.getElementById('w-lien').value.trim() || null;
   const image = document.getElementById('w-image').value.trim() || null;
-  const priorite = document.getElementById('w-priorite').value || 'peut-etre';
   const prix = parsePriceInput(document.getElementById('w-prix').value);
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, image, priorite, prix });
+    Object.assign(item, { nom, plateforme, date, lien, image, prix });
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, priorite, prix });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, prix });
   }
   ensurePlatformMeta(plateforme);
   savePlatformMeta();
@@ -4895,9 +4844,6 @@ document.getElementById('w-to-arrival-btn').addEventListener('click', () => {
   moveWishlistToArrivals(id);
 });
 document.getElementById('w-image').addEventListener('input', () => updateImagePreviewFor('w-image','w-image-preview'));
-document.querySelectorAll('#w-priorite-pills .priority-pill').forEach(btn => {
-  btn.addEventListener('click', () => setWishlistPriorityUI(btn.dataset.value));
-});
 /* Un clic en dehors de la fenêtre d'édition d'un élément wishlist ne la ferme plus (évite les pertes accidentelles) */
 
 /* ---------- Modal gestion des plateformes ---------- */
@@ -5129,23 +5075,13 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 
 const PAGE_TITLES = {
   home: 'Accueil',
-  backlog: 'Backlog',
-  'collection-Physique': 'Collection physique',
-  'collection-Numérique': 'Collection numérique'
+  backlog: 'Progression',
+  'collection-Physique': 'Collection physique'
 };
 function goToPage(page, format){
   document.querySelectorAll('.nav-tab').forEach(b => {
-    if(b.classList.contains('nav-tab-collection')){
-      b.classList.toggle('active', page === 'collection');
-      return;
-    }
-    b.classList.toggle('active', b.dataset.page === page && (page !== 'collection' || b.dataset.format === (format || 'Physique')));
+    b.classList.toggle('active', b.dataset.page === page);
   });
-  if(page === 'collection'){
-    document.querySelectorAll('.nav-collection-switch-btn').forEach(sb => {
-      sb.classList.toggle('active', sb.dataset.format === (format || 'Physique'));
-    });
-  }
   const titleKey = page === 'collection' ? `collection-${format || 'Physique'}` : page;
   document.title = `JTD | ${PAGE_TITLES[titleKey] || 'Accueil'}`;
   document.getElementById('page-home').classList.toggle('hidden', page !== 'home');
@@ -5178,27 +5114,11 @@ function goToCollectionPlatform(format, platform){
 }
 
 document.querySelectorAll('.nav-tab').forEach(btn => {
-  if(btn.classList.contains('nav-tab-collection')) return;
   btn.addEventListener('click', () => {
     goToPage(btn.dataset.page, btn.dataset.format);
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
 });
-
-const collectionNavTab = document.querySelector('.nav-tab-collection');
-if(collectionNavTab){
-  collectionNavTab.addEventListener('click', () => {
-    goToPage('collection', state.format || getLastUsed('format', 'Physique'));
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  });
-  collectionNavTab.querySelectorAll('.nav-collection-switch-btn').forEach(sb => {
-    sb.addEventListener('click', (e) => {
-      e.stopPropagation();
-      goToPage('collection', sb.dataset.format);
-      window.scrollTo({top: 0, behavior: 'smooth'});
-    });
-  });
-}
 
 /* ---------- Mobile filter drawers (Collection / Backlog sidebars) ---------- */
 function closeMobileDrawers(){
