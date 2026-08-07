@@ -706,9 +706,11 @@
   }
   .board-date{
     font-family:'JetBrains Mono',monospace;
-    font-size:12px;
-    color:var(--text);
+    font-size:14px;
+    font-weight:700;
+    color:var(--spine, var(--muted));
     white-space:nowrap;
+    text-align:center;
   }
   .board-price{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--teal);font-weight:600;white-space:nowrap;}
   .board-source{
@@ -721,7 +723,7 @@
   }
   .board.arrivals .board-table-head,
   .board.arrivals .board-row{
-    grid-template-columns:96px 1fr 82px 68px 90px 52px;
+    grid-template-columns:34px 96px 1fr 68px 90px;
     gap:10px;
   }
   .board.arrivals .board-thumb{
@@ -729,7 +731,7 @@
   }
   .board.wishlist .board-table-head,
   .board.wishlist .board-row{
-    grid-template-columns:96px 1fr 88px 88px;
+    grid-template-columns:34px 96px 1fr 88px;
     gap:10px;
   }
   .board.wishlist .board-thumb{
@@ -747,38 +749,29 @@
     max-width:100%;
   }
   .board-link:hover{text-decoration:underline;}
-  .board-actions{
-    display:flex;
-    flex-direction:row;
-    gap:6px;
-    align-items:center;
-    justify-content:flex-end;
+  .add-to-collection-btn{
+    position:absolute;
+    right:14px;top:50%;
+    width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--teal);
+    color:var(--ink);
+    border:1px solid var(--teal);
+    border-radius:9px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.4);
     opacity:0;
-    transform:translateX(8px);
+    transform:translateY(-50%) translateX(8px);
     transition:opacity .12s ease, transform .12s ease;
     pointer-events:none;
   }
-  .board-row:hover .board-actions,
-  .board-row:focus-within .board-actions{
+  .board-row:hover .add-to-collection-btn,
+  .board-row:focus-within .add-to-collection-btn{
     opacity:1;
-    transform:translateX(0);
+    transform:translateY(-50%) translateX(0);
     pointer-events:auto;
   }
-  .board-actions .icon-btn{
-    color:var(--muted);
-    width:38px;height:38px;
-    display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--hairline);
-    border-radius:9px;
-  }
-  .board-actions .icon-btn:hover{color:var(--teal);border-color:var(--teal);}
-  .board-actions .icon-btn.add-to-collection-btn{
-    background:var(--teal);
-    color:var(--ink);
-    border-color:var(--teal);
-  }
-  .board-actions .icon-btn.add-to-collection-btn:hover{filter:brightness(1.08);}
-  .board-actions .icon-btn svg{width:18px;height:18px;}
+  .add-to-collection-btn:hover{filter:brightness(1.08);}
+  .add-to-collection-btn svg{width:18px;height:18px;}
   .board-empty{
     padding:26px 18px;
     text-align:center;
@@ -787,7 +780,7 @@
   }
 
   @media (hover:none){
-    .board-actions{opacity:1;transform:none;pointer-events:auto;}
+    .add-to-collection-btn{opacity:1;transform:translateY(-50%);pointer-events:auto;}
   }
 
   @media (max-width:1100px){
@@ -855,11 +848,6 @@
     }
     .board-thumb{width:120px;height:67px;}
     .board-info{flex:1;min-width:140px;}
-    .board-actions{
-      flex-direction:row;
-      justify-content:flex-end;
-      width:100%;
-    }
   }
 
   .app{
@@ -2493,7 +2481,7 @@
           <button class="board-add-btn" id="add-wishlist-btn">+ Ajouter</button>
         </div>
         <div class="board-table-head">
-          <span></span><span>Jeu</span><span>Date</span><span>Lien</span>
+          <span>Date</span><span></span><span>Jeu</span><span>Lien</span>
         </div>
         <div class="board-rows" id="wishlist-rows"></div>
       </section>
@@ -2507,7 +2495,7 @@
           <button class="board-add-btn" id="add-arrival-btn">+ Ajouter</button>
         </div>
         <div class="board-table-head">
-          <span></span><span>Jeu</span><span>Date</span><span>Prix</span><span>Source</span><span></span>
+          <span>Date</span><span></span><span>Jeu</span><span>Prix</span><span>Source</span>
         </div>
         <div class="board-rows" id="arrivals-rows"></div>
       </section>
@@ -4464,17 +4452,15 @@ function arrivalRowHtml(item){
   const monthColor = item.date ? MONTH_COLORS[monthIndexOf(item.date)] : null;
   return `
     <div class="board-row" data-id="${item.id}" style="--spine:${color}">
+      <div class="board-date"${monthColor ? ` style="color:${monthColor}"` : ''}>${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${item.nom}">${item.nom}</div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
-      <div class="board-date"${monthColor ? ` style="color:${monthColor}"` : ''}>${item.date ? dateFR(item.date) : '—'}</div>
       <span class="board-price">${euros(item.prix)}</span>
       <span class="board-source" title="${item.source || ''}">${item.source || '—'}</span>
-      <div class="board-actions">
-        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_PLUS}</button>
-      </div>
+      <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_PLUS}</button>
     </div>`;
 }
 
@@ -4597,6 +4583,13 @@ function wishlistMonthColor(str){
   return null;
 }
 
+function wishlistDayLabel(str){
+  const parsed = parseWishlistDate(str);
+  if(parsed.priority === 0) return String(parseInt(parsed.key.split('-')[2], 10));
+  if(parsed.priority === 1) return String(parseInt(parsed.key.split('-')[1], 10));
+  return parsed.label;
+}
+
 function wishlistGroupInfo(str){
   const parsed = parseWishlistDate(str);
   if(parsed.priority === 0){
@@ -4669,12 +4662,12 @@ function renderWishlist(){
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
     const wMonthColor = wishlistMonthColor(item.date);
     row.innerHTML = `
+      <div class="board-date"${wMonthColor ? ` style="color:${wMonthColor}"` : ''}>${wishlistDayLabel(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${item.nom}">${item.nom}</div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
-      <div class="board-date"${wMonthColor ? ` style="color:${wMonthColor}"` : ''}>${parseWishlistDate(item.date).label}</div>
       ${linkHtml}
     `;
     row.addEventListener('click', (e) => {
