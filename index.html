@@ -408,21 +408,133 @@
     text-overflow:ellipsis;
     font-size:15px;
   }
-  .playing-widget{
+  .home-hero{
+    position:relative;
     flex:1 1 auto;
     min-width:0;
-    border-color:rgba(47,143,224,0.55);
-    box-shadow:0 0 0 1px rgba(47,143,224,0.12), 0 8px 24px rgba(47,143,224,0.06);
+    background:var(--surface);
+    border:1px solid rgba(44,168,155,0.3);
+    border-radius:14px;
+    padding:20px 24px;
+    display:flex;
+    align-items:stretch;
+    gap:28px;
   }
-  .playing-widget .board-head{background:rgba(47,143,224,0.07);}
-  .playing-widget-body{
-    padding:16px 18px 18px;
+  .home-hero-see-all{
+    position:absolute;
+    top:18px;right:22px;
+    background:none;border:none;cursor:pointer;
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-size:11px;font-weight:600;
+    color:var(--teal);
   }
-  .playing-widget-body .playing-rows{min-width:0;}
+  .home-hero-see-all:hover{color:var(--text);}
+  .home-hero-left{
+    flex:1 1 auto;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    justify-content:center;
+  }
+  .home-hero-row{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:10px 0;
+  }
+  .home-hero-row + .home-hero-row{border-top:1px solid var(--hairline);}
+  .home-hero-row-head{
+    flex:0 0 100px;
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-size:11px;
+    font-weight:700;
+    color:var(--teal);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .home-hero-stats{
+    flex:1 1 auto;
+    min-width:0;
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:8px 20px;
+  }
+  .home-hero-stat{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    min-width:0;
+  }
+  .hero-stat-label{
+    font-size:10px;
+    font-weight:600;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .hero-stat-num{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:15px;
+    color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    display:flex;align-items:center;
+  }
+  .hero-stat-num svg{width:13px;height:13px;flex-shrink:0;margin-right:6px;color:var(--teal);}
+  .hero-stat-num img{width:14px;height:14px;border-radius:3px;object-fit:cover;flex-shrink:0;margin-right:5px;}
+  .hero-stat-num .plat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:6px;}
+  .home-hero-playing{
+    flex:0 0 250px;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    border-left:1px solid var(--hairline);
+    padding-left:26px;
+  }
+  .home-hero-playing-head{
+    flex-shrink:0;
+  }
+  .home-hero-playing-head span{
+    display:flex;align-items:center;gap:7px;
+    font-size:11px;font-weight:700;
+    color:var(--teal);
+    text-transform:uppercase;letter-spacing:0.03em;
+  }
+  .home-hero-playing-head svg{width:13px;height:13px;}
+  .home-hero-playing-rows{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    overflow-y:auto;
+    max-height:150px;
+  }
+  .hero-playing-item{
+    display:flex;align-items:center;gap:10px;
+    min-width:0;
+  }
+  .hero-playing-item .media-thumb{width:40px;border-radius:6px;}
+  .hero-playing-info{display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .hero-playing-name{
+    font-family:'Segoe UI','Roboto',sans-serif;
+    font-size:12px;font-weight:600;
+    color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .hero-playing-plat{
+    font-size:10.5px;
+    color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    display:flex;align-items:center;
+  }
+  .hero-playing-plat img, .hero-playing-plat .tag-dot{width:12px;height:12px;flex-shrink:0;}
   @media (max-width:1100px){
     .home-top-row{flex-wrap:wrap;}
-    .home-mini-board{width:calc(50% - 10px);}
-    .playing-widget{flex:1 1 100%;}
+    .home-hero{flex-wrap:wrap;padding-top:44px;}
+    .home-hero-see-all{top:14px;right:20px;}
+    .home-hero-row{flex-wrap:wrap;gap:8px 16px;}
+    .home-hero-playing{border-left:none;padding-left:0;border-top:1px solid var(--hairline);padding-top:14px;flex:1 1 100%;}
+    .home-hero-playing-rows{max-height:none;}
   }
   .board-head{
     display:flex;
@@ -1924,6 +2036,7 @@
   }
   .media-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
   .media-thumb.media-thumb-sm{width:96px;}
+  .media-thumb.media-thumb-xs{width:36px;border-radius:5px;}
 
   .backlog-meta-line{flex-wrap:wrap;row-gap:4px;margin-top:2px;}
   .meta-seg{display:inline-flex;align-items:center;gap:4px;}
@@ -2334,33 +2447,23 @@
   <main class="home-main">
     <div class="home-top-row">
 
-      <section class="board home-mini-board">
-        <div class="board-head">
-          <div><h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="16" y1="2" x2="16" y2="6"></line></svg>Cette année</h2></div>
-        </div>
-        <div class="mini-board-body">
-          <div class="home-stat-cards" id="home-year-stats"></div>
-        </div>
-      </section>
-
-      <section class="board home-mini-board">
-        <div class="board-head">
-          <div><h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-6 4 3 5-8"></path></svg>Stats globales</h2></div>
-        </div>
-        <div class="mini-board-body">
-          <div class="home-stat-cards" id="home-global-stats"></div>
-        </div>
-      </section>
-
-      <section class="board playing-widget hidden" id="home-playing-widget">
-        <div class="board-head">
-          <div>
-            <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours <span class="board-count" id="home-playing-count">0</span></h2>
+      <section class="home-hero" id="home-hero">
+        <button class="home-hero-see-all" id="home-playing-see-all-btn">Voir Progression →</button>
+        <div class="home-hero-left">
+          <div class="home-hero-row">
+            <div class="home-hero-row-head"><span>Cette année</span></div>
+            <div class="home-hero-stats" id="home-year-stats"></div>
           </div>
-          <button class="board-add-btn" id="home-playing-see-all-btn">Voir Progression →</button>
+          <div class="home-hero-row">
+            <div class="home-hero-row-head"><span>Stats globales</span></div>
+            <div class="home-hero-stats" id="home-global-stats"></div>
+          </div>
         </div>
-        <div class="playing-widget-body">
-          <div class="playing-rows" id="home-playing-rows"></div>
+        <div class="home-hero-playing" id="home-playing-widget">
+          <div class="home-hero-playing-head">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours</span>
+          </div>
+          <div class="home-hero-playing-rows" id="home-playing-rows"></div>
         </div>
       </section>
 
@@ -6180,24 +6283,19 @@ function renderPlayingRows(){
 function renderHomePlaying(){
   const widget = document.getElementById('home-playing-widget');
   const container = document.getElementById('home-playing-rows');
-  const countEl = document.getElementById('home-playing-count');
   if(!widget || !container) return;
   widget.classList.toggle('hidden', BACKLOG_PLAYING.length === 0);
-  if(countEl) countEl.textContent = BACKLOG_PLAYING.length;
   container.innerHTML = BACKLOG_PLAYING.map(p => {
     const r = resolveBacklogItem(p);
     return `
-    <div class="playing-slot" style="--spine:${getPlatformColor(r.plateforme)}" data-id="${p.id}">
-      ${backlogThumbHtml(r,'media-thumb media-thumb-sm')}
-      <div class="playing-info">
-        <span class="playing-name">${r.nom}${r.linked ? ` <span class="linked-chip" title="Lié à ta collection">${ICON_BOOKS_VERTICAL}</span>` : ''}</span>
-        <span class="board-plat backlog-meta-line">${joinMetaSegs(platformTagHtml(r.plateforme), formatOrTypeTagHtml(p.format, p.type))}</span>
+    <div class="hero-playing-item" title="${r.nom} · ${r.plateforme}">
+      ${backlogThumbHtml(r,'media-thumb media-thumb-xs')}
+      <div class="hero-playing-info">
+        <span class="hero-playing-name">${r.nom}</span>
+        <span class="hero-playing-plat">${platformTagHtml(r.plateforme)}</span>
       </div>
     </div>`;
   }).join('');
-  container.querySelectorAll('.playing-slot').forEach(el => {
-    el.addEventListener('click', () => openPlayingModal(el.dataset.id));
-  });
   const seeAllBtn = document.getElementById('home-playing-see-all-btn');
   if(seeAllBtn && !seeAllBtn.dataset.wired){
     seeAllBtn.dataset.wired = '1';
@@ -6209,6 +6307,18 @@ function renderHomePlaying(){
 function renderHomeQuickStats(){
   renderHomeYearStats();
   renderHomeGlobalStats();
+}
+
+function heroStatHtml(iconHtml, num, label, title){
+  return `<div class="home-hero-stat"><span class="hero-stat-label">${label}</span><span class="hero-stat-num"${title ? ` title="${title}"` : ''}>${iconHtml}${num}</span></div>`;
+}
+function platformNameWithIconHtml(name){
+  if(!name || name === '—') return name;
+  const logo = getPlatformLogo(name);
+  const iconHtml = logo
+    ? `<img src="${logo}" alt="">`
+    : `<span class="plat-dot" style="background:${getPlatformColor(name)};"></span>`;
+  return `${iconHtml}${name}`;
 }
 
 function renderHomeYearStats(){
@@ -6237,11 +6347,11 @@ function renderHomeYearStats(){
   });
   const favPlatformYear = Object.keys(platformCounts).sort((a,b) => platformCounts[b]-platformCounts[a])[0] || '—';
 
-  el.innerHTML = `
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'home-stat-icon')}Fini</span><span class="num">${finishedThisYear}</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_FLAME,'home-stat-icon')}Mois le + chaud</span><span class="num">${topMonth ? `${topMonthLabel} (${topMonthCount})` : '—'}</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num" title="${favPlatformYear}">${favPlatformYear}</span></div>
-  `;
+  el.innerHTML = [
+    heroStatHtml(ICON_STATUS_DONE, finishedThisYear, 'Fini'),
+    heroStatHtml(ICON_FLAME, topMonth ? topMonthLabel : '—', 'Mois le + chaud'),
+    heroStatHtml('', platformNameWithIconHtml(favPlatformYear), 'Plateforme favorite', favPlatformYear)
+  ].join('');
 }
 
 function renderHomeGlobalStats(){
@@ -6258,11 +6368,11 @@ function renderHomeGlobalStats(){
   const todoBacklog = BACKLOG_CATEGORIES.reduce((sum,cat) => sum + cat.jeux.length, 0);
   const remaining = todoCollection + todoBacklog;
 
-  el.innerHTML = `
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_DONE,'home-stat-icon')}Total fini</span><span class="num">${totalFinished}</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Plateforme favorite</span><span class="num" title="${favPlatform}">${favPlatform}</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STATUS_TODO,'home-stat-icon')}Reste à faire</span><span class="num">${remaining}</span></div>
-  `;
+  el.innerHTML = [
+    heroStatHtml(ICON_STATUS_DONE, totalFinished, 'Fini'),
+    heroStatHtml(ICON_STATUS_TODO, remaining, 'Reste à faire'),
+    heroStatHtml('', platformNameWithIconHtml(favPlatform), 'Plateforme favorite', favPlatform)
+  ].join('');
 }
 
 function wirePlayingDropZone(){
