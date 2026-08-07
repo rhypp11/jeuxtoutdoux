@@ -386,10 +386,8 @@
     display:flex;
     flex-direction:column;
   }
-  .board.arrivals{
-    border-color:rgba(44,168,155,0.55);
-    box-shadow:0 0 0 1px rgba(44,168,155,0.12), 0 8px 24px rgba(44,168,155,0.06);
-  }
+  .board.arrivals{border-left:3px solid var(--teal);}
+  .board.wishlist{border-left:3px solid var(--orange);}
   .home-mini-board{
     flex:0 0 auto;
     width:222px;
@@ -546,6 +544,9 @@
   .board.arrivals .board-head{
     padding:19px 18px;
     background:rgba(44,168,155,0.06);
+  }
+  .board.wishlist .board-head{
+    background:rgba(221,127,53,0.06);
   }
   .board-head h2{
     font-family:'Segoe UI','Roboto',sans-serif;
@@ -712,6 +713,8 @@
     white-space:nowrap;
     text-align:center;
   }
+  .board-date-released{display:flex;align-items:center;justify-content:center;color:var(--muted);}
+  .board-date-released svg{width:15px;height:15px;}
   .board-price{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--teal);font-weight:600;white-space:nowrap;}
   .board-source{
     font-family:'JetBrains Mono',monospace;
@@ -1136,12 +1139,11 @@
     flex-direction:column;
     position:relative;
     cursor:pointer;
-    transition:transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+    transition:border-color .12s ease, background-color .12s ease;
   }
   .card:hover{
     background:var(--surface-raised);
-    transform:translateY(-2px);
-    box-shadow:0 10px 24px rgba(0,0,0,0.35);
+    border-color:var(--muted);
   }
   .card-banner{
     width:100%;
@@ -1227,7 +1229,6 @@
   }
 
   .card.collector{
-    background:rgba(255,194,14,0.1);
     border-color:rgba(255,194,14,0.5);
   }
   .format-icon{
@@ -1243,15 +1244,13 @@
   .status-row{position:relative;height:30px;}
   .backlog-status-row{height:auto;}
   .backlog-status-badge{
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    border:1px solid var(--hairline);
-    border-radius:6px;
-    padding:6px 8px;
+    display:flex;align-items:center;justify-content:flex-start;gap:6px;
+    padding:6px 2px;
     font-size:11px;
+    font-weight:600;
     font-family:'JetBrains Mono',monospace;
     text-transform:uppercase;
     letter-spacing:0.02em;
-    background:rgba(255,255,255,0.04);
   }
   .backlog-status-badge.has-extra{justify-content:space-between;}
   .backlog-status-badge .badge-main{display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;}
@@ -1276,18 +1275,22 @@
     min-width:0;
     display:flex;
     align-items:center;
-    justify-content:center;
+    justify-content:flex-start;
     gap:6px;
-    border:1px solid var(--hairline);
-    border-radius:6px;
-    font-size:10.5px;
+    font-size:11px;
+    font-weight:600;
     font-family:'JetBrains Mono',monospace;
     text-transform:uppercase;
     letter-spacing:0.02em;
   }
   .status-display-inner span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .status-display-inner svg{width:13px;height:13px;flex-shrink:0;}
-  .status-display-empty{color:var(--muted);border-style:dashed;}
+  .status-display-inner svg{width:14px;height:14px;flex-shrink:0;}
+  .status-display-empty{
+    color:var(--muted);
+    border:1px dashed var(--hairline);
+    border-radius:6px;
+    justify-content:center;
+  }
   .status-btn{
     flex:1;
     min-width:0;
@@ -3951,7 +3954,7 @@ function renderCard(g){
   }).join('');
 
   const statusDisplayHtml = activeStatus
-    ? `<div class="status-display-inner" style="border-color:${activeStatus.border};color:color-mix(in srgb, ${activeStatus.color} 65%, var(--muted) 35%);background:${activeStatus.bg};">${activeStatus.icon}<span>${activeStatus.label}</span></div>`
+    ? `<div class="status-display-inner" style="color:${activeStatus.color};">${activeStatus.icon}<span>${activeStatus.label}</span></div>`
     : `<div class="status-display-inner status-display-empty"><span>Statut à définir</span></div>`;
 
   let statusRowHtml;
@@ -3974,7 +3977,7 @@ function renderCard(g){
       ? `<span class="badge-replay">🔁 ${backlogRef.replayCount}</span>`
       : '';
     statusRowHtml = `<div class="status-row backlog-status-row" title="Statut géré depuis l'onglet Progression">
-      <div class="backlog-status-badge${replayHtml ? ' has-extra' : ''}" style="border-color:${badgeColor};color:${badgeColor};">
+      <div class="backlog-status-badge${replayHtml ? ' has-extra' : ''}" style="color:${badgeColor};">
         <span class="badge-main">${badgeIcon}<span>${label}</span></span>
         ${replayHtml}
       </div>
@@ -4608,6 +4611,13 @@ function wishlistGroupInfo(str){
   return { key:'__none__', label:'Date à préciser', color:null, order:3 };
 }
 
+function wishlistIsReleased(str){
+  const parsed = parseWishlistDate(str);
+  if(parsed.priority === 0) return parsed.key <= new Date().toISOString().slice(0,10);
+  if(parsed.priority === 2) return parseInt(parsed.key, 10) < new Date().getFullYear();
+  return false;
+}
+
 function renderWishlist(){
   const container = document.getElementById('wishlist-rows');
   if(!container) return;
@@ -4629,24 +4639,7 @@ function renderWishlist(){
     return;
   }
 
-  const sorted = [...WISHLIST].sort((a,b) => {
-    const ga = wishlistGroupInfo(a.date), gb = wishlistGroupInfo(b.date);
-    if(ga.order !== gb.order) return ga.order - gb.order;
-    if(ga.key !== gb.key) return ga.key.localeCompare(gb.key);
-    return (a.nom||'').localeCompare(b.nom||'');
-  });
-
-  let lastGroupKey = null;
-  sorted.forEach(item => {
-    const group = wishlistGroupInfo(item.date);
-    if(group.key !== lastGroupKey){
-      lastGroupKey = group.key;
-      const head = document.createElement('div');
-      head.className = 'board-month-head' + (group.color ? ' month-accent' : '');
-      if(group.color) head.style.setProperty('--spine', group.color);
-      head.textContent = group.label;
-      container.appendChild(head);
-    }
+  function makeWishlistRow(item, released){
     const color = getPlatformColor(item.plateforme);
     const logo = getPlatformLogo(item.plateforme);
     const platIconHtml = logo
@@ -4660,9 +4653,11 @@ function renderWishlist(){
     const linkHtml = item.lien
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}">Voir le lien ↗</a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
-    const wMonthColor = wishlistMonthColor(item.date);
+    const dateHtml = released
+      ? `<div class="board-date board-date-released" title="Déjà sorti">${ICON_STATUS_DONE}</div>`
+      : `<div class="board-date"${wishlistMonthColor(item.date) ? ` style="color:${wishlistMonthColor(item.date)}"` : ''}>${wishlistDayLabel(item.date)}</div>`;
     row.innerHTML = `
-      <div class="board-date"${wMonthColor ? ` style="color:${wMonthColor}"` : ''}>${wishlistDayLabel(item.date)}</div>
+      ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${item.nom}">${item.nom}</div>
@@ -4684,8 +4679,41 @@ function renderWishlist(){
       const zone = document.getElementById('arrivals-board');
       if(zone) zone.classList.remove('drag-over');
     });
-    container.appendChild(row);
+    return row;
+  }
+
+  const pending = WISHLIST.filter(w => !wishlistIsReleased(w.date));
+  const released = WISHLIST.filter(w => wishlistIsReleased(w.date));
+
+  const sortedPending = [...pending].sort((a,b) => {
+    const ga = wishlistGroupInfo(a.date), gb = wishlistGroupInfo(b.date);
+    if(ga.order !== gb.order) return ga.order - gb.order;
+    if(ga.key !== gb.key) return ga.key.localeCompare(gb.key);
+    return (a.nom||'').localeCompare(b.nom||'');
   });
+  const sortedReleased = [...released].sort((a,b) => parseWishlistDate(b.date).key.localeCompare(parseWishlistDate(a.date).key));
+
+  let lastGroupKey = null;
+  sortedPending.forEach(item => {
+    const group = wishlistGroupInfo(item.date);
+    if(group.key !== lastGroupKey){
+      lastGroupKey = group.key;
+      const head = document.createElement('div');
+      head.className = 'board-month-head' + (group.color ? ' month-accent' : '');
+      if(group.color) head.style.setProperty('--spine', group.color);
+      head.textContent = group.label;
+      container.appendChild(head);
+    }
+    container.appendChild(makeWishlistRow(item, false));
+  });
+
+  if(sortedReleased.length){
+    const head = document.createElement('div');
+    head.className = 'board-month-head';
+    head.textContent = 'Déjà sorti';
+    container.appendChild(head);
+    sortedReleased.forEach(item => container.appendChild(makeWishlistRow(item, true)));
+  }
 }
 
 /* ----- Modal Arrivage ----- */
