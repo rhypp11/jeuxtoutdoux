@@ -343,16 +343,6 @@
   .home-platform-bar-fill:last-child{border-radius:0 4px 4px 0;}
   .home-platform-bar-fill:only-child{border-radius:4px;}
   .home-platform-bar-fill.digi-seg{opacity:0.4;border-left:1px solid var(--surface-raised);}
-  .plat-seg-clickable{cursor:pointer;transition:filter .12s ease;}
-  .plat-seg-clickable:hover{filter:brightness(1.35);}
-  .plat-bar-legend{
-    display:flex;gap:12px;
-    font-size:10.5px;color:var(--muted);
-    margin:-4px 0 2px;
-  }
-  .plat-bar-legend span{display:flex;align-items:center;gap:4px;}
-  .legend-swatch{width:8px;height:8px;border-radius:2px;background:var(--muted);display:inline-block;}
-  .legend-swatch.digi{opacity:0.4;}
 
   .home-main{
     padding:28px 32px 60px;
@@ -482,11 +472,11 @@
   .hero-stat-num img{width:14px;height:14px;border-radius:3px;object-fit:cover;flex-shrink:0;margin-right:5px;}
   .hero-stat-num .plat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:6px;}
   .home-hero-playing{
-    flex:0 0 250px;
+    flex:0 0 320px;
     min-width:0;
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:14px;
     border-left:1px solid var(--hairline);
     padding-left:26px;
   }
@@ -503,29 +493,29 @@
   .home-hero-playing-rows{
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:16px;
     overflow-y:auto;
-    max-height:150px;
+    max-height:220px;
   }
   .hero-playing-item{
-    display:flex;align-items:center;gap:10px;
+    display:flex;align-items:center;gap:14px;
     min-width:0;
   }
-  .hero-playing-item .media-thumb{width:40px;border-radius:6px;}
-  .hero-playing-info{display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .hero-playing-item .media-thumb.media-thumb-xs{width:68px;border-radius:7px;}
+  .hero-playing-info{display:flex;flex-direction:column;gap:4px;min-width:0;}
   .hero-playing-name{
     font-family:'Segoe UI','Roboto',sans-serif;
-    font-size:12px;font-weight:600;
+    font-size:14px;font-weight:600;
     color:var(--text);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .hero-playing-plat{
-    font-size:10.5px;
+    font-size:12px;
     color:var(--muted);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     display:flex;align-items:center;
   }
-  .hero-playing-plat img, .hero-playing-plat .tag-dot{width:12px;height:12px;flex-shrink:0;}
+  .hero-playing-plat img, .hero-playing-plat .tag-dot{width:13px;height:13px;flex-shrink:0;}
   @media (max-width:1100px){
     .home-top-row{flex-wrap:wrap;}
     .home-hero{flex-wrap:wrap;padding-top:44px;}
@@ -713,8 +703,7 @@
     white-space:nowrap;
     text-align:center;
   }
-  .board-date-released{display:flex;align-items:center;justify-content:center;color:var(--muted);}
-  .board-date-released svg{width:15px;height:15px;}
+  .board-date-released{color:var(--muted);font-weight:400;}
   .board-price{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--teal);font-weight:600;white-space:nowrap;}
   .board-source{
     font-family:'JetBrains Mono',monospace;
@@ -775,6 +764,29 @@
   }
   .add-to-collection-btn:hover{filter:brightness(1.08);}
   .add-to-collection-btn svg{width:18px;height:18px;}
+  .to-wishlist-btn{
+    position:absolute;
+    right:58px;top:50%;
+    width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--orange);
+    color:var(--ink);
+    border:1px solid var(--orange);
+    border-radius:9px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.4);
+    opacity:0;
+    transform:translateY(-50%) translateX(8px);
+    transition:opacity .12s ease, transform .12s ease;
+    pointer-events:none;
+  }
+  .board-row:hover .to-wishlist-btn,
+  .board-row:focus-within .to-wishlist-btn{
+    opacity:1;
+    transform:translateY(-50%) translateX(0);
+    pointer-events:auto;
+  }
+  .to-wishlist-btn:hover{filter:brightness(1.08);}
+  .to-wishlist-btn svg{width:15px;height:15px;}
   .board-empty{
     padding:26px 18px;
     text-align:center;
@@ -783,7 +795,8 @@
   }
 
   @media (hover:none){
-    .add-to-collection-btn{opacity:1;transform:translateY(-50%);pointer-events:auto;}
+    .add-to-collection-btn,
+    .to-wishlist-btn{opacity:1;transform:translateY(-50%);pointer-events:auto;}
   }
 
   @media (max-width:1100px){
@@ -2001,16 +2014,17 @@
   .backlog-mini-stat-sub .num{font-size:12px;}
 
   .backlog-main{
-    margin:8px 8px 8px 8px;
-    padding:0 10px 40px;
+    margin:8px 0 8px 8px;
+    padding:0 14px 40px;
     display:flex;
     flex-direction:column;
     gap:0;
     min-width:0;
-    background:var(--surface-raised);
-    border:1px solid var(--hairline);
-    border-radius:18px;
-    box-shadow:0 10px 28px rgba(0,0,0,0.22);
+    background:transparent;
+    border:none;
+    border-right:1px solid var(--hairline);
+    border-radius:0;
+    box-shadow:none;
     overflow-y:auto;
     overflow-x:hidden;
   }
@@ -2060,8 +2074,8 @@
     display:flex;align-items:center;gap:12px;
     background:var(--ink);
     border-bottom:2px solid var(--amber);
-    margin:0 -10px;
-    padding:11px 10px;
+    margin:0 -14px;
+    padding:11px 14px;
     font-family:'Segoe UI','Roboto',sans-serif;
     font-size:14px;
     font-weight:700;
@@ -2090,7 +2104,7 @@
   .year-block-title .board-count{font-size:12px;}
   .year-block-title .add-btn-inline{margin-left:auto;flex-shrink:0;}
   .year-block .completion-table{
-    margin:0 -10px;
+    margin:0 -14px;
     border-radius:0;
     border-top:none;
     border-left:none;
@@ -2375,8 +2389,8 @@
     </div>
     <button type="button" class="mobile-filter-toggle topnav-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres">☰</button>
     <button class="nav-tab nav-tab-icon-only active" data-page="home" title="Accueil" aria-label="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg></button>
-    <button class="nav-tab" data-page="backlog" title="Progression"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="8 12.5 11 15.5 16 9"></polyline></svg><span class="nav-tab-label">Progression</span></button>
     <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
+    <button class="nav-tab" data-page="backlog" title="Progression"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="8 12.5 11 15.5 16 9"></polyline></svg><span class="nav-tab-label">Progression</span></button>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
@@ -2428,11 +2442,6 @@
     <div class="side-section">
       <div class="side-label">Statistiques</div>
       <div class="home-stat-cards" id="home-stat-cards"></div>
-    </div>
-    <div class="side-section">
-      <div class="side-label">Répartition par plateforme</div>
-      <div class="plat-bar-legend"><span><i class="legend-swatch"></i>Physique</span><span><i class="legend-swatch digi"></i>Numérique</span></div>
-      <div class="home-platform-bars" id="home-platform-bars"></div>
     </div>
   </aside>
   <main class="home-main">
@@ -2551,6 +2560,7 @@
 
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
+      <button class="btn btn-ghost hidden" id="a-to-wishlist-btn" title="Basculer cet élément vers la wishlist">→ Vers Wishlist</button>
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="a-cancel-btn">Annuler</button>
       <button class="btn btn-primary" id="a-save-btn">Enregistrer</button>
@@ -3389,6 +3399,7 @@ let editingArrivalId = null;
 let editingWishlistId = null;
 let convertingWishlistId = null; // id de l'item wishlist en cours de bascule vers arrivage
 let convertingArrivalId = null; // id de l'arrivage en cours de bascule vers la collection
+let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascule vers la wishlist
 
 let state = {
   platform: null,
@@ -4375,8 +4386,7 @@ function deleteGame(){
 
 function renderHomeStats(){
   const cardsEl = document.getElementById('home-stat-cards');
-  const barsEl = document.getElementById('home-platform-bars');
-  if(!cardsEl || !barsEl) return;
+  if(!cardsEl) return;
 
   const total = GAMES.length;
   const spent = GAMES.reduce((sum,g) => sum + (g.prix || 0), 0);
@@ -4389,42 +4399,6 @@ function renderHomeStats(){
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Collectors</span><span class="num">${collectors}</span></div>
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_GAMEPAD,'home-stat-icon')}Plateformes</span><span class="num">${platformsCount}</span></div>
   `;
-
-  const physCounts = {}, digiCounts = {}, totalCounts = {};
-  GAMES.forEach(g => {
-    totalCounts[g.plateforme] = (totalCounts[g.plateforme]||0) + 1;
-    const map = g.format === 'Numérique' ? digiCounts : physCounts;
-    map[g.plateforme] = (map[g.plateforme]||0) + 1;
-  });
-  const platformNames = Object.keys(totalCounts).sort((a,b) => totalCounts[b]-totalCounts[a]);
-  const max = platformNames.length ? totalCounts[platformNames[0]] : 1;
-
-  if(platformNames.length === 0){
-    barsEl.innerHTML = `<div style="font-size:12px;color:var(--muted);">Aucun jeu pour l'instant.</div>`;
-  } else {
-    barsEl.innerHTML = platformNames.map(p => {
-      const totalC = totalCounts[p];
-      const physC = physCounts[p] || 0;
-      const digiC = digiCounts[p] || 0;
-      const physPct = physC ? Math.max(3, Math.round((physC/max)*100)) : 0;
-      const digiPct = digiC ? Math.max(3, Math.round((digiC/max)*100)) : 0;
-      const color = getPlatformColor(p);
-      const logo = getPlatformLogo(p);
-      const iconHtml = logo
-        ? `<img class="home-plat-icon" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'home-plat-icon-fallback\\' style=\\'background:${color}\\'></span>'">`
-        : `<span class="home-plat-icon-fallback" style="background:${color}"></span>`;
-      return `<div class="home-platform-bar-row">
-        <div class="plat-bar-label">${iconHtml}<span class="plat-name">${p}</span><span class="count">${totalC}</span></div>
-        <div class="home-platform-bar-track">
-          ${physC ? `<div class="home-platform-bar-fill plat-seg-clickable" data-plat="${p}" data-fmt="Physique" style="width:${physPct}%;background:${color};" title="${p} · ${physC} physique"></div>` : ''}
-          ${digiC ? `<div class="home-platform-bar-fill plat-seg-clickable digi-seg" data-plat="${p}" data-fmt="Numérique" style="width:${digiPct}%;background:${color};" title="${p} · ${digiC} numérique"></div>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-    barsEl.querySelectorAll('.plat-seg-clickable').forEach(el => {
-      el.addEventListener('click', () => goToCollectionPlatform(el.dataset.fmt, el.dataset.plat));
-    });
-  }
 }
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
@@ -4455,7 +4429,7 @@ function arrivalRowHtml(item){
   const monthColor = item.date ? MONTH_COLORS[monthIndexOf(item.date)] : null;
   return `
     <div class="board-row" data-id="${item.id}" style="--spine:${color}">
-      <div class="board-date"${monthColor ? ` style="color:${monthColor}"` : ''}>${dateD(item.date)}</div>
+      <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${item.nom}">${item.nom}</div>
@@ -4463,6 +4437,7 @@ function arrivalRowHtml(item){
       </div>
       <span class="board-price">${euros(item.prix)}</span>
       <span class="board-source" title="${item.source || ''}">${item.source || '—'}</span>
+      <button class="icon-btn to-wishlist-btn" data-action="to-wishlist" title="Basculer vers la wishlist" aria-label="Basculer vers la wishlist">${ICON_STAR}</button>
       <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_PLUS}</button>
     </div>`;
 }
@@ -4514,12 +4489,16 @@ function renderArrivals(){
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
     row.addEventListener('click', (e) => {
-      if(e.target.closest('[data-action="to-collection"]')) return;
+      if(e.target.closest('[data-action="to-collection"], [data-action="to-wishlist"]')) return;
       openArrivalModal(id);
     });
     row.querySelector('[data-action="to-collection"]').onclick = (e) => {
       e.stopPropagation();
       addArrivalToCollection(id);
+    };
+    row.querySelector('[data-action="to-wishlist"]').onclick = (e) => {
+      e.stopPropagation();
+      moveArrivalToWishlist(id);
     };
   });
 }
@@ -4654,7 +4633,7 @@ function renderWishlist(){
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}">Voir le lien ↗</a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
     const dateHtml = released
-      ? `<div class="board-date board-date-released" title="Déjà sorti">${ICON_STATUS_DONE}</div>`
+      ? `<div class="board-date board-date-released" title="Déjà sorti">–</div>`
       : `<div class="board-date"${wishlistMonthColor(item.date) ? ` style="color:${wishlistMonthColor(item.date)}"` : ''}>${wishlistDayLabel(item.date)}</div>`;
     row.innerHTML = `
       ${dateHtml}
@@ -4724,11 +4703,13 @@ function openArrivalModal(id){
   populatePlatformSelect('a-plateforme');
   const title = document.getElementById('arrival-modal-title');
   const deleteBtn = document.getElementById('a-delete-btn');
+  const toWishlistBtn = document.getElementById('a-to-wishlist-btn');
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
     title.textContent = 'Modifier cet arrivage';
     deleteBtn.classList.remove('hidden');
+    toWishlistBtn.classList.remove('hidden');
     document.getElementById('a-nom').value = item.nom || '';
     setSelectValueAndSync('a-plateforme', item.plateforme || '');
     document.getElementById('a-date').value = item.date || '';
@@ -4738,6 +4719,7 @@ function openArrivalModal(id){
   } else {
     title.textContent = 'Ajouter un arrivage';
     deleteBtn.classList.add('hidden');
+    toWishlistBtn.classList.add('hidden');
     document.getElementById('a-nom').value = '';
     document.getElementById('a-plateforme').value = '';
     document.getElementById('a-date').value = '';
@@ -4837,6 +4819,7 @@ function addArrivalToCollection(id){
 
 function openWishlistModal(id){
   editingWishlistId = id || null;
+  convertingArrivalToWishlistId = null; // ouverture normale (pas une bascule depuis les arrivages)
   populatePlatformSelect('w-plateforme');
   const title = document.getElementById('wishlist-modal-title');
   const deleteBtn = document.getElementById('w-delete-btn');
@@ -4872,6 +4855,7 @@ function openWishlistModal(id){
 function closeWishlistModal(){
   document.getElementById('wishlist-modal-overlay').classList.add('hidden');
   editingWishlistId = null;
+  convertingArrivalToWishlistId = null; // annuler = l'arrivage reste où il était
 }
 
 function saveWishlistModal(){
@@ -4891,6 +4875,14 @@ function saveWishlistModal(){
   } else {
     WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, prix });
   }
+
+  if(convertingArrivalToWishlistId){
+    ARRIVALS = ARRIVALS.filter(x => x.id !== convertingArrivalToWishlistId);
+    saveArrivals();
+    convertingArrivalToWishlistId = null;
+    renderArrivals();
+  }
+
   ensurePlatformMeta(plateforme);
   savePlatformMeta();
   saveWishlist();
@@ -4940,6 +4932,28 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-nom').focus();
 }
 
+function moveArrivalToWishlist(id){
+  const item = ARRIVALS.find(x => x.id === id);
+  if(!item) return;
+
+  convertingArrivalToWishlistId = id;
+  editingWishlistId = null;
+  populatePlatformSelect('w-plateforme');
+
+  document.getElementById('wishlist-modal-title').textContent = 'Basculer vers la wishlist';
+  document.getElementById('w-delete-btn').classList.add('hidden');
+  document.getElementById('w-to-arrival-btn').classList.add('hidden');
+  document.getElementById('w-nom').value = item.nom || '';
+  setSelectValueAndSync('w-plateforme', item.plateforme || '');
+  document.getElementById('w-date').value = item.date || '';
+  document.getElementById('w-lien').value = '';
+  document.getElementById('w-image').value = item.image || '';
+  document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
+  updateImagePreviewFor('w-image', 'w-image-preview');
+  document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
+  document.getElementById('w-nom').focus();
+}
+
 function updateImagePreviewFor(inputId, previewId){
   const url = document.getElementById(inputId).value.trim();
   const preview = document.getElementById(previewId);
@@ -4955,6 +4969,12 @@ document.getElementById('a-cancel-btn').addEventListener('click', closeArrivalMo
 document.getElementById('a-save-btn').addEventListener('click', saveArrivalModal);
 document.getElementById('a-delete-btn').addEventListener('click', deleteArrival);
 document.getElementById('a-image').addEventListener('input', () => updateImagePreviewFor('a-image','a-image-preview'));
+document.getElementById('a-to-wishlist-btn').addEventListener('click', () => {
+  if(!editingArrivalId) return;
+  const id = editingArrivalId;
+  closeArrivalModal();
+  moveArrivalToWishlist(id);
+});
 /* Un clic en dehors de la fenêtre d'édition d'un arrivage ne la ferme plus (évite les pertes accidentelles) */
 
 document.getElementById('add-wishlist-btn').addEventListener('click', () => openWishlistModal(null));
