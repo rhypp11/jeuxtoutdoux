@@ -2402,6 +2402,18 @@
 
 
 <script>
+const IS_PREVIEW_MODE = location.hostname.includes('--preview-');
+window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
+const PREVIEW_SEED = {
+  games: [
+    {id:'test-p5r',nom:'Persona 5 Royal',plateforme:'PC',prix:59.99,format:'Numérique',collector:false,type:'Jeu simple',status:'termine',date:'2026-01-15',source:'Steam',image:null},
+    {id:'test-fe',nom:'Fire Emblem — Test',plateforme:'Switch 2',prix:59.99,format:'Physique',collector:false,type:null,status:'a_jouer',date:'2026-09-17',source:'Test',image:null},
+    {id:'test-party',nom:'Jeu Multi — Test',plateforme:'Switch 2',prix:39.99,format:'Physique',collector:false,type:null,status:'multi',date:'2026-05-01',source:'Test',image:null},
+    {id:'test-elsewhere',nom:'Terminé ailleurs — Test',plateforme:'PlayStation 5',prix:24.99,format:'Physique',collector:true,type:null,status:'termine_ailleurs',date:'2025-12-01',source:'Test',image:null}
+  ],
+  arrivals:[{id:'test-arrival',nom:'Arrivage — Test',plateforme:'Switch 2',prix:49.99,date:'2026-11-20',source:'Test',image:null}],
+  wishlist:[{id:'test-wish',nom:'Wishlist — Test',plateforme:'PC',prix:null,date:'2027',source:'Test',image:null}]
+};
 const SEED_GAMES = [];
 const STORAGE_KEY = 'ludotheque:games-v2';
 const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
@@ -2424,13 +2436,17 @@ const BACKLOG_PLAYING_KEY = 'ludotheque:backlog-playing-v1';
 const BACKLOG_CATEGORIES_KEY = 'ludotheque:backlog-categories-v1';
 
 function loadLegacyBacklogData(){
+  if(IS_PREVIEW_MODE){ BACKLOG_COMPLETIONS=[]; BACKLOG_PLAYING=[]; BACKLOG_CATEGORIES=[]; return; }
   try{ BACKLOG_COMPLETIONS = JSON.parse(localStorage.getItem(BACKLOG_COMPLETIONS_KEY) || '[]'); }catch(e){ BACKLOG_COMPLETIONS = []; }
   try{ BACKLOG_PLAYING = JSON.parse(localStorage.getItem(BACKLOG_PLAYING_KEY) || '[]'); }catch(e){ BACKLOG_PLAYING = []; }
   try{ BACKLOG_CATEGORIES = JSON.parse(localStorage.getItem(BACKLOG_CATEGORIES_KEY) || '[]'); }catch(e){ BACKLOG_CATEGORIES = []; }
 }
-function saveBacklogCompletions(){ try{ localStorage.setItem(BACKLOG_COMPLETIONS_KEY, JSON.stringify(BACKLOG_COMPLETIONS)); }catch(e){} }
-function saveBacklogPlaying(){ try{ localStorage.setItem(BACKLOG_PLAYING_KEY, JSON.stringify(BACKLOG_PLAYING)); }catch(e){} }
-function saveBacklogCategories(){ try{ localStorage.setItem(BACKLOG_CATEGORIES_KEY, JSON.stringify(BACKLOG_CATEGORIES)); }catch(e){} }
+function saveBacklogCompletions(){
+  if(IS_PREVIEW_MODE) return; try{ localStorage.setItem(BACKLOG_COMPLETIONS_KEY, JSON.stringify(BACKLOG_COMPLETIONS)); }catch(e){} }
+function saveBacklogPlaying(){
+  if(IS_PREVIEW_MODE) return; try{ localStorage.setItem(BACKLOG_PLAYING_KEY, JSON.stringify(BACKLOG_PLAYING)); }catch(e){} }
+function saveBacklogCategories(){
+  if(IS_PREVIEW_MODE) return; try{ localStorage.setItem(BACKLOG_CATEGORIES_KEY, JSON.stringify(BACKLOG_CATEGORIES)); }catch(e){} }
 function nameKeyOf(nom, plateforme){ return (nom||'').trim().toLowerCase() + '|' + (plateforme||'').trim().toLowerCase(); }
 
 
@@ -2448,6 +2464,7 @@ function loadProfile(){
   }catch(e){ /* ignore */ }
 }
 function saveProfile(){
+  if(IS_PREVIEW_MODE) return;
   try{ localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: PROFILE_NAME, avatar: PROFILE_AVATAR })); }catch(e){ /* ignore */ }
 }
 function profileInitials(){
@@ -2518,6 +2535,7 @@ function loadPlatformMeta(){
 }
 
 function savePlatformMeta(){
+  if(IS_PREVIEW_MODE) return;
   try{
     localStorage.setItem(PLATFORM_META_KEY, JSON.stringify(platformMeta));
   }catch(e){
@@ -2615,6 +2633,7 @@ function loadPlatformOrder(){
 }
 
 function savePlatformOrder(){
+  if(IS_PREVIEW_MODE) return;
   try{
     localStorage.setItem(PLATFORM_ORDER_KEY, JSON.stringify(platformOrder));
   }catch(e){
@@ -2776,6 +2795,7 @@ function parsePriceInput(s){
 }
 
 async function loadGames(){
+  if(IS_PREVIEW_MODE){ GAMES = PREVIEW_SEED.games.map(g => ({...g})); return; }
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
@@ -2809,6 +2829,8 @@ function migrateGameTypes(){
 }
 
 async function saveGames(){
+  if(IS_PREVIEW_MODE) return;
+  if(IS_PREVIEW_MODE) return;
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(GAMES));
     setSaveNote('Sauvegardé dans ce navigateur — ' + new Date().toLocaleTimeString('fr-FR'));
@@ -2838,6 +2860,7 @@ function updateExportNote(){
 }
 
 async function loadArrivals(){
+  if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
   try{
     const raw = localStorage.getItem(ARRIVALS_KEY);
     ARRIVALS = raw ? JSON.parse(raw) : [];
@@ -2848,6 +2871,7 @@ async function loadArrivals(){
 }
 
 function saveArrivals(){
+  if(IS_PREVIEW_MODE) return;
   try{
     localStorage.setItem(ARRIVALS_KEY, JSON.stringify(ARRIVALS));
   }catch(e){
@@ -2856,6 +2880,7 @@ function saveArrivals(){
 }
 
 async function loadWishlist(){
+  if(IS_PREVIEW_MODE){ WISHLIST = PREVIEW_SEED.wishlist.map(g => ({...g})); return; }
   try{
     const raw = localStorage.getItem(WISHLIST_KEY);
     WISHLIST = raw ? JSON.parse(raw) : [];
@@ -2866,6 +2891,7 @@ async function loadWishlist(){
 }
 
 function saveWishlist(){
+  if(IS_PREVIEW_MODE) return;
   try{
     localStorage.setItem(WISHLIST_KEY, JSON.stringify(WISHLIST));
   }catch(e){
@@ -4823,6 +4849,16 @@ async function initApp(){
     if(el) el.classList.add('hidden');
   }
 
+  if(window.JTD_PREVIEW_MODE){
+    currentUser = null;
+    document.getElementById('logout-btn').classList.add('hidden');
+    document.getElementById('profile-menu-divider').classList.add('hidden');
+    document.getElementById('cloud-sync-status').classList.add('hidden');
+    await initApp();
+    appInitialized = true;
+    hideAuthLoading();
+    hideLoginGate();
+  } else {
   onAuthStateChanged(auth, async (user) => {
     if(user){
       currentUser = user;
@@ -4845,6 +4881,7 @@ async function initApp(){
       showLoginGate();
     }
   });
+  }
 </script>
 </body>
 </html>
