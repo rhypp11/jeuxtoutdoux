@@ -2880,6 +2880,110 @@
     .arrival-actions{grid-column:4;grid-row:1 / span 2;align-self:center;}
   }
 
+
+  /* ---------- Accueil : vue d'ensemble de la collection ---------- */
+  .home-app{
+    grid-template-columns:250px minmax(0,1fr);
+    background:var(--ink);
+  }
+  #home-sidebar{
+    padding:27px 16px 24px;
+    gap:25px;
+    background:color-mix(in srgb,var(--sidebar-bg) 96%,var(--surface) 4%);
+    border-right-color:rgba(255,255,255,.045);
+  }
+  .home-collection-summary{
+    padding:0 8px 20px;
+    border-bottom:1px solid rgba(255,255,255,.055);
+  }
+  .home-summary-kicker{
+    display:block;margin-bottom:4px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;font-weight:700;letter-spacing:.035em;color:var(--muted);
+  }
+  .home-summary-total{display:flex;align-items:baseline;gap:7px;}
+  .home-summary-total strong{
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:34px;line-height:1;font-weight:800;letter-spacing:-.05em;color:var(--text);
+  }
+  .home-summary-total > span{font-size:13px;font-weight:600;color:var(--muted);}
+  .home-summary-meta{
+    margin-top:12px;
+    display:flex;flex-wrap:wrap;gap:4px 6px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;color:var(--muted);line-height:1.45;
+  }
+  .home-summary-meta strong{font-weight:700;color:color-mix(in srgb,var(--text) 88%,var(--muted) 12%);}
+  .home-summary-sep{color:rgba(255,255,255,.14);}
+  .home-platform-section{gap:5px;}
+  #home-sidebar .home-platform-section .side-label{
+    padding:0 8px;margin-bottom:5px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;font-weight:700;letter-spacing:.025em;text-transform:none;
+    color:color-mix(in srgb,var(--muted) 82%,transparent);
+  }
+  .home-platform-bars{gap:2px;}
+  .home-platform-bar-row{
+    position:relative;
+    padding:6px 8px;
+    border-radius:9px;
+    transition:background .14s ease;
+  }
+  .home-platform-bar-row:hover{background:rgba(255,255,255,.035);}
+  .home-platform-bar-row::before{
+    content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+    width:2px;height:14px;border-radius:2px;background:var(--home-platform-color);opacity:.65;
+  }
+  .home-platform-bar-row .plat-bar-label{
+    gap:8px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:11.5px;color:color-mix(in srgb,var(--text) 84%,var(--muted) 16%);
+  }
+  .home-plat-icon{width:18px;height:18px;border-radius:5px;background:transparent;}
+  .home-plat-icon-fallback{width:8px;height:8px;border-radius:50%;margin:0 5px;}
+  .home-platform-bar-row .plat-bar-label .count{
+    min-width:24px;padding:2px 5px;border-radius:999px;
+    background:rgba(255,255,255,.035);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10px;text-align:center;color:var(--muted);
+  }
+  .home-platform-bar-track{display:none;}
+  .home-main{
+    padding:27px 32px 60px;
+    gap:18px;
+  }
+  .home-intro{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    padding:2px 2px 4px;
+  }
+  .home-intro-kicker{
+    display:block;margin-bottom:3px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;font-weight:700;letter-spacing:.035em;color:var(--teal);
+  }
+  .home-intro h1{
+    margin:0;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:25px;font-weight:800;letter-spacing:-.04em;color:var(--text);
+  }
+  .home-intro p{
+    margin:5px 0 0;
+    max-width:650px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:12px;line-height:1.5;color:var(--muted);
+  }
+  .home-boards{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:16px;
+  }
+  @media(max-width:1100px){
+    .home-intro{padding-top:0;}
+  }
+  @media(max-width:900px){
+    .home-intro h1{font-size:22px;}
+    .home-intro p{font-size:11.5px;}
+  }
+
 </style>
 </head>
 <body>
@@ -2986,16 +3090,24 @@
 <div class="page" id="page-home">
   <div class="home-app">
   <aside class="sidebar home-sidebar" id="home-sidebar">
-    <div class="side-section">
-      <div class="side-label">Collection</div>
-      <div class="home-stat-cards" id="home-stat-cards"></div>
+    <div class="home-collection-summary">
+      <span class="home-summary-kicker">Ma collection</span>
+      <div class="home-summary-total"><strong id="home-total-games">0</strong><span>jeux</span></div>
+      <div class="home-summary-meta" id="home-summary-meta"></div>
     </div>
-    <div class="side-section">
-      <div class="side-label">Jeux par plateforme</div>
+    <div class="side-section home-platform-section">
+      <div class="side-label">Par plateforme</div>
       <div class="home-platform-bars" id="home-platform-bars"></div>
     </div>
   </aside>
   <main class="home-main">
+    <header class="home-intro">
+      <div>
+        <span class="home-intro-kicker">Jeux Tout Doux</span>
+        <h1>Ma ludothèque</h1>
+        <p>Un coup d’œil sur la collection, les prochains arrivages et les jeux qui attendent leur tour.</p>
+      </div>
+    </header>
     <div class="home-boards-switcher" id="home-boards-switcher">
       <button type="button" class="home-boards-switch-btn active" data-target="wishlist">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>
@@ -4501,36 +4613,36 @@ function deleteGame(){
 /* ---------- Accueil : Stats ---------- */
 
 function renderHomeStats(){
-  const cardsEl = document.getElementById('home-stat-cards');
-  if(!cardsEl) return;
-
   const total = GAMES.length;
   const spent = GAMES.reduce((sum,g) => sum + (g.prix || 0), 0);
   const collectors = GAMES.filter(g => g.collector).length;
   const platformsCount = new Set(GAMES.map(g => g.plateforme)).size;
 
-  cardsEl.innerHTML = `
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_BOOKS_VERTICAL,'home-stat-icon')}Jeux</span><span class="num">${total}</span></div>
-    <div class="home-stat-card"><span class="label">Dépensé</span><span class="num accent">${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Collectors</span><span class="num">${collectors}</span></div>
-    <div class="home-stat-card"><span class="label">${iconWithClass(ICON_GAMEPAD,'home-stat-icon')}Plateformes</span><span class="num">${platformsCount}</span></div>
-  `;
+  const totalEl = document.getElementById('home-total-games');
+  if(totalEl) totalEl.textContent = total;
+  const metaEl = document.getElementById('home-summary-meta');
+  if(metaEl){
+    const bits = [
+      `<span><strong>${platformsCount}</strong> plateformes</span>`,
+      collectors ? `<span><strong>${collectors}</strong> collectors</span>` : '',
+      spent ? `<span><strong>${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong> investis</span>` : ''
+    ].filter(Boolean);
+    metaEl.innerHTML = bits.join('<span class="home-summary-sep">·</span>');
+  }
 
   const barsEl = document.getElementById('home-platform-bars');
   if(!barsEl) return;
   const counts = {};
   GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme] || 0) + 1; });
   const rows = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-  const max = rows.length ? rows[0][1] : 1;
   barsEl.innerHTML = rows.map(([platform, count]) => {
     const logo = getPlatformLogo(platform);
     const color = getPlatformColor(platform);
     const icon = logo
       ? `<img class="home-plat-icon" src="${logo}" alt="">`
       : `<span class="home-plat-icon-fallback" style="background:${color};"></span>`;
-    return `<div class="home-platform-bar-row">
+    return `<div class="home-platform-bar-row" style="--home-platform-color:${color}">
       <div class="plat-bar-label">${icon}<span class="plat-name">${platform}</span><span class="count">${count}</span></div>
-      <div class="home-platform-bar-track"><span class="home-platform-bar-fill" style="width:${(count/max)*100}%;background:${color};"></span></div>
     </div>`;
   }).join('');
 }
