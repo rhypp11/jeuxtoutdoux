@@ -2727,10 +2727,6 @@ function getPlatformLogo(name){
   return (platformMeta[name] && platformMeta[name].logo) || null;
 }
 
-function isDigitalCapable(name){
-  return !!(platformMeta[name] && platformMeta[name].digital);
-}
-
 function ensurePlatformMeta(name){
   if(!platformMeta[name]) platformMeta[name] = { color: getPlatformColor(name), logo: null, digital: false };
   return platformMeta[name];
@@ -2782,10 +2778,6 @@ function updatePlatformLogo(name, url){
   render();
 }
 
-function updatePlatformDigital(name, digital){
-  ensurePlatformMeta(name).digital = digital;
-  savePlatformMeta();
-}
 
 /* ---------- Ordre personnalisé des plateformes ---------- */
 const PLATFORM_ORDER_KEY = 'ludotheque:platform-order-v1';
@@ -4528,10 +4520,6 @@ function buildPlatformRows(){
           <input type="color" data-role="color" value="${toHexColor(color)}">
         </div>
         <input type="text" class="logo-input" data-role="logo" placeholder="URL du logo (facultatif)" value="${logo || ''}">
-        <label class="digital-check-row">
-          <input type="checkbox" data-role="digital"${isDigitalCapable(p) ? ' checked' : ''}>
-          <span>Peut contenir des jeux numériques</span>
-        </label>
       </div>
       <span class="row-count">${counts[p]} jeu${counts[p] > 1 ? 'x' : ''}</span>
     `;
@@ -4582,9 +4570,6 @@ function buildPlatformRows(){
       }
     });
 
-    row.querySelector('[data-role="digital"]').addEventListener('change', (e) => {
-      updatePlatformDigital(row.dataset.currentName, e.target.checked);
-    });
 
     container.appendChild(row);
   });
