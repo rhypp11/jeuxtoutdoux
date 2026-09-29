@@ -2457,12 +2457,6 @@
             <div class="home-hero-stats" id="home-global-stats"></div>
           </div>
         </div>
-        <div class="home-hero-playing" id="home-playing-widget">
-          <div class="home-hero-playing-head">
-            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>En cours</span>
-          </div>
-          <div class="home-hero-playing-rows" id="home-playing-rows"></div>
-        </div>
       </section>
 
     </div>
@@ -6316,30 +6310,6 @@ function renderPlayingRows(){
   wirePlayingDropZone();
   const addSlot = document.getElementById('playing-add-slot');
   if(addSlot) addSlot.addEventListener('click', () => openPlayingModal(null));
-  renderHomePlaying();
-}
-
-function renderHomePlaying(){
-  const widget = document.getElementById('home-playing-widget');
-  const container = document.getElementById('home-playing-rows');
-  if(!widget || !container) return;
-  widget.classList.toggle('hidden', BACKLOG_PLAYING.length === 0);
-  container.innerHTML = BACKLOG_PLAYING.map(p => {
-    const r = resolveBacklogItem(p);
-    return `
-    <div class="hero-playing-item" title="${r.nom} · ${r.plateforme}">
-      ${backlogThumbHtml(r,'media-thumb media-thumb-xs')}
-      <div class="hero-playing-info">
-        <span class="hero-playing-name">${r.nom}</span>
-        <span class="hero-playing-plat">${platformTagHtml(r.plateforme)}</span>
-      </div>
-    </div>`;
-  }).join('');
-  const seeAllBtn = document.getElementById('home-playing-see-all-btn');
-  if(seeAllBtn && !seeAllBtn.dataset.wired){
-    seeAllBtn.dataset.wired = '1';
-    seeAllBtn.addEventListener('click', () => goToPage('backlog'));
-  }
   renderHomeQuickStats();
 }
 
@@ -6928,7 +6898,7 @@ async function initApp(){
   render();
   renderArrivals();
   renderWishlist();
-  renderHomePlaying();
+  renderHomeQuickStats();
   updateExportNote();
 }
 </script>
