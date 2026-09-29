@@ -3079,6 +3079,149 @@
     .cover-grid .card-name{font-size:10px;}
   }
 
+
+  /* ---------- Correctifs mobile : jaquettes + accueil ---------- */
+  @media(max-width:820px){
+    .grid.cover-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:17px 10px;
+    }
+    .cover-grid .card-body{
+      display:block;
+      padding:8px 3px 0;
+      min-height:40px;
+    }
+    .cover-grid .card-name{
+      display:block;
+      min-height:0;
+      font-size:12px;
+      line-height:1.35;
+      font-weight:650;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+    }
+  }
+  @media(max-width:900px){
+    .home-main{padding:18px 14px 36px;}
+    .home-boards-switcher{
+      position:relative;
+      margin:0 0 2px;
+      padding:3px;
+      gap:3px;
+      border-radius:11px;
+      background:rgba(255,255,255,.035);
+    }
+    .home-boards-switch-btn{
+      min-width:0;
+      padding:9px 8px;
+      border:0;
+      border-radius:8px;
+      background:transparent;
+      box-shadow:none;
+      font-family:'DM Sans',system-ui,sans-serif;
+      font-size:12px;
+    }
+    .home-boards-switch-btn.active{
+      border:0;
+      background:rgba(99,197,181,.10);
+      color:var(--text);
+    }
+    .home-boards .board.wishlist,
+    .home-boards .board.arrivals{
+      width:100%;
+      min-width:0;
+    }
+    .board.wishlist .board-row,
+    .board.arrivals .board-row{
+      display:grid;
+      grid-template-columns:68px minmax(0,1fr) auto;
+      grid-template-rows:auto auto;
+      min-height:78px;
+      gap:5px 10px;
+      padding:10px 12px;
+      align-items:center;
+    }
+    .board.wishlist .board-thumb,
+    .board.arrivals .board-thumb{
+      grid-column:1;
+      grid-row:1 / span 2;
+      width:68px;height:48px;
+      align-self:center;
+    }
+    .board.wishlist .board-date,
+    .board.arrivals .board-date{
+      grid-column:2;
+      grid-row:2;
+      min-width:0;
+      width:max-content;
+      padding:0;
+      background:transparent;
+      font-size:10px;
+      text-align:left;
+    }
+    .board.wishlist .board-info,
+    .board.arrivals .board-info{
+      grid-column:2;
+      grid-row:1;
+      min-width:0;
+      align-self:end;
+    }
+    .board.wishlist .board-name,
+    .board.arrivals .board-name{
+      font-size:12.5px;
+      line-height:1.25;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+    }
+    .board.wishlist .board-plat,
+    .board.arrivals .board-plat{
+      margin-top:2px;
+      font-size:9.5px;
+    }
+    .board.wishlist .board-link{
+      grid-column:3;
+      grid-row:1 / span 2;
+      align-self:center;
+    }
+    .board.arrivals .arrival-purchase{
+      grid-column:2;
+      grid-row:2;
+      max-width:none;
+      margin:0;
+      justify-content:flex-start;
+      padding-left:42px;
+      font-size:10px;
+    }
+    .board.arrivals .arrival-actions{
+      grid-column:3;
+      grid-row:1 / span 2;
+      align-self:center;
+      opacity:1;
+    }
+  }
+  @media(max-width:420px){
+    .board.wishlist .board-head,
+    .board.arrivals .board-head{padding:12px;}
+    .board.wishlist .board-head h2,
+    .board.arrivals .board-head h2{font-size:15px;}
+    .board.wishlist .board-add-btn,
+    .board.arrivals .board-add-btn{
+      height:33px;padding:0 9px;font-size:10.5px;
+    }
+    .board.wishlist .board-row,
+    .board.arrivals .board-row{
+      grid-template-columns:62px minmax(0,1fr) auto;
+      gap:5px 8px;
+    }
+    .board.wishlist .board-thumb,
+    .board.arrivals .board-thumb{width:62px;height:44px;}
+    .board.arrivals .arrival-actions{gap:2px;}
+    .board.arrivals .to-wishlist-btn,
+    .board.arrivals .add-to-collection-btn{width:28px;height:28px;}
+  }
+
 </style>
 </head>
 <body>
