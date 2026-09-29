@@ -20,4 +20,5 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JEUX_TOUT_DOUX }}"
           projectId: jeux-tout-doux
-          expires: 14d
+          channelId: preview
+          expires: 30d
