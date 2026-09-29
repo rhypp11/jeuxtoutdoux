@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="JTD">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#252B2D;
@@ -1986,6 +1986,82 @@
     *{transition:none !important;}
   }
 
+
+
+  /* ---------- UI refresh: bibliothèque douce ---------- */
+  :root{
+    --ink:#151A1B;
+    --sidebar-bg:#111516;
+    --surface:#1D2425;
+    --surface-raised:#273031;
+    --text:#F3F5F4;
+    --muted:#94A3A1;
+    --amber:#E8C46A;
+    --orange:#D58A5C;
+    --teal:#63C5B5;
+    --hairline:#34403F;
+    --danger:#E86B70;
+  }
+  body{font-family:'DM Sans',system-ui,sans-serif;letter-spacing:-0.005em;}
+  button,input,select,textarea{font-family:'DM Sans',system-ui,sans-serif;}
+  .topnav{background:rgba(29,36,37,.94);border-bottom-color:rgba(255,255,255,.055);backdrop-filter:blur(14px);}
+  .topnav-brand{background:transparent;border-right:0;padding-left:26px;}
+  .nav-tab{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:600;padding-top:17px;padding-bottom:17px;}
+  .nav-tab.active{color:var(--text);border-bottom-color:var(--teal);}
+  .brand-word{font-family:'DM Sans',system-ui,sans-serif;font-size:20px;font-weight:800;text-transform:none;letter-spacing:-.035em;}
+  .sidebar{border-right-color:rgba(255,255,255,.05);padding-top:30px;}
+  .side-label{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.055em;text-transform:none;}
+  .plat-item{border-left:0;border-radius:10px;padding:10px 11px;}
+  .plat-item.active{box-shadow:inset 3px 0 0 var(--spine,var(--teal));}
+  .toggle-chip{border-color:transparent;background:rgba(255,255,255,.025);border-radius:10px;}
+  .toggle-chip.active{border-color:rgba(99,197,181,.22);background:rgba(99,197,181,.09);}
+  .home-main{padding:32px 36px 64px;gap:26px;}
+  .home-hero{border:0;border-radius:18px;padding:24px 28px;background:linear-gradient(135deg,rgba(99,197,181,.10),rgba(29,36,37,.96) 42%);box-shadow:0 12px 36px rgba(0,0,0,.16);}
+  .home-hero-row-head,.home-hero-playing-head span{font-family:'DM Sans',system-ui,sans-serif;text-transform:none;letter-spacing:0;font-size:12px;}
+  .home-hero-row + .home-hero-row,.home-hero-playing{border-color:rgba(255,255,255,.06);}
+  .home-stat-card{border:0;background:rgba(255,255,255,.035);border-radius:12px;}
+  .home-stat-card .label{text-transform:none;letter-spacing:0;font-weight:600;}
+  .board{border:0;border-radius:16px;background:var(--surface);box-shadow:0 8px 28px rgba(0,0,0,.12);}
+  .board.arrivals,.board.wishlist{border-top:0;}
+  .board-head{border-bottom-color:rgba(255,255,255,.055);padding:18px 20px;}
+  .board.arrivals .board-head{padding:20px;background:rgba(99,197,181,.055);}
+  .board.wishlist .board-head{background:rgba(213,138,92,.055);}
+  .board-head h2,.board-name{font-family:'DM Sans',system-ui,sans-serif;}
+  .board-head h2{letter-spacing:-.02em;}
+  .board-table-head{font-family:'DM Sans',system-ui,sans-serif;text-transform:none;letter-spacing:.02em;background:rgba(255,255,255,.025);}
+  .board-row{border-top-color:rgba(255,255,255,.045);}
+  .board-row:hover{background:rgba(255,255,255,.035);}
+  .board-month-head{font-family:'DM Sans',system-ui,sans-serif;text-transform:none;letter-spacing:.02em;background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.045);}
+  .board-add-btn,.board-manage-btn{font-family:'DM Sans',system-ui,sans-serif;font-weight:700;}
+  .main{padding:0 36px 64px;gap:24px;}
+  .platform-banner{font-family:'DM Sans',system-ui,sans-serif;padding:18px 36px;margin:0 -36px;box-shadow:0 10px 28px rgba(0,0,0,.18);}
+  .platform-banner.neutral{border:0;background:var(--surface);}
+  .platform-banner-stat{font-family:'DM Sans',system-ui,sans-serif;border:0!important;background:rgba(255,255,255,.045)!important;}
+  .platform-banner-stat .label{text-transform:none;letter-spacing:0;}
+  .search-wrap input,.sort-select{font-family:'DM Sans',system-ui,sans-serif;background:rgba(255,255,255,.035);border-color:transparent;border-radius:12px;}
+  .search-wrap input:focus,.sort-select:focus{border-color:rgba(99,197,181,.55);background:var(--surface);}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;}
+  .card{border:0;border-radius:15px;background:var(--surface);box-shadow:0 5px 18px rgba(0,0,0,.12);transition:transform .16s ease,background-color .16s ease,box-shadow .16s ease;}
+  .card:hover{background:var(--surface-raised);transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.20);}
+  .card.collector{border:0;box-shadow:inset 0 0 0 1px rgba(232,196,106,.35),0 5px 18px rgba(0,0,0,.12);}
+  .card-body{padding:16px 17px 17px;gap:11px;}
+  .card-name{font-family:'DM Sans',system-ui,sans-serif;font-size:15px;font-weight:650;letter-spacing:-.015em;}
+  .card-meta{border-top-color:rgba(255,255,255,.055);}
+  .status-display-inner,.status-btn,.backlog-status-badge{font-family:'DM Sans',system-ui,sans-serif;text-transform:none;letter-spacing:0;}
+  .add-btn,.reset-btn,.results-reset-btn{font-family:'DM Sans',system-ui,sans-serif;font-weight:700;}
+  .add-btn{border-radius:10px;}
+  .modal,.login-card{border:0;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.38);}
+  .modal h2,.login-brand h1,.field input,.field select,.field textarea,.icon-select-trigger{font-family:'DM Sans',system-ui,sans-serif;}
+  .field label,.modal-extra-label{font-family:'DM Sans',system-ui,sans-serif;text-transform:none;letter-spacing:.015em;font-weight:700;}
+  .field input,.field select,.field textarea,.icon-select-trigger{border-color:transparent;border-radius:10px;}
+  .profile-menu{border-color:rgba(255,255,255,.07);border-radius:13px;}
+  .profile-menu-item{font-family:'DM Sans',system-ui,sans-serif;}
+  @media(max-width:900px){.home-main{padding:20px 16px 40px;}}
+  @media(max-width:640px){
+    .main{padding-left:16px;padding-right:16px;}
+    .platform-banner{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px;}
+    .card:hover{transform:none;}
+  }
 
 </style>
 </head>
