@@ -2156,6 +2156,18 @@
     .icon-btn{width:38px;height:38px;}
   }
 
+
+  .icon-link-btn svg,.topnav-filter-toggle svg{width:20px;height:20px;display:block;}
+  .topnav-filter-toggle{width:40px;height:40px;padding:0!important;align-items:center;justify-content:center;}
+  .profile-menu-avatar-edit-btn svg{width:14px;height:14px;}
+  .profile-menu-item-label{display:flex;align-items:center;gap:10px;}
+  .profile-menu-item-label svg{width:20px;height:20px;flex-shrink:0;}
+  .modal-actions .btn svg{width:18px;height:18px;flex-shrink:0;}
+  .board-link{display:inline-flex;align-items:center;gap:6px;}
+  .board-link svg{width:16px;height:16px;flex-shrink:0;}
+  .completion-item{display:inline-flex;align-items:center;gap:3px;}
+  .completion-item svg{width:15px;height:15px;}
+
 </style>
 </head>
 <body>
@@ -2211,7 +2223,7 @@
         <span class="brand-word"><span class="w-plain">JEUX</span><span class="w-green">TOUT</span><span class="w-plain">DOUX</span></span>
       </h1>
     </div>
-    <button type="button" class="mobile-filter-toggle topnav-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres">☰</button>
+    <button type="button" class="mobile-filter-toggle topnav-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button>
     <button class="nav-tab nav-tab-icon-only active" data-page="home" title="Accueil" aria-label="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg></button>
     <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
     <div class="topnav-break"></div>
@@ -2229,26 +2241,26 @@
               <img class="hidden" data-avatar-img alt="">
               <span class="profile-avatar-initials hidden" data-avatar-initials></span>
               <svg class="profile-avatar-fallback" data-avatar-fallback viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
-              <button type="button" class="profile-menu-avatar-edit-btn" id="profile-avatar-edit-btn" title="Changer la photo" aria-label="Changer la photo">✎</button>
+              <button type="button" class="profile-menu-avatar-edit-btn" id="profile-avatar-edit-btn" title="Changer la photo" aria-label="Changer la photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
             </div>
             <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
           </div>
           <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="export-btn">
-            <span class="profile-menu-item-label">⭳ Exporter</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter</span></span>
             <span class="profile-menu-sub" id="export-note"></span>
           </button>
           <button class="profile-menu-item" id="import-btn">
-            <span class="profile-menu-item-label">⭱ Importer</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Importer</span></span>
             <span class="profile-menu-sub">Remplace toute ta bibliothèque</span>
           </button>
           <button class="profile-menu-item" id="import-merge-btn">
-            <span class="profile-menu-item-label">＋ Ajouter des jeux</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg><span>Ajouter des jeux</span></span>
             <span class="profile-menu-sub">Depuis un fichier JSON, sans rien écraser</span>
           </button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
-            <span class="profile-menu-item-label">⏻ Se déconnecter</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path></svg><span>Se déconnecter</span></span>
           </button>
         </div>
       </div>
@@ -2362,7 +2374,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
-      <button class="btn btn-ghost hidden" id="a-to-wishlist-btn" title="Basculer cet élément vers la wishlist">→ Vers Wishlist</button>
+      <button class="btn btn-ghost hidden" id="a-to-wishlist-btn" title="Basculer cet élément vers la wishlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers Wishlist</span></button>
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="a-cancel-btn">Annuler</button>
       <button class="btn btn-primary" id="a-save-btn">Enregistrer</button>
@@ -2414,7 +2426,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="w-delete-btn">Supprimer</button>
-      <button class="btn btn-ghost hidden" id="w-to-arrival-btn" title="Basculer cet élément vers les arrivages">→ Vers Arrivages</button>
+      <button class="btn btn-ghost hidden" id="w-to-arrival-btn" title="Basculer cet élément vers les arrivages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers Arrivages</span></button>
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="w-cancel-btn">Annuler</button>
       <button class="btn btn-primary" id="w-save-btn">Enregistrer</button>
@@ -2429,8 +2441,8 @@
       <div class="side-label-row">
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
         <div style="display:flex;gap:2px;">
-          <button class="icon-link-btn" id="sort-platforms-btn" title="Changer le tri des plateformes" aria-label="Changer le tri des plateformes">⇅</button>
-          <button class="icon-link-btn" id="manage-platforms-btn" title="Gérer les plateformes" aria-label="Gérer les plateformes">✎</button>
+          <button class="icon-link-btn" id="sort-platforms-btn" title="Changer le tri des plateformes" aria-label="Changer le tri des plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12"></path><path d="M8 12h9"></path><path d="M8 18h6"></path><path d="m4 4-2 2 2 2"></path><path d="M2 6h4"></path></svg></button>
+          <button class="icon-link-btn" id="manage-platforms-btn" title="Gérer les plateformes" aria-label="Gérer les plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
         </div>
       </div>
       <div id="platform-list"></div>
@@ -2869,7 +2881,7 @@ const STATUS_OPTIONS = [
   { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(255,194,14,0.07)", border: "rgba(255,194,14,0.3)" },
   { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(142,111,217,0.07)", border: "rgba(142,111,217,0.3)" },
   { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" },
-  { key: "termine_ailleurs", label: "Terminé ailleurs", icon: "↗", color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" }
+  { key: "termine_ailleurs", label: "Terminé ailleurs", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg>`, color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" }
 ];
 
 let GAMES = [];
@@ -3376,7 +3388,7 @@ function renderPlatformBanner(games){
       </span><span class="label">À faire / Multi</span></div>
     <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
         <span class="completion-item" style="color:var(--status-done);" title="Terminé">${ICON_STATUS_DONE}${termineCount}</span>
-        <span class="completion-item" style="color:var(--status-done);" title="Terminé ailleurs">↗${ailleursCount}</span>
+        <span class="completion-item" style="color:var(--status-done);" title="Terminé ailleurs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg>${ailleursCount}</span>
       </span><span class="label">Terminés</span></div>
   `;
 
@@ -4080,7 +4092,7 @@ function renderWishlist(){
     row.draggable = true;
     row.title = 'Glisse ce jeu vers les Arrivages pour le basculer';
     const linkHtml = item.lien
-      ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}">Voir le lien ↗</a>`
+      ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
     const dateHtml = released
       ? `<div class="board-date board-date-released" title="Déjà sorti">–</div>`
