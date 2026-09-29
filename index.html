@@ -2106,6 +2106,56 @@
   .date-mode{display:flex;gap:4px;padding:3px;background:rgba(255,255,255,.035);border-radius:9px;margin-bottom:2px;}
   .date-mode-btn{flex:1;min-height:30px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
   .date-mode-btn.active{background:var(--surface-raised);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.16);}
+
+  /* ---------- Iconographie plus généreuse ---------- */
+  .icon-btn{
+    width:36px;height:36px;padding:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:10px;
+    background:rgba(255,255,255,.035);
+    color:var(--muted);
+    transition:background .15s ease,color .15s ease,transform .15s ease,box-shadow .15s ease;
+  }
+  .icon-btn svg{width:20px;height:20px;stroke-width:2;}
+  .icon-btn:hover{background:rgba(99,197,181,.12);color:var(--teal);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.16);}
+  .icon-link-btn{
+    width:32px;height:32px;padding:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:9px;
+    background:rgba(255,255,255,.025);
+    font-size:17px;font-weight:600;
+    transition:background .15s ease,color .15s ease,transform .15s ease;
+  }
+  .icon-link-btn:hover{background:rgba(99,197,181,.10);transform:translateY(-1px);}
+  .profile-menu-btn{width:42px;height:42px;border:0;background:rgba(255,255,255,.055);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);transition:transform .15s ease,background .15s ease,box-shadow .15s ease;}
+  .profile-menu-btn svg{width:22px;height:22px;stroke-width:1.9;}
+  .profile-menu-btn:hover{background:rgba(99,197,181,.12);box-shadow:inset 0 0 0 1px rgba(99,197,181,.28);transform:translateY(-1px);}
+  .profile-avatar-fallback{width:22px;height:22px;}
+  .profile-menu-avatar-edit-btn{width:24px;height:24px;right:-4px;bottom:-4px;font-size:13px;border:0;box-shadow:0 3px 10px rgba(0,0,0,.35);}
+  .search-wrap svg{width:19px;height:19px;left:13px;stroke-width:2;}
+  .search-wrap input{padding-left:42px;}
+  .status-display-inner{gap:8px;font-size:12px;}
+  .status-display-inner svg{width:18px;height:18px;}
+  .status-btn{min-height:34px;gap:6px;border-radius:9px;}
+  .status-btn svg{width:16px;height:16px;}
+  .format-icon{width:18px;height:18px;}
+  .card-title-icon{vertical-align:-3px;margin-right:6px;}
+  .card-title-icon svg{width:17px;height:17px;}
+  .mini-logo-sm,.board-plat .mini-logo-sm{width:20px;height:20px;border-radius:5px;}
+  .card-platform img{width:20px;height:20px;border-radius:5px;}
+  .card-platform .dot,.board-plat .dot{width:8px;height:8px;}
+  .add-to-collection-btn,.to-wishlist-btn{width:42px;height:42px;border-radius:12px;border:0;box-shadow:0 5px 16px rgba(0,0,0,.32);}
+  .add-to-collection-btn{right:14px;}
+  .to-wishlist-btn{right:64px;}
+  .add-to-collection-btn svg,.to-wishlist-btn svg{width:21px;height:21px;}
+  .add-to-collection-btn:hover,.to-wishlist-btn:hover{filter:none;transform:translateY(-50%) scale(1.06);}
+  .platform-row .swatch-preview{width:42px;height:42px;border-radius:11px;}
+  .profile-menu-avatar-wrap{width:50px;height:50px;}
+  @media(max-width:640px){
+    .profile-menu-btn{width:38px;height:38px;}
+    .icon-btn{width:38px;height:38px;}
+  }
+
 </style>
 </head>
 <body>
