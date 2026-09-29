@@ -2251,6 +2251,68 @@
     .card-source{display:none;}
   }
 
+
+  /* ---------- Ajustement cartes : statut compact + achat regroupé ---------- */
+  .card-badge-layer{padding:10px;}
+  .card-status-control{order:2;margin-left:auto;position:relative;pointer-events:auto;}
+  .card-status-badge{
+    width:27px;height:27px;min-height:0;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    border:0;border-radius:50%;
+    color:var(--status-color);
+    background:rgba(17,21,22,.82);
+    box-shadow:0 2px 8px rgba(0,0,0,.22);
+    backdrop-filter:blur(7px);
+    cursor:pointer;
+    transition:transform .14s ease,background .14s ease;
+  }
+  .card-status-badge:hover{transform:scale(1.09);background:rgba(17,21,22,.96);}
+  .card-status-badge svg{width:14px;height:14px;}
+  .card-status-badge span:not(.card-status-empty-dot){display:none;}
+  .card-status-empty-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--muted);}
+  .card-status-menu{
+    position:absolute;right:0;top:34px;
+    width:158px;padding:5px;
+    display:flex;flex-direction:column;gap:2px;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:11px;
+    background:rgba(29,36,37,.97);
+    box-shadow:0 12px 28px rgba(0,0,0,.38);
+    backdrop-filter:blur(12px);
+    z-index:12;
+  }
+  .card-status-option{
+    width:100%;min-height:34px;padding:6px 8px;
+    display:flex;align-items:center;gap:8px;
+    border:0;border-radius:7px;
+    background:transparent;color:var(--muted);
+    font-family:'DM Sans',system-ui,sans-serif;font-size:11.5px;font-weight:650;
+    text-align:left;cursor:pointer;
+  }
+  .card-status-option svg{width:16px;height:16px;color:var(--option-color);flex-shrink:0;}
+  .card-status-option:hover{background:rgba(255,255,255,.055);color:var(--text);}
+  .card-status-option.active{background:rgba(255,255,255,.045);color:var(--text);}
+  .card-special-badge{width:27px;height:27px;border-radius:8px;}
+  .card-special-badge svg{width:15px;height:15px;}
+  .card-summary{gap:10px;}
+  .card-platform{flex-shrink:1;overflow:hidden;}
+  .card-platform span:last-child{overflow:hidden;text-overflow:ellipsis;}
+  .card-purchase{
+    margin-left:auto;min-width:0;
+    display:flex;align-items:center;justify-content:flex-end;gap:5px;
+    font-family:'DM Sans',system-ui,sans-serif;font-size:11.5px;white-space:nowrap;
+  }
+  .card-source{padding:0;border:0;color:var(--muted);max-width:92px;}
+  .card-price{font-size:11.5px;}
+  .card-meta-sep{color:rgba(255,255,255,.2);}
+  @media(max-width:640px){
+    .card-badge-layer{padding:6px;}
+    .card-status-badge,.card-special-badge{width:25px;height:25px;}
+    .card-status-menu{right:-2px;top:31px;}
+    .card-purchase{font-size:11px;}
+    .card-source{max-width:72px;}
+  }
+
 </style>
 </head>
 <body>
@@ -3512,9 +3574,20 @@ function renderCard(g){
   card.style.setProperty('--spine', color);
 
   const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
-  const statusBadgeHtml = activeStatus
-    ? `<div class="card-status-badge" style="--status-color:${activeStatus.color};" title="${activeStatus.label}">${activeStatus.icon}<span>${activeStatus.label}</span></div>`
-    : '';
+  const statusIcon = activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
+  const statusTitle = activeStatus ? activeStatus.label : 'Définir le statut';
+  const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
+  const statusMenu = STATUS_OPTIONS.map(s => `
+    <button type="button" class="card-status-option${g.status === s.key ? ' active' : ''}" data-status="${s.key}" style="--option-color:${s.color};">
+      ${s.icon}<span>${s.label}</span>
+    </button>`).join('');
+
+  const statusBadgeHtml = `<div class="card-status-control">
+      <button type="button" class="card-status-badge" style="--status-color:${statusColor};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
+        ${statusIcon}
+      </button>
+      <div class="card-status-menu hidden">${statusMenu}</div>
+    </div>`;
 
   const collectorBadgeHtml = g.collector
     ? `<div class="card-special-badge" title="Édition collector">${FORMAT_ICON_STAR}</div>`
@@ -3534,23 +3607,36 @@ function renderCard(g){
     ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\' style=\\'--spine:${color}\\'></span>'">`
     : `<span class="dot" style="--spine:${color}"></span>`}<span>${g.plateforme}</span>`;
 
-  const sourceHtml = g.source ? `<span class="card-source" title="${g.source}">${g.source}</span>` : '';
-  const priceHtml = g.prix != null ? `<span class="card-price">${euros(g.prix)}</span>` : '';
+  const purchaseBits = [];
+  if(g.source) purchaseBits.push(`<span class="card-source" title="${g.source}">${g.source}</span>`);
+  if(g.prix != null) purchaseBits.push(`<span class="card-price">${euros(g.prix)}</span>`);
+  const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('<span class="card-meta-sep">·</span>')}</div>` : '';
 
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
       <div class="card-name" title="${g.nom}">${g.nom}</div>
       <div class="card-summary">
-        <div class="card-summary-left">
-          <span class="card-platform">${platformHtml}</span>
-          ${sourceHtml}
-        </div>
-        ${priceHtml}
+        <span class="card-platform">${platformHtml}</span>
+        ${purchaseHtml}
       </div>
     </div>
   `;
 
+  const badge = card.querySelector('.card-status-badge');
+  const menu = card.querySelector('.card-status-menu');
+  badge.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const willOpen = menu.classList.contains('hidden');
+    menu.classList.toggle('hidden', !willOpen);
+    badge.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  });
+  menu.querySelectorAll('.card-status-option').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setStatus(g.id, btn.dataset.status);
+    });
+  });
   card.addEventListener('click', () => openModal(g.id));
   return card;
 }
