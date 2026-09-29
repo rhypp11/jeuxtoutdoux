@@ -2168,6 +2168,89 @@
   .completion-item{display:inline-flex;align-items:center;gap:3px;}
   .completion-item svg{width:15px;height:15px;}
 
+
+  /* ---------- Cartes bibliothèque : version épurée ---------- */
+  .grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;}
+  .card{
+    border:0;
+    border-radius:16px;
+    background:var(--surface);
+    box-shadow:0 5px 18px rgba(0,0,0,.13);
+    transition:transform .18s ease,background .18s ease,box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-3px);background:var(--surface-raised);box-shadow:0 10px 28px rgba(0,0,0,.22);}
+  .card.collector{border:0;}
+  .card-banner{aspect-ratio:500/281;background:rgba(255,255,255,.035);}
+  .card-banner img{object-fit:contain;}
+  .card-banner::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(to bottom,transparent 48%,rgba(8,12,13,.18) 100%);
+    pointer-events:none;
+  }
+  .card-fallback{font-family:'DM Sans',system-ui,sans-serif;font-size:30px;font-weight:800;color:rgba(255,255,255,.5);}
+  .card-badge-layer{
+    position:absolute;inset:0;z-index:2;
+    display:flex;align-items:flex-start;justify-content:space-between;
+    padding:12px;pointer-events:none;
+  }
+  .card-status-badge{
+    order:2;margin-left:auto;
+    min-height:30px;padding:6px 9px;
+    display:inline-flex;align-items:center;gap:6px;
+    border-radius:9px;
+    color:var(--status-color);
+    background:rgba(17,21,22,.88);
+    box-shadow:0 3px 12px rgba(0,0,0,.22);
+    backdrop-filter:blur(8px);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:11px;font-weight:700;
+  }
+  .card-status-badge svg{width:16px;height:16px;flex-shrink:0;}
+  .card-special-badge{
+    width:30px;height:30px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:9px;
+    background:rgba(17,21,22,.88);color:var(--amber);
+    box-shadow:0 3px 12px rgba(0,0,0,.22);
+    backdrop-filter:blur(8px);
+  }
+  .card-special-badge svg{width:17px;height:17px;}
+  .card-body{padding:14px 15px 15px;gap:8px;}
+  .card-name{
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:15px;font-weight:700;line-height:1.3;
+    letter-spacing:-.012em;
+  }
+  .card-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;}
+  .card-summary-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
+  .card-platform{
+    display:inline-flex;align-items:center;gap:6px;min-width:0;
+    font-family:'DM Sans',system-ui,sans-serif;font-size:11.5px;color:var(--muted);
+    white-space:nowrap;
+  }
+  .card-platform img{width:18px;height:18px;}
+  .card-source{
+    min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    padding-left:8px;border-left:1px solid rgba(255,255,255,.09);
+    font-family:'DM Sans',system-ui,sans-serif;font-size:11.5px;color:color-mix(in srgb,var(--muted) 72%,transparent);
+  }
+  .card-price{
+    flex-shrink:0;
+    font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;color:var(--teal);
+  }
+  @media(max-width:640px){
+    .grid{gap:10px;}
+    .card{border-radius:13px;}
+    .card:hover{transform:none;}
+    .card-banner{width:112px;aspect-ratio:1/1;}
+    .card-badge-layer{padding:7px;}
+    .card-status-badge{min-height:26px;padding:5px 6px;}
+    .card-status-badge span{display:none;}
+    .card-special-badge{width:26px;height:26px;}
+    .card-body{padding:11px 12px;gap:8px;}
+    .card-source{display:none;}
+  }
+
 </style>
 </head>
 <body>
@@ -3429,69 +3512,46 @@ function renderCard(g){
   card.style.setProperty('--spine', color);
 
   const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
+  const statusBadgeHtml = activeStatus
+    ? `<div class="card-status-badge" style="--status-color:${activeStatus.color};" title="${activeStatus.label}">${activeStatus.icon}<span>${activeStatus.label}</span></div>`
+    : '';
 
-  const statusButtons = STATUS_OPTIONS.map(s => {
-    const isActive = g.status === s.key;
-    const style = isActive ? ` style="border-color:${s.border};color:color-mix(in srgb, ${s.color} 65%, var(--muted) 35%);background:${s.bg};"` : '';
-    return `<button class="status-btn${isActive ? ' active':''}" data-status="${s.key}"${style}>${s.icon}<span>${s.label}</span></button>`;
-  }).join('');
+  const collectorBadgeHtml = g.collector
+    ? `<div class="card-special-badge" title="Édition collector">${FORMAT_ICON_STAR}</div>`
+    : '';
 
-  const statusDisplayHtml = activeStatus
-    ? `<div class="status-display-inner" style="color:${activeStatus.color};">${activeStatus.icon}<span>${activeStatus.label}</span></div>`
-    : `<div class="status-display-inner status-display-empty"><span>Statut à définir</span></div>`;
+  const bannerInner = g.image
+    ? `<img src="${g.image}" alt="${g.nom}" onerror="this.style.display='none';this.parentElement.classList.add('placeholder');this.parentElement.querySelector('.card-fallback').classList.remove('hidden')">`
+    : '';
 
-  const statusRowHtml = `<div class="status-row">
-      <div class="status-display">${statusDisplayHtml}</div>
-      <div class="status-options">${statusButtons}</div>
+  const bannerHtml = `<div class="card-banner${g.image ? '' : ' placeholder'}">
+      ${bannerInner}
+      <span class="card-fallback${g.image ? ' hidden' : ''}">${g.plateforme.slice(0,2).toUpperCase()}</span>
+      <div class="card-badge-layer">${collectorBadgeHtml}${statusBadgeHtml}</div>
     </div>`;
 
-  const bannerHtml = g.image
-    ? `<div class="card-banner"><img src="${g.image}" alt="${g.nom}" onerror="this.parentElement.outerHTML='<div class=\\'card-banner placeholder\\'><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>'"></div>`
-    : `<div class="card-banner placeholder"><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>`;
+  const platformHtml = `${logo
+    ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\' style=\\'--spine:${color}\\'></span>'">`
+    : `<span class="dot" style="--spine:${color}"></span>`}<span>${g.plateforme}</span>`;
 
-  let titleIconHtml = '';
-  if(g.collector){
-    titleIconHtml = `<span class="card-title-icon" style="color:var(--amber);" title="Édition collector">${FORMAT_ICON_STAR}</span>`;
-  } else if(g.format === 'Numérique' && g.type && g.type !== 'Jeu simple'){
-    const typeMeta = TYPE_META[g.type] || TYPE_META['Jeu simple'];
-    titleIconHtml = `<span class="card-title-icon" style="color:var(--teal);" title="${typeMeta.label}">${typeMeta.icon}</span>`;
-  }
-
-  const platformLineHtml = state.platform
-    ? ''
-    : `<div class="card-platform">${logo ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\' style=\\'--spine:${color}\\'></span>'">` : `<span class="dot" style="--spine:${color}"></span>`}${g.plateforme}</div>`;
-
-  const showPurchaseInfo = ['price-desc','price-asc','date-desc','date-asc'].includes(state.sort);
-  const metaHtml = showPurchaseInfo ? `
-      <div class="card-meta">
-        <span class="price">${euros(g.prix)}</span>
-        <span>${dateFR(g.date)}</span>
-        <span class="card-source" title="${g.source || ''}">${g.source || '—'}</span>
-      </div>` : '';
+  const sourceHtml = g.source ? `<span class="card-source" title="${g.source}">${g.source}</span>` : '';
+  const priceHtml = g.prix != null ? `<span class="card-price">${euros(g.prix)}</span>` : '';
 
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
-      <div class="card-top">
-        <div class="card-name" title="${g.nom}">${titleIconHtml}${g.nom}</div>
+      <div class="card-name" title="${g.nom}">${g.nom}</div>
+      <div class="card-summary">
+        <div class="card-summary-left">
+          <span class="card-platform">${platformHtml}</span>
+          ${sourceHtml}
+        </div>
+        ${priceHtml}
       </div>
-      ${platformLineHtml}
-      ${metaHtml}
-      ${statusRowHtml}
     </div>
   `;
 
-  card.addEventListener('click', (e) => {
-    if(e.target.closest('.status-btn')) return;
-    openModal(g.id);
-  });
-  card.querySelectorAll('.status-btn').forEach(btn => {
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      setStatus(g.id, btn.dataset.status);
-    };
-  });
-
+  card.addEventListener('click', () => openModal(g.id));
   return card;
 }
 
