@@ -4590,7 +4590,6 @@ async function initApp(){
   iconSelectify('f-plateforme', getPlatformOptionIconHtml);
   iconSelectify('a-plateforme', getPlatformOptionIconHtml);
   iconSelectify('w-plateforme', getPlatformOptionIconHtml);
-  iconSelectify('f-type', getBacklogTypeOptionIconHtml);
   buildPlatformList();
   buildFormatToggles();
   buildTypeToggles();
@@ -4667,7 +4666,6 @@ async function initApp(){
   }
 
   function refreshAllViews(){
-    reconcileBacklogLinks();
     migrateGameTypes();
     buildPlatformList();
     buildFormatToggles();
