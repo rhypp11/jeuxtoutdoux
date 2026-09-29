@@ -2099,6 +2099,9 @@
     .image-preview.image-preview-compact{width:72px;}
   }
 
+
+  /* Actions principales cohérentes entre les trois vues */
+  .board-add-btn,.add-btn.add-btn-inline{min-height:40px;padding:9px 14px;border-radius:10px;font-size:13px;font-family:'DM Sans',system-ui,sans-serif;font-weight:700;}
 </style>
 </head>
 <body>
@@ -2312,7 +2315,8 @@
   <div class="modal">
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
-    <div class="form-section">\n      <div class="form-section-title">Le jeu</div>
+    <div class="form-section">
+      <div class="form-section-title">Le jeu</div>
       <div class="field">
         <label for="w-nom">Nom du jeu</label>
         <input type="text" id="w-nom" placeholder="ex. Metaphor: ReFantazio">
