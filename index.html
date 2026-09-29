@@ -2595,6 +2595,139 @@
     .sort-select{width:100%;}
   }
 
+
+  /* ---------- Wishlist douce ---------- */
+  .board.wishlist{
+    border:0;
+    border-radius:16px;
+    background:var(--surface);
+    box-shadow:0 5px 18px rgba(0,0,0,.11);
+    overflow:hidden;
+  }
+  .board.wishlist .board-head{
+    min-height:72px;
+    padding:16px 18px;
+    border-bottom:1px solid rgba(255,255,255,.045);
+    background:transparent;
+  }
+  .board.wishlist .board-head h2{
+    gap:9px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:17px;font-weight:750;letter-spacing:-.02em;
+  }
+  .board.wishlist .board-head-icon{width:18px;height:18px;color:var(--orange);}
+  .board.wishlist .board-count{
+    padding:2px 7px;
+    background:rgba(221,127,53,.10);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;font-weight:700;color:var(--orange);
+  }
+  .board.wishlist .board-total-estimate{
+    margin:3px 0 0 27px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;color:var(--muted);
+  }
+  .board.wishlist .board-add-btn{
+    height:36px;padding:0 12px;
+    border-radius:9px;
+    background:rgba(221,127,53,.11);
+    box-shadow:inset 0 0 0 1px rgba(221,127,53,.13);
+    color:var(--orange);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:11.5px;font-weight:700;letter-spacing:0;
+  }
+  .board.wishlist .board-add-btn:hover{filter:none;background:rgba(221,127,53,.17);}
+  .board.wishlist .board-month-head{
+    min-height:31px;
+    padding:7px 18px;
+    border:0;border-top:1px solid rgba(255,255,255,.04);
+    border-bottom:1px solid rgba(255,255,255,.035);
+    background:rgba(255,255,255,.018);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;font-weight:700;letter-spacing:.025em;text-transform:none;
+    color:var(--muted);
+  }
+  .board.wishlist .board-month-head.month-accent{
+    border-left:0;
+    color:color-mix(in srgb,var(--spine) 75%,var(--text) 25%);
+  }
+  .board.wishlist .board-month-head.month-accent::before{
+    content:"";width:5px;height:5px;border-radius:50%;background:var(--spine);flex-shrink:0;
+  }
+  .board.wishlist .board-row{
+    grid-template-columns:52px 86px minmax(0,1fr) auto;
+    min-height:74px;
+    gap:12px;
+    padding:10px 18px;
+    border-top:1px solid rgba(255,255,255,.035);
+    background:transparent;
+    transition:background .14s ease;
+  }
+  .board.wishlist .board-row:hover{background:rgba(255,255,255,.028);}
+  .board.wishlist .board-thumb{
+    width:86px;height:49px;
+    border-radius:8px;
+    background:rgba(255,255,255,.025);
+  }
+  .board.wishlist .board-thumb img{object-fit:contain;}
+  .board.wishlist .board-info{gap:4px;}
+  .board.wishlist .board-name{
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:13.5px;font-weight:700;letter-spacing:-.01em;
+  }
+  .board.wishlist .board-plat{
+    gap:6px;
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:10.5px;color:var(--muted);
+  }
+  .board.wishlist .board-plat .mini-logo-sm{width:15px;height:15px;border-radius:4px;}
+  .board.wishlist .board-date{
+    min-width:42px;
+    padding:5px 6px;
+    border-radius:8px;
+    background:color-mix(in srgb,var(--spine,var(--muted)) 8%,transparent);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:11px;font-weight:700;
+    text-align:center;
+  }
+  .board.wishlist .board-date-released{
+    background:rgba(255,255,255,.025);
+    color:var(--muted);
+  }
+  .board.wishlist .board-link{
+    width:31px;height:31px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:8px;
+    background:rgba(255,255,255,.025);
+    color:var(--muted);
+    font-family:'DM Sans',system-ui,sans-serif;
+    font-size:0;
+    transition:background .14s ease,color .14s ease;
+  }
+  .board.wishlist a.board-link:hover{
+    background:rgba(221,127,53,.10);
+    color:var(--orange);
+    text-decoration:none;
+  }
+  .board.wishlist .board-link svg{width:15px;height:15px;}
+  .board.wishlist .board-link span{display:none;}
+  .board.wishlist .board-link[style]{background:transparent;}
+  .board.wishlist .board-empty{
+    padding:34px 18px;
+    font-family:'DM Sans',system-ui,sans-serif;
+  }
+  @media(max-width:640px){
+    .board.wishlist .board-head{min-height:64px;padding:14px;}
+    .board.wishlist .board-total-estimate{margin-left:27px;}
+    .board.wishlist .board-month-head{padding-left:14px;padding-right:14px;}
+    .board.wishlist .board-row{
+      display:grid;
+      grid-template-columns:44px 72px minmax(0,1fr) 31px;
+      gap:9px;padding:9px 14px;
+    }
+    .board.wishlist .board-thumb{width:72px;height:42px;}
+  }
+
 </style>
 </head>
 <body>
@@ -2731,9 +2864,6 @@
             <span class="board-total-estimate" id="wishlist-total"></span>
           </div>
           <button class="board-add-btn" id="add-wishlist-btn">+ Ajouter</button>
-        </div>
-        <div class="board-table-head">
-          <span>Date</span><span></span><span>Jeu</span><span>Lien</span>
         </div>
         <div class="board-rows" id="wishlist-rows"></div>
       </section>
