@@ -2408,6 +2408,11 @@ const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
 const WISHLIST_KEY = 'ludotheque:wishlist-v1';
 const MONTH_NAMES_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const MONTH_COLORS = ['#4F7CD9','#7C6AD9','#A15FBF','#C4508C','#D96A6A','#DD7F35','#D9A441','#B5C93C','#6FAE79','#4FC7B5','#4FA8D9','#6B8FD9'];
+function monthIndexOf(iso){
+  if(!iso) return 0;
+  const m = parseInt(String(iso).slice(5,7),10);
+  return Number.isFinite(m) && m >= 1 && m <= 12 ? m - 1 : 0;
+}
 const PROFILE_KEY = 'ludotheque:profile-v1';
 
 // Données Progression historiques : conservées uniquement pour compatibilité des sauvegardes/cloud.
