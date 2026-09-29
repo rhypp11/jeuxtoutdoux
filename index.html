@@ -3680,7 +3680,6 @@ function importGames(file){
       render();
       renderArrivals();
       renderWishlist();
-      renderBacklogPage();
       alert('Bibliothèque importée : ' + GAMES.length + ' jeux, ' + BACKLOG_COMPLETIONS.length + ' complétions.');
     }catch(err){
       alert("Ce fichier n'a pas pu être lu comme une sauvegarde valide.");
@@ -5180,8 +5179,6 @@ function goToPage(page, format){
   document.title = `JTD | ${PAGE_TITLES[titleKey] || 'Accueil'}`;
   document.getElementById('page-home').classList.toggle('hidden', page !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', page !== 'collection');
-  document.getElementById('page-backlog').classList.toggle('hidden', page !== 'backlog');
-  if(page === 'backlog') renderBacklogPage();
   if(page === 'collection'){
     const fmt = format || 'Physique';
     if(state.format !== fmt){
@@ -5698,7 +5695,6 @@ function handleDropOnCategory(targetCatId){
   targetCat.jeux.push({ id: backlogId('bcg'), nom:item.nom, plateforme:item.plateforme, image:item.image, format:item.format || 'Physique', type:item.type || 'Jeu simple', gameId:item.gameId || null });
   saveBacklogCategories();
   backlogDragPayload = null;
-  renderBacklogPage();
   render();
 }
 
@@ -5712,7 +5708,6 @@ function handleDropOnPlaying(){
   BACKLOG_PLAYING.push({ id: backlogId('bp'), nom:item.nom, plateforme:item.plateforme, image:item.image, format:item.format || 'Physique', type:item.type || 'Jeu simple', gameId:item.gameId || null });
   saveBacklogPlaying();
   backlogDragPayload = null;
-  renderBacklogPage();
   render();
 }
 
@@ -5766,7 +5761,6 @@ function confirmQuickComplete(){
   });
   saveBacklogCompletions();
   closeQuickCompleteModal();
-  renderBacklogPage();
   render();
 }
 
@@ -6215,7 +6209,6 @@ function saveCompletionModal(){
   }
   saveBacklogCompletions();
   closeCompletionModal();
-  renderBacklogPage();
   render();
 }
 
@@ -6229,12 +6222,10 @@ function deleteCompletion(){
     BACKLOG_COMPLETIONS = BACKLOG_COMPLETIONS.filter(x => x.id !== editingCompletionId);
     saveBacklogCompletions();
     closeCompletionModal();
-    renderBacklogPage();
-    render();
+      render();
     showToast(`Complétion « ${name} » supprimée`, 'Annuler', () => {
       BACKLOG_COMPLETIONS.splice(Math.min(idx, BACKLOG_COMPLETIONS.length), 0, c);
       saveBacklogCompletions();
-      renderBacklogPage();
       render();
     });
   });
@@ -6428,7 +6419,6 @@ function savePlayingModal(){
   }
   saveBacklogPlaying();
   closePlayingModal();
-  renderBacklogPage();
   render();
 }
 
@@ -6442,12 +6432,10 @@ function deletePlaying(){
     BACKLOG_PLAYING = BACKLOG_PLAYING.filter(x => x.id !== editingPlayingId);
     saveBacklogPlaying();
     closePlayingModal();
-    renderBacklogPage();
-    render();
+      render();
     showToast(`« ${name} » retiré des jeux en cours`, 'Annuler', () => {
       BACKLOG_PLAYING.splice(Math.min(idx, BACKLOG_PLAYING.length), 0, p);
       saveBacklogPlaying();
-      renderBacklogPage();
       render();
     });
   }, { confirmLabel: 'Retirer' });
@@ -6935,8 +6923,7 @@ async function initApp(){
     render();
     renderArrivals();
     renderWishlist();
-    renderBacklogPage();
-    renderProfileAvatar();
+      renderProfileAvatar();
     updateExportNote();
   }
 
