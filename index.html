@@ -265,7 +265,7 @@
   /* ---------- Home: tableaux Arrivages / Wishlist ---------- */
   .home-app{
     display:grid;
-    grid-template-columns:1fr;
+    grid-template-columns:260px 1fr;
     height:calc(100vh - 51px);
   }
   .home-sidebar{overflow-y:auto;}
@@ -2437,6 +2437,16 @@
 
 <div class="page" id="page-home">
   <div class="home-app">
+  <aside class="sidebar home-sidebar" id="home-sidebar">
+    <div class="side-section">
+      <div class="side-label">Collection</div>
+      <div class="home-stat-cards" id="home-stat-cards"></div>
+    </div>
+    <div class="side-section">
+      <div class="side-label">Jeux par plateforme</div>
+      <div class="home-platform-bars" id="home-platform-bars"></div>
+    </div>
+  </aside>
   <main class="home-main">
     <div class="home-boards-switcher" id="home-boards-switcher">
       <button type="button" class="home-boards-switch-btn active" data-target="wishlist">
@@ -4323,6 +4333,24 @@ function renderHomeStats(){
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_STAR,'home-stat-icon')}Collectors</span><span class="num">${collectors}</span></div>
     <div class="home-stat-card"><span class="label">${iconWithClass(ICON_GAMEPAD,'home-stat-icon')}Plateformes</span><span class="num">${platformsCount}</span></div>
   `;
+
+  const barsEl = document.getElementById('home-platform-bars');
+  if(!barsEl) return;
+  const counts = {};
+  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme] || 0) + 1; });
+  const rows = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+  const max = rows.length ? rows[0][1] : 1;
+  barsEl.innerHTML = rows.map(([platform, count]) => {
+    const logo = getPlatformLogo(platform);
+    const color = getPlatformColor(platform);
+    const icon = logo
+      ? `<img class="home-plat-icon" src="${logo}" alt="">`
+      : `<span class="home-plat-icon-fallback" style="background:${color};"></span>`;
+    return `<div class="home-platform-bar-row">
+      <div class="plat-bar-label">${icon}<span class="plat-name">${platform}</span><span class="count">${count}</span></div>
+      <div class="home-platform-bar-track"><span class="home-platform-bar-fill" style="width:${(count/max)*100}%;background:${color};"></span></div>
+    </div>`;
+  }).join('');
 }
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
