@@ -3222,6 +3222,71 @@
     .board.arrivals .add-to-collection-btn{width:28px;height:28px;}
   }
 
+
+  /* ---------- Mobile : listes horizontales cohérentes avec les visuels JTD ---------- */
+  @media(max-width:900px){
+    .home-boards .board.wishlist,
+    .home-boards .board.arrivals{overflow:hidden;}
+    .board.wishlist .board-row,
+    .board.arrivals .board-row{
+      display:grid;
+      grid-template-columns:92px minmax(0,1fr) auto;
+      grid-template-rows:auto auto;
+      min-height:72px;
+      gap:4px 10px;
+      padding:9px 11px;
+      align-items:center;
+    }
+    .board.wishlist .board-thumb,
+    .board.arrivals .board-thumb{
+      grid-column:1;grid-row:1 / span 2;
+      width:92px;height:52px;
+      border-radius:7px;
+    }
+    .board.wishlist .board-info,
+    .board.arrivals .board-info{
+      grid-column:2;grid-row:1;
+      min-width:0;align-self:end;
+    }
+    .board.wishlist .board-name,
+    .board.arrivals .board-name{
+      display:block;
+      font-size:12px;line-height:1.25;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .board.wishlist .board-plat,
+    .board.arrivals .board-plat{font-size:9.5px;}
+    .board.wishlist .board-date,
+    .board.arrivals .board-date{
+      grid-column:2;grid-row:2;
+      width:auto;min-width:0;padding:0;
+      background:transparent;
+      font-size:9.5px;text-align:left;align-self:start;
+    }
+    .board.wishlist .board-link{
+      grid-column:3;grid-row:1 / span 2;align-self:center;
+    }
+    .board.arrivals .arrival-purchase{
+      grid-column:2;grid-row:2;
+      justify-content:flex-start;
+      max-width:100%;margin:0;padding-left:38px;
+      font-size:9.5px;overflow:hidden;
+    }
+    .board.arrivals .arrival-actions{
+      grid-column:3;grid-row:1 / span 2;
+      align-self:center;opacity:1;
+    }
+  }
+  @media(max-width:390px){
+    .board.wishlist .board-row,
+    .board.arrivals .board-row{
+      grid-template-columns:82px minmax(0,1fr) auto;
+      gap:4px 8px;
+    }
+    .board.wishlist .board-thumb,
+    .board.arrivals .board-thumb{width:82px;height:46px;}
+  }
+
 </style>
 </head>
 <body>
@@ -3538,14 +3603,6 @@
         <option value="date-desc">Date d'achat (récent)</option>
         <option value="date-asc">Date d'achat (ancien)</option>
       </select>
-      <div class="view-switch" role="group" aria-label="Affichage de la collection">
-        <button type="button" class="view-switch-btn active" data-view="cards" title="Cartes" aria-label="Afficher les cartes">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="8" height="7" rx="1.5"></rect><rect x="13" y="4" width="8" height="7" rx="1.5"></rect><rect x="3" y="13" width="8" height="7" rx="1.5"></rect><rect x="13" y="13" width="8" height="7" rx="1.5"></rect></svg>
-        </button>
-        <button type="button" class="view-switch-btn" data-view="covers" title="Jaquettes" aria-label="Afficher les jaquettes">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="3" width="6" height="8" rx="1"></rect><rect x="14" y="3" width="6" height="8" rx="1"></rect><rect x="4" y="13" width="6" height="8" rx="1"></rect><rect x="14" y="13" width="6" height="8" rx="1"></rect></svg>
-        </button>
-      </div>
       <button class="add-btn add-btn-inline" id="add-btn">+ Ajouter un jeu</button>
     </div>
 
@@ -3957,8 +4014,7 @@ let state = {
   collector: false,
   status: null,
   search: "",
-  sort: "name-asc",
-  view: localStorage.getItem('jtd-collection-view') === 'covers' ? 'covers' : 'cards'
+  sort: "name-asc"
 };
 
 /* ---------- Toasts & confirmation réutilisables ---------- */
@@ -4567,8 +4623,6 @@ function render(){
   renderResultsBar(games.length);
 
   const grid = document.getElementById('grid');
-  grid.classList.toggle('cover-grid', state.view === 'covers');
-  document.querySelectorAll('.view-switch-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === state.view));
   grid.innerHTML = "";
 
   if(games.length === 0){
@@ -5737,17 +5791,9 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
   render();
 });
 
-document.querySelectorAll('.view-switch-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    state.view = btn.dataset.view;
-    localStorage.setItem('jtd-collection-view', state.view);
-    render();
-  });
-});
-
 document.getElementById('reset-btn').addEventListener('click', () => {
   const keepFormat = state.format;
-  state = { platform:null, format:keepFormat, type:null, collector:false, status:null, search:"", sort:"name-asc", view:state.view };
+  state = { platform:null, format:keepFormat, type:null, collector:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
