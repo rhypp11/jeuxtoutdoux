@@ -2313,6 +2313,30 @@
     .card-source{max-width:72px;}
   }
 
+
+  /* Palette de statut compacte */
+  .card-status-menu{
+    right:-3px;top:33px;
+    width:auto;padding:4px;
+    flex-direction:row;gap:2px;
+    border-radius:10px;
+  }
+  .card-status-option{
+    width:30px;height:30px;min-height:0;padding:0;
+    flex:0 0 30px;justify-content:center;gap:0;
+    border-radius:7px;
+  }
+  .card-status-option span{display:none;}
+  .card-status-option svg{width:16px;height:16px;color:var(--option-color);}
+  .card-status-option:hover{background:rgba(255,255,255,.075);}
+  .card-status-option.active{
+    background:color-mix(in srgb,var(--option-color) 15%,transparent);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--option-color) 28%,transparent);
+  }
+  @media(max-width:640px){
+    .card-status-menu{right:-3px;top:30px;}
+  }
+
 </style>
 </head>
 <body>
@@ -3578,7 +3602,7 @@ function renderCard(g){
   const statusTitle = activeStatus ? activeStatus.label : 'Définir le statut';
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
   const statusMenu = STATUS_OPTIONS.map(s => `
-    <button type="button" class="card-status-option${g.status === s.key ? ' active' : ''}" data-status="${s.key}" style="--option-color:${s.color};">
+    <button type="button" class="card-status-option${g.status === s.key ? ' active' : ''}" data-status="${s.key}" style="--option-color:${s.color};" title="${s.label}" aria-label="${s.label}">
       ${s.icon}<span>${s.label}</span>
     </button>`).join('');
 
