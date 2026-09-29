@@ -3377,10 +3377,10 @@ function iconWithClass(svgStr, cls){
 }
 
 const STATUS_OPTIONS = [
-  { key: "a_jouer", label: "À jouer", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(255,194,14,0.07)", border: "rgba(255,194,14,0.3)" },
-  { key: "en_cours", label: "En cours", icon: ICON_STATUS_PROGRESS, color: "var(--status-progress)", bg: "rgba(47,143,224,0.07)", border: "rgba(47,143,224,0.3)" },
+  { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(255,194,14,0.07)", border: "rgba(255,194,14,0.3)" },
+  { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(142,111,217,0.07)", border: "rgba(142,111,217,0.3)" },
   { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" },
-  { key: "multi", label: "Sans fin", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(142,111,217,0.07)", border: "rgba(142,111,217,0.3)" }
+  { key: "termine_ailleurs", label: "Terminé ailleurs", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" }
 ];
 
 let GAMES = [];
@@ -3805,9 +3805,6 @@ function buildStatusToggles(){
 }
 
 function getEffectiveStatus(g){
-  const ref = getGameBacklogRef(g.id);
-  if(ref && ref.type === 'completion') return 'termine';
-  if(ref && ref.type === 'playing') return 'en_cours';
   return g.status;
 }
 
@@ -3873,33 +3870,23 @@ function renderPlatformBanner(games){
     group1Html += `<div class="platform-banner-stat"><span class="num">${platformsCount}</span><span class="label">Plateformes</span></div>`;
   }
 
-  let aFaireCount = 0, enCoursCount = 0, finiCount = 0, centCount = 0, succesCount = 0;
+  let aFaireCount = 0, multiCount = 0, termineCount = 0, ailleursCount = 0;
   games.forEach(g => {
-    const ref = getGameBacklogRef(g.id);
-    if(ref && ref.type === 'completion'){
-      if(ref.statut === 'Fini') finiCount++;
-      else if(ref.statut === '100%') centCount++;
-      else if(ref.statut === 'Succès') succesCount++;
-    } else if(g.status === 'termine'){
-      finiCount++;
-    }
-    if(ref && ref.type === 'playing'){
-      enCoursCount++;
-    } else if((ref && ref.type === 'category') || g.status === 'a_jouer'){
-      aFaireCount++;
-    }
+    if(g.status === 'a_jouer') aFaireCount++;
+    else if(g.status === 'multi') multiCount++;
+    else if(g.status === 'termine') termineCount++;
+    else if(g.status === 'termine_ailleurs') ailleursCount++;
   });
 
   const group2Html = `
     <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
-        <span class="completion-item" style="color:var(--status-todo);" title="À faire (dont catégories du backlog)">${ICON_STATUS_TODO}${aFaireCount}</span>
-        <span class="completion-item" style="color:var(--status-progress);" title="En cours">▶${enCoursCount}</span>
-      </span><span class="label">Progression</span></div>
+        <span class="completion-item" style="color:var(--status-todo);" title="À faire">${ICON_STATUS_TODO}${aFaireCount}</span>
+        <span class="completion-item" style="color:var(--status-multi);" title="Multi">${ICON_STATUS_MULTI}${multiCount}</span>
+      </span><span class="label">À faire / Multi</span></div>
     <div class="platform-banner-stat platform-banner-completion"><span class="num banner-completion-row">
-        <span class="completion-item" style="color:var(--status-done);" title="Fini">${ICON_STATUS_DONE}${finiCount}</span>
-        <span class="completion-item" style="color:var(--status-salmon);" title="100%">💯${centCount}</span>
-        <span class="completion-item" style="color:var(--status-cyan);" title="Succès">🏆${succesCount}</span>
-      </span><span class="label">Complétions</span></div>
+        <span class="completion-item" style="color:var(--status-done);" title="Terminé">${ICON_STATUS_DONE}${termineCount}</span>
+        <span class="completion-item" style="color:var(--status-done);" title="Terminé ailleurs">↗${ailleursCount}</span>
+      </span><span class="label">Terminés</span></div>
   `;
 
   const statsHtml = `
@@ -3947,10 +3934,8 @@ function renderCard(g){
   card.style.setProperty('--spine', color);
 
   const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
-  const backlogRef = getGameBacklogRef(g.id);
 
-  const CARD_STATUS_OPTIONS = STATUS_OPTIONS.filter(s => s.key !== 'en_cours');
-  const statusButtons = CARD_STATUS_OPTIONS.map(s => {
+  const statusButtons = STATUS_OPTIONS.map(s => {
     const isActive = g.status === s.key;
     const style = isActive ? ` style="border-color:${s.border};color:color-mix(in srgb, ${s.color} 65%, var(--muted) 35%);background:${s.bg};"` : '';
     return `<button class="status-btn${isActive ? ' active':''}" data-status="${s.key}"${style}>${s.icon}<span>${s.label}</span></button>`;
@@ -3960,37 +3945,10 @@ function renderCard(g){
     ? `<div class="status-display-inner" style="color:${activeStatus.color};">${activeStatus.icon}<span>${activeStatus.label}</span></div>`
     : `<div class="status-display-inner status-display-empty"><span>Statut à définir</span></div>`;
 
-  let statusRowHtml;
-  if(backlogRef){
-    let label, badgeColor, badgeIcon;
-    if(backlogRef.type === 'completion'){
-      label = backlogRef.date ? `${backlogRef.statut} · ${dateFR(backlogRef.date)}` : backlogRef.statut;
-      badgeColor = backlogRef.couleur;
-      badgeIcon = backlogRef.emoji;
-    } else if(backlogRef.type === 'playing'){
-      label = 'En cours';
-      badgeColor = 'var(--status-progress)';
-      badgeIcon = '▶';
-    } else {
-      label = backlogRef.titre;
-      badgeColor = backlogRef.couleur;
-      badgeIcon = '🔖';
-    }
-    const replayHtml = (backlogRef.type === 'completion' && backlogRef.replayCount > 0)
-      ? `<span class="badge-replay">🔁 ${backlogRef.replayCount}</span>`
-      : '';
-    statusRowHtml = `<div class="status-row backlog-status-row" title="Statut géré depuis l'onglet Progression">
-      <div class="backlog-status-badge${replayHtml ? ' has-extra' : ''}" style="color:${badgeColor};">
-        <span class="badge-main">${badgeIcon}<span>${label}</span></span>
-        ${replayHtml}
-      </div>
+  const statusRowHtml = `<div class="status-row">
+      <div class="status-display">${statusDisplayHtml}</div>
+      <div class="status-options">${statusButtons}</div>
     </div>`;
-  } else {
-    statusRowHtml = `<div class="status-row">
-        <div class="status-display">${statusDisplayHtml}</div>
-        <div class="status-options">${statusButtons}</div>
-      </div>`;
-  }
 
   const bannerHtml = g.image
     ? `<div class="card-banner"><img src="${g.image}" alt="${g.nom}" onerror="this.parentElement.outerHTML='<div class=\\'card-banner placeholder\\'><span>${g.plateforme.slice(0,2).toUpperCase()}</span></div>'"></div>`
