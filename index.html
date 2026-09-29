@@ -2425,6 +2425,11 @@ function monthIndexOf(iso){
   const m = parseInt(String(iso).slice(5,7),10);
   return Number.isFinite(m) && m >= 1 && m <= 12 ? m - 1 : 0;
 }
+function dateD(iso){
+  if(!iso) return '—';
+  const d = parseInt(iso.split('-')[2], 10);
+  return d ? String(d) : '—';
+}
 const PROFILE_KEY = 'ludotheque:profile-v1';
 
 // Données Progression historiques : conservées uniquement pour compatibilité des sauvegardes/cloud.
