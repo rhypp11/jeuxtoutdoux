@@ -3317,6 +3317,28 @@
     }
   }
 
+
+  /* ---------- Mobile : les entrées utilisent toute la largeur ---------- */
+  @media(max-width:900px){
+    #home-boards .board-list,
+    #home-boards .board-body,
+    #home-boards .board-group,
+    #home-boards .board-group-rows,
+    #home-boards .board-row{
+      width:100%;
+      max-width:none;
+      min-width:0;
+      box-sizing:border-box;
+    }
+    #home-boards .board-row{
+      align-self:stretch;
+    }
+    #home-boards .board-info{
+      width:100%;
+      min-width:0;
+    }
+  }
+
 </style>
 </head>
 <body>
