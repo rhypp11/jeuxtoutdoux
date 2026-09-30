@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=sandbox-2">
 </head>
 <body>
 
@@ -414,10 +414,10 @@
 
 <script>
   window.JTD_PREVIEW_MODE =
-    location.hostname === 'jtd-preview-rhypp11.web.app' ||
+    (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="app.js"></script>
-<script type="module" src="firebase.js"></script>
+<script src="app.js?v=sandbox-2"></script>
+<script type="module" src="firebase.js?v=sandbox-2"></script>
 </body>
 </html>
