@@ -4,9 +4,7 @@ on:
   pull_request:
 
 permissions:
-  checks: write
   contents: read
-  pull-requests: write
 
 jobs:
   preview:
@@ -24,12 +22,14 @@ jobs:
           npx --yes firebase-tools@15.32.0 hosting:sites:get jtd-preview-rhypp11 --project jeux-tout-doux --json >/dev/null 2>&1 ||             npx --yes firebase-tools@15.32.0 hosting:sites:create jtd-preview-rhypp11 --project jeux-tout-doux
           npx --yes firebase-tools@15.32.0 target:apply hosting pr-preview jtd-preview-rhypp11 --project jeux-tout-doux
 
-      - name: Deploy Firebase Hosting preview
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JEUX_TOUT_DOUX }}"
-          projectId: jeux-tout-doux
-          target: pr-preview
-          channelId: pr-${{ github.event.pull_request.number }}
-          expires: 30d
+      - name: Deploy isolated preview site
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+        run: |
+          npx --yes firebase-tools@15.32.0 deploy --only hosting:pr-preview --project jeux-tout-doux --non-interactive
+
+      - name: Smoke test deployed site
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-preview-rhypp11.web.app/ > /tmp/preview.html
+          grep -q '<title>JTD' /tmp/preview.html
+          echo "Preview reachable: https://jtd-preview-rhypp11.web.app"
