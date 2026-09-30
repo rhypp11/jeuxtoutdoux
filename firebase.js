@@ -119,7 +119,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     note.textContent = active
       ? 'Lien vivant en lecture seule • collection, wishlist et arrivages'
       : 'Crée un lien lecture seule à copier dans ChatGPT';
-    disableBtn.classList.toggle('hidden', !active || previewMode);
+    disableBtn.classList.toggle('hidden', !active);
   }
 
   async function copyText(text){
