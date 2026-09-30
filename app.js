@@ -279,9 +279,6 @@ const ICON_STAR = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentC
 const ICON_GAMEPAD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg>`;
 const ICON_FLAME = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`;
 
-function iconWithClass(svgStr, cls){
-  return svgStr.replace('<svg ', `<svg class="${cls}" `);
-}
 
 const STATUS_OPTIONS = [
   { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(255,194,14,0.07)", border: "rgba(255,194,14,0.3)" },
@@ -417,17 +414,11 @@ async function saveGames(){
   if(IS_PREVIEW_MODE) return;
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(GAMES));
-    setSaveNote('Sauvegardé dans ce navigateur — ' + new Date().toLocaleTimeString('fr-FR'));
   }catch(e){
     console.error('Erreur de sauvegarde locale', e);
-    setSaveNote('⚠ Sauvegarde locale impossible (pense à exporter en JSON)');
   }
 }
 
-function setSaveNote(text){
-  const el = document.getElementById('save-note');
-  if(el) el.textContent = text;
-}
 
 const LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
 
@@ -734,14 +725,6 @@ function sortGames(games){
     case 'date-asc': arr.sort((a,b) => (a.date || '9999').localeCompare(b.date || '9999')); break;
   }
   return arr;
-}
-
-function textColorFor(bgHex){
-  const hex = (bgHex || '#8B8FA3').replace('#','');
-  if(hex.length !== 6) return '#ECEDF1';
-  const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
-  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
-  return lum > 0.6 ? '#14151A' : '#ECEDF1';
 }
 
 function renderPlatformBanner(games){
@@ -2111,13 +2094,6 @@ function goToPage(page, format){
     render();
   }
   closeMobileDrawers();
-}
-
-function goToCollectionPlatform(format, platform){
-  goToPage('collection', format);
-  state.platform = platform;
-  buildPlatformList();
-  render();
 }
 
 document.querySelectorAll('.nav-tab').forEach(btn => {
