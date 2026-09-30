@@ -1197,7 +1197,7 @@ function openModal(id){
     }
     populateTypeSelect('f-type', lastFormat);
     setSelectValueAndSync('f-type', 'Jeu simple');
-    document.getElementById('f-collector').checked = !!item.collector;
+    document.getElementById('f-collector').checked = false;
     toggleFormatDependentFields(lastFormat);
     document.getElementById('f-prix').value = '';
     document.getElementById('f-date').value = '';
@@ -1801,7 +1801,7 @@ function addArrivalToCollection(id){
   setSelectValueAndSync('f-format', 'Physique');
   populateTypeSelect('f-type', 'Physique');
   setSelectValueAndSync('f-type', 'Jeu simple');
-  document.getElementById('f-collector').checked = false;
+  document.getElementById('f-collector').checked = !!item.collector;
   toggleFormatDependentFields('Physique');
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
@@ -1815,6 +1815,7 @@ function addArrivalToCollection(id){
 function openWishlistModal(id){
   editingWishlistId = id || null;
   convertingArrivalToWishlistId = null; // ouverture normale (pas une bascule depuis les arrivages)
+  document.getElementById('w-image').dataset.transferCollector = '';
   populatePlatformSelect('w-plateforme');
   const title = document.getElementById('wishlist-modal-title');
   const deleteBtn = document.getElementById('w-delete-btn');
@@ -1850,6 +1851,7 @@ function openWishlistModal(id){
 
 function closeWishlistModal(){
   document.getElementById('wishlist-modal-overlay').classList.add('hidden');
+  document.getElementById('w-image').dataset.transferCollector = '';
   editingWishlistId = null;
   convertingArrivalToWishlistId = null; // annuler = l'arrivage reste où il était
 }
