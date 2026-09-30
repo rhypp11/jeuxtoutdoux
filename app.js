@@ -1888,78 +1888,170 @@ function buildPlatformRows(){
 
     const color = getPlatformColor(p);
     const logo = getPlatformLogo(p);
+    const count = counts[p] || 0;
+    const initials = p.slice(0,2).toUpperCase();
 
     row.innerHTML = `
-      <div class="row-order-btns">
-        <button type="button" class="order-btn" data-dir="-1" title="Monter" aria-label="Monter dans l'ordre"${idx === 0 ? ' disabled' : ''}>▲</button>
-        <button type="button" class="order-btn" data-dir="1" title="Descendre" aria-label="Descendre dans l'ordre"${idx === platforms.length - 1 ? ' disabled' : ''}>▼</button>
-      </div>
-      <div class="swatch-preview" data-role="swatch">${logo ? `<img src="${logo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.parentElement.innerHTML='${p.slice(0,2).toUpperCase()}';this.parentElement.style.background='${color}';">` : ''}</div>
-      <div class="row-fields">
-        <div class="top-line">
-          <input type="text" class="name-input" data-role="name" value="${p}">
-          <input type="color" data-role="color" value="${toHexColor(color)}">
+      <div class="platform-row-main">
+        <div class="row-order-btns" aria-label="Ordre de la plateforme">
+          <button type="button" class="order-btn" data-dir="-1" title="Monter" aria-label="Monter ${p}"${idx === 0 ? ' disabled' : ''}>▲</button>
+          <button type="button" class="order-btn" data-dir="1" title="Descendre" aria-label="Descendre ${p}"${idx === platforms.length - 1 ? ' disabled' : ''}>▼</button>
         </div>
-        <input type="text" class="logo-input" data-role="logo" placeholder="URL du logo (facultatif)" value="${logo || ''}">
+        <div class="swatch-preview" data-role="swatch">
+          ${logo ? `<img src="${logo}" alt="" onerror="this.remove();this.parentElement.textContent='${initials}';this.parentElement.style.background='${color}'">` : initials}
+        </div>
+        <div class="platform-row-info">
+          <strong class="platform-row-name">${p}</strong>
+          <span class="row-count">${count} jeu${count > 1 ? 'x' : ''}</span>
+        </div>
+        <button type="button" class="platform-edit-btn" aria-label="Modifier ${p}" title="Modifier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
+        </button>
       </div>
-      <span class="row-count">${counts[p]} jeu${counts[p] > 1 ? 'x' : ''}</span>
+      <div class="platform-row-editor hidden">
+        <div class="platform-editor-topline">
+          <label class="platform-editor-field platform-editor-name">
+            <span>Nom</span>
+            <input type="text" data-role="name" value="${p}">
+          </label>
+          <label class="platform-editor-field platform-editor-color">
+            <span>Couleur</span>
+            <input type="color" data-role="color" value="${toHexColor(color)}">
+          </label>
+        </div>
+        <label class="platform-editor-field">
+          <span>Logo <small>URL facultative</small></span>
+          <input type="text" data-role="logo" placeholder="https://…" value="${logo || ''}">
+        </label>
+        <div class="platform-editor-actions">
+          ${count === 0 ? `<button type="button" class="platform-delete-btn">Supprimer</button>` : `<span class="platform-delete-hint">${count} jeu${count > 1 ? 'x' : ''} associé${count > 1 ? 's' : ''}</span>`}
+          <div class="platform-editor-spacer"></div>
+          <button type="button" class="platform-cancel-btn">Annuler</button>
+          <button type="button" class="platform-save-btn">Enregistrer</button>
+        </div>
+      </div>
     `;
 
+    const swatch = row.querySelector('[data-role="swatch"]');
+    if(!logo) swatch.style.background = color;
+
     row.querySelector('[data-dir="-1"]').addEventListener('click', () => {
-      movePlatformOrder(p, -1);
+      movePlatformOrder(row.dataset.currentName, -1);
       buildPlatformRows();
     });
     row.querySelector('[data-dir="1"]').addEventListener('click', () => {
-      movePlatformOrder(p, 1);
+      movePlatformOrder(row.dataset.currentName, 1);
       buildPlatformRows();
     });
 
-    if(!logo){
-      row.querySelector('[data-role="swatch"]').style.background = color;
-      row.querySelector('[data-role="swatch"]').textContent = p.slice(0,2).toUpperCase();
-    }
-
+    const editor = row.querySelector('.platform-row-editor');
+    const editBtn = row.querySelector('.platform-edit-btn');
     const nameInput = row.querySelector('[data-role="name"]');
     const colorInput = row.querySelector('[data-role="color"]');
     const logoInput = row.querySelector('[data-role="logo"]');
 
-    nameInput.addEventListener('blur', () => {
-      const current = row.dataset.currentName;
-      if(renamePlatform(current, nameInput.value)){
-        row.dataset.currentName = nameInput.value.trim();
-      } else {
-        nameInput.value = current;
-      }
+    const closeOtherEditors = () => {
+      container.querySelectorAll('.platform-row.editing').forEach(other => {
+        if(other !== row){
+          other.classList.remove('editing');
+          other.querySelector('.platform-row-editor').classList.add('hidden');
+        }
+      });
+    };
+
+    editBtn.addEventListener('click', () => {
+      const willOpen = editor.classList.contains('hidden');
+      closeOtherEditors();
+      row.classList.toggle('editing', willOpen);
+      editor.classList.toggle('hidden', !willOpen);
+      if(willOpen) nameInput.focus();
     });
 
-    colorInput.addEventListener('input', () => {
-      updatePlatformColor(row.dataset.currentName, colorInput.value);
-      const swatch = row.querySelector('[data-role="swatch"]');
-      if(!logoInput.value.trim()) swatch.style.background = colorInput.value;
-    });
-
-    logoInput.addEventListener('input', () => {
-      updatePlatformLogo(row.dataset.currentName, logoInput.value.trim());
-      const swatch = row.querySelector('[data-role="swatch"]');
+    const refreshDraftPreview = () => {
       const url = logoInput.value.trim();
+      const draftName = nameInput.value.trim() || p;
+      swatch.innerHTML = '';
       if(url){
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = '';
+        img.addEventListener('error', () => {
+          img.remove();
+          swatch.textContent = draftName.slice(0,2).toUpperCase();
+          swatch.style.background = colorInput.value;
+        });
+        swatch.appendChild(img);
         swatch.style.background = 'var(--surface-raised)';
-        swatch.innerHTML = `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.parentElement.innerHTML='${row.dataset.currentName.slice(0,2).toUpperCase()}';this.parentElement.style.background='${colorInput.value}';">`;
-      } else {
-        swatch.innerHTML = row.dataset.currentName.slice(0,2).toUpperCase();
+      }else{
+        swatch.textContent = draftName.slice(0,2).toUpperCase();
         swatch.style.background = colorInput.value;
       }
+    };
+    colorInput.addEventListener('input', refreshDraftPreview);
+    logoInput.addEventListener('input', refreshDraftPreview);
+    nameInput.addEventListener('input', () => { if(!logoInput.value.trim()) refreshDraftPreview(); });
+
+    row.querySelector('.platform-cancel-btn').addEventListener('click', () => buildPlatformRows());
+
+    row.querySelector('.platform-save-btn').addEventListener('click', () => {
+      const current = row.dataset.currentName;
+      const newName = nameInput.value.trim();
+      if(!newName){ nameInput.focus(); return; }
+      const duplicate = allPlatformNames().find(name => name !== current && name.toLowerCase() === newName.toLowerCase());
+      if(duplicate){
+        showToast(`La plateforme « ${duplicate} » existe déjà.`);
+        nameInput.focus();
+        return;
+      }
+
+      let finalName = current;
+      if(newName !== current){
+        if(!renamePlatform(current, newName)) return;
+        finalName = newName;
+      }
+      const meta = ensurePlatformMeta(finalName);
+      meta.color = colorInput.value;
+      meta.logo = logoInput.value.trim() || null;
+      savePlatformMeta();
+      buildPlatformList();
+      render();
+      buildPlatformRows();
+      showToast(`« ${finalName} » mise à jour`);
     });
 
+    const deleteBtn = row.querySelector('.platform-delete-btn');
+    if(deleteBtn){
+      deleteBtn.addEventListener('click', () => {
+        const current = row.dataset.currentName;
+        confirmAction(`Supprimer la plateforme « ${current} » ?`, () => {
+          delete platformMeta[current];
+          platformOrder = platformOrder.filter(name => name !== current);
+          if(state.platform === current) state.platform = null;
+          savePlatformMeta();
+          savePlatformOrder();
+          buildPlatformRows();
+          buildPlatformList();
+          render();
+          showToast(`« ${current} » supprimée`);
+        }, {title:'Supprimer la plateforme', confirmLabel:'Supprimer'});
+      });
+    }
 
     container.appendChild(row);
   });
 }
-
 function toHexColor(color){
   // Les couleurs sont déjà en hex dans ce projet ; on sécurise au cas où.
   if(/^#[0-9a-fA-F]{6}$/.test(color)) return color;
   return '#8B8FA3';
+}
+
+function setAddPlatformOpen(open){
+  const form = document.getElementById('add-platform-row');
+  const toggle = document.getElementById('new-platform-toggle');
+  form.classList.toggle('hidden', !open);
+  toggle.classList.toggle('hidden', open);
+  if(open) document.getElementById('new-platform-name').focus();
 }
 
 function addPlatform(){
@@ -1968,19 +2060,29 @@ function addPlatform(){
   if(!name) { input.focus(); return; }
   const existing = allPlatformNames().find(p => p.toLowerCase() === name.toLowerCase());
   if(existing){
-    alert('Cette plateforme existe déjà.');
+    showToast(`La plateforme « ${existing} » existe déjà.`);
     input.focus();
     return;
   }
   ensurePlatformMeta(name);
+  platformOrder = [...getOrderedPlatformNames().filter(p => p !== name), name];
   savePlatformMeta();
+  savePlatformOrder();
   input.value = '';
+  setAddPlatformOpen(false);
   buildPlatformRows();
+  showToast(`« ${name} » ajoutée`);
 }
 
+document.getElementById('new-platform-toggle').addEventListener('click', () => setAddPlatformOpen(true));
+document.getElementById('cancel-add-platform-btn').addEventListener('click', () => {
+  document.getElementById('new-platform-name').value = '';
+  setAddPlatformOpen(false);
+});
 document.getElementById('add-platform-btn').addEventListener('click', addPlatform);
 document.getElementById('new-platform-name').addEventListener('keydown', (e) => {
   if(e.key === 'Enter'){ e.preventDefault(); addPlatform(); }
+  if(e.key === 'Escape'){ e.preventDefault(); e.target.value=''; setAddPlatformOpen(false); }
 });
 
 document.getElementById('sort-platforms-btn').addEventListener('click', togglePlatformSortMode);
