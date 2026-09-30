@@ -203,6 +203,8 @@
 
     <div class="form-section">
       <div class="form-section-title">Arrivage</div>
+      <div class="context-summary hidden" id="a-context-summary"></div>
+      <div class="context-editor" id="a-context-editor">
     <div class="field-row">
       <div class="field">
         <label for="a-date">Date prévue de livraison</label>
@@ -215,6 +217,7 @@
     </div>
 
     <div class="field"><label for="a-source">Enseigne / source</label><input type="text" id="a-source" placeholder="ex. Fnac"></div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
@@ -252,6 +255,8 @@
 
     <div class="form-section">
       <div class="form-section-title">Wishlist</div>
+      <div class="context-summary hidden" id="w-context-summary"></div>
+      <div class="context-editor" id="w-context-editor">
     <div class="field flexible-date-field">
       <label>Date de sortie</label>
       <div class="date-mode" data-date-mode="w">
@@ -264,6 +269,7 @@
     </div>
 
     <div class="field"><label for="w-lien">Lien</label><input type="url" id="w-lien" placeholder="Bon plan, fiche du jeu…"></div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="w-delete-btn">Supprimer</button>
@@ -385,6 +391,34 @@
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="cancel-btn">Annuler</button>
       <button class="btn btn-primary" id="save-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="quick-purchase-overlay">
+  <div class="modal quick-purchase-modal">
+    <h2>Modifier l'achat</h2>
+    <div class="game-identity-summary quick-purchase-game" id="quick-purchase-game"></div>
+    <div class="form-section quick-purchase-fields">
+      <div class="field-row">
+        <div class="field">
+          <label for="q-prix">Prix payé</label>
+          <div class="input-with-suffix"><input type="text" id="q-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div>
+        </div>
+        <div class="field">
+          <label for="q-date">Date d'achat</label>
+          <input type="date" id="q-date">
+        </div>
+      </div>
+      <div class="field">
+        <label for="q-source">Enseigne / source</label>
+        <input type="text" id="q-source" placeholder="ex. Fnac, Steam…">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" id="quick-purchase-cancel">Annuler</button>
+      <button class="btn btn-primary" id="quick-purchase-save">Enregistrer</button>
     </div>
   </div>
 </div>
