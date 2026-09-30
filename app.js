@@ -2284,8 +2284,10 @@ document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
 function toggleFormatDependentFields(format){
   const isPhysical = format !== 'Numérique';
-  document.getElementById('f-collector-field').classList.toggle('hidden', !isPhysical);
-  document.getElementById('f-type-field').classList.toggle('hidden', isPhysical);
+  const collectorField = document.getElementById('f-collector-field');
+  const typeField = document.getElementById('f-type-field');
+  if(collectorField) collectorField.classList.toggle('hidden', !isPhysical);
+  if(typeField) typeField.classList.toggle('hidden', isPhysical);
 }
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 document.addEventListener('keydown', (e) => {
