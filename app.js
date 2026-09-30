@@ -1306,7 +1306,7 @@ function arrivalRowHtml(item){
     ? `<div class="arrival-purchase">${purchaseBits.join('<span class="arrival-meta-sep">·</span>')}</div>`
     : '';
   return `
-    <div class="board-row" data-id="${item.id}" style="--spine:${color}">
+    <div class="board-row" data-id="${item.id}" draggable="true" style="--spine:${color}">
       <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
@@ -1315,8 +1315,7 @@ function arrivalRowHtml(item){
       </div>
       ${purchaseHtml}
       <div class="arrival-actions">
-        <button class="icon-btn to-wishlist-btn" data-action="to-wishlist" title="Basculer vers la wishlist" aria-label="Basculer vers la wishlist">${ICON_STAR}</button>
-        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_PLUS}</button>
+        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_GAMEPAD}</button>
       </div>
     </div>`;
 }
@@ -1371,21 +1370,28 @@ function renderArrivals(){
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
     row.addEventListener('click', (e) => {
-      if(e.target.closest('[data-action="to-collection"], [data-action="to-wishlist"]')) return;
+      if(e.target.closest('[data-action="to-collection"]')) return;
       openArrivalModal(id);
     });
     row.querySelector('[data-action="to-collection"]').onclick = (e) => {
       e.stopPropagation();
       addArrivalToCollection(id);
     };
-    row.querySelector('[data-action="to-wishlist"]').onclick = (e) => {
-      e.stopPropagation();
-      moveArrivalToWishlist(id);
-    };
+    row.addEventListener('dragstart', () => {
+      homeDragArrivalId = id;
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      homeDragArrivalId = null;
+      const zone = document.querySelector('.board.wishlist');
+      if(zone) zone.classList.remove('drag-over');
+    });
   });
 }
 
 let homeDragWishlistId = null;
+let homeDragArrivalId = null;
 
 function wireArrivalsDropZone(){
   const zone = document.getElementById('arrivals-board');
@@ -1401,6 +1407,23 @@ function wireArrivalsDropZone(){
     zone.classList.remove('drag-over');
     if(homeDragWishlistId) moveWishlistToArrivals(homeDragWishlistId);
     homeDragWishlistId = null;
+  };
+}
+
+function wireWishlistDropZone(){
+  const zone = document.querySelector('.board.wishlist');
+  if(!zone) return;
+  zone.ondragover = (e) => {
+    if(!homeDragArrivalId) return;
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  };
+  zone.ondragleave = () => zone.classList.remove('drag-over');
+  zone.ondrop = (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if(homeDragArrivalId) moveArrivalToWishlist(homeDragArrivalId);
+    homeDragArrivalId = null;
   };
 }
 
@@ -1494,6 +1517,7 @@ function renderWishlist(){
   }
 
   renderHomeStats();
+  wireWishlistDropZone();
 
   if(WISHLIST.length === 0){
     container.innerHTML = `<div class="board-empty">La wishlist est vide pour l'instant.</div>`;
@@ -1729,9 +1753,8 @@ function addArrivalToCollection(id){
   toggleFormatDependentFields('Physique');
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
-  setIdentityEditor('f', null, false);
+  setIdentityEditor('f', item, true);
   document.getElementById('modal-overlay').classList.remove('hidden');
-  document.getElementById('f-nom').focus();
 }
 
 /* ----- Modal Wishlist ----- */
@@ -1849,9 +1872,8 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-source').value = '';
   document.getElementById('a-image').value = item.image || '';
   updateImagePreviewFor('a-image', 'a-image-preview');
-  setIdentityEditor('a', null, false);
+  setIdentityEditor('a', item, true);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
-  document.getElementById('a-nom').focus();
 }
 
 function moveArrivalToWishlist(id){
@@ -1872,9 +1894,8 @@ function moveArrivalToWishlist(id){
   document.getElementById('w-image').value = item.image || '';
   document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   updateImagePreviewFor('w-image', 'w-image-preview');
-  setIdentityEditor('w', null, false);
+  setIdentityEditor('w', item, true);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
-  document.getElementById('w-nom').focus();
 }
 
 function updateImagePreviewFor(inputId, previewId){
