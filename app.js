@@ -1,4 +1,4 @@
-const IS_PREVIEW_MODE = location.hostname.includes('--preview-');
+const IS_PREVIEW_MODE = location.hostname.startsWith('jeux-tout-doux--');
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
 const PREVIEW_SEED = {
   games: [
