@@ -1330,6 +1330,7 @@ function renderHomeStats(){
 
 const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
 const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+const ICON_COLLECTION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>`;
 
 
 function boardThumb(item){
@@ -1363,12 +1364,12 @@ function arrivalRowHtml(item){
       <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.nom}</div>
+        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}<span>${item.nom}</span></div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
       ${purchaseHtml}
       <div class="arrival-actions">
-        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_GAMEPAD}</button>
+        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_COLLECTION}</button>
       </div>
     </div>`;
 }
@@ -1592,7 +1593,7 @@ function renderWishlist(){
       ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.nom}</div>
+        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}<span>${item.nom}</span></div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
       ${linkHtml}
