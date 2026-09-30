@@ -1,12 +1,45 @@
 {
-  "hosting": {
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      ".firebaserc",
-      ".git/**",
-      ".github/**",
-      "firebase-debug.log"
-    ]
-  }
+  "hosting": [
+    {
+      "site": "jeux-tout-doux",
+      "public": ".",
+      "ignore": [
+        "firebase.json",
+        ".firebaserc",
+        ".git/**",
+        ".github/**",
+        "firebase-debug.log"
+      ]
+    },
+    {
+      "target": "pr-preview",
+      "public": ".",
+      "ignore": [
+        "firebase.json",
+        ".firebaserc",
+        ".git/**",
+        ".github/**",
+        "firebase-debug.log"
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-store, max-age=0, must-revalidate"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "Expires",
+              "value": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

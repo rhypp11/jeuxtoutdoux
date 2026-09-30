@@ -4,9 +4,11 @@ on:
   pull_request:
 
 permissions:
-  checks: write
   contents: read
-  pull-requests: write
+
+concurrency:
+  group: firebase-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   preview:
@@ -14,11 +16,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy Firebase Hosting preview
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JEUX_TOUT_DOUX }}"
-          projectId: jeux-tout-doux
-          channelId: preview
-          expires: 30d
+
+      - name: Prepare isolated Firebase preview site
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JEUX_TOUT_DOUX }}
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools@15.32.0 hosting:sites:get jtd-sandbox-rhypp11 --project jeux-tout-doux --json >/dev/null 2>&1 ||             npx --yes firebase-tools@15.32.0 hosting:sites:create jtd-sandbox-rhypp11 --project jeux-tout-doux
+          npx --yes firebase-tools@15.32.0 target:apply hosting pr-preview jtd-sandbox-rhypp11 --project jeux-tout-doux
+
+      - name: Deploy isolated preview site
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+        run: |
+          npx --yes firebase-tools@15.32.0 deploy --only hosting:pr-preview --project jeux-tout-doux --non-interactive
+
+      - name: Smoke test deployed sandbox
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-sandbox-rhypp11.web.app/ > /tmp/preview.html
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-sandbox-rhypp11.web.app/app.js > /tmp/app.js
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-sandbox-rhypp11.web.app/firebase.js > /tmp/firebase.js
+          grep -q '<title>JTD' /tmp/preview.html
+          grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
+          grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
+          grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js
+          echo "Sandbox preview verified: https://jtd-sandbox-rhypp11.web.app"
