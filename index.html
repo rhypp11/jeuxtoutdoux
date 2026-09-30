@@ -182,7 +182,6 @@
     <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
 
     <div class="form-section">
-      <div class="form-section-title">Le jeu</div>
       <div class="game-identity-summary hidden" id="a-identity-summary"></div>
       <div class="game-identity-editor" id="a-identity-editor">
       <div class="field">
@@ -216,7 +215,15 @@
       </div>
     </div>
 
-    <div class="field"><label for="a-source">Enseigne / source</label><input type="text" id="a-source" placeholder="ex. Fnac"></div>
+    <div class="field-row">
+      <div class="field"><label for="a-source">Enseigne / source</label><input type="text" id="a-source" placeholder="ex. Fnac"></div>
+      <div class="field">
+        <label>Édition</label>
+        <label class="digital-check-row control-height" for="a-collector">
+          <input type="checkbox" id="a-collector"><span>Collector</span>
+        </label>
+      </div>
+    </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -234,7 +241,6 @@
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
     <div class="form-section">
-      <div class="form-section-title">Le jeu</div>
       <div class="game-identity-summary hidden" id="w-identity-summary"></div>
       <div class="game-identity-editor" id="w-identity-editor">
       <div class="field">
@@ -343,7 +349,6 @@
     <h2 id="modal-title">Ajouter un jeu</h2>
 
     <div class="form-section">
-      <div class="form-section-title">Le jeu</div>
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
       <div class="game-identity-editor" id="f-identity-editor">
       <div class="field">
@@ -379,11 +384,14 @@
 
     <div id="f-quick-hide-fields" class="form-section">
       <div class="form-section-title">Achat</div>
+      <div class="context-summary hidden" id="f-context-summary"></div>
+      <div class="context-editor" id="f-context-editor">
       <div class="field-row">
         <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div></div>
         <div class="field"><label for="f-date">Date d'achat</label><input type="date" id="f-date"></div>
       </div>
       <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, Steam…"></div>
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -391,34 +399,6 @@
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="cancel-btn">Annuler</button>
       <button class="btn btn-primary" id="save-btn">Enregistrer</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay hidden" id="quick-purchase-overlay">
-  <div class="modal quick-purchase-modal">
-    <h2>Modifier l'achat</h2>
-    <div class="game-identity-summary quick-purchase-game" id="quick-purchase-game"></div>
-    <div class="form-section quick-purchase-fields">
-      <div class="field-row">
-        <div class="field">
-          <label for="q-prix">Prix payé</label>
-          <div class="input-with-suffix"><input type="text" id="q-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div>
-        </div>
-        <div class="field">
-          <label for="q-date">Date d'achat</label>
-          <input type="date" id="q-date">
-        </div>
-      </div>
-      <div class="field">
-        <label for="q-source">Enseigne / source</label>
-        <input type="text" id="q-source" placeholder="ex. Fnac, Steam…">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <div style="flex:1;"></div>
-      <button class="btn btn-ghost" id="quick-purchase-cancel">Annuler</button>
-      <button class="btn btn-primary" id="quick-purchase-save">Enregistrer</button>
     </div>
   </div>
 </div>
