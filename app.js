@@ -492,17 +492,25 @@ function cleanBackupData(parsed){
   if(Array.isArray(parsed)){
     data = { games: parsed, arrivals: [], wishlist: [], platformMeta: {}, platformOrder: [] };
   } else if(parsed && parsed.app === 'Jeux Tout Doux' && parsed.data && typeof parsed.data === 'object'){
+    if(Number.isFinite(parsed.version) && parsed.version > BACKUP_VERSION) throw new Error('Version de sauvegarde trop récente');
     data = parsed.data;
   } else if(parsed && typeof parsed === 'object' && Array.isArray(parsed.games)){
     data = parsed;
   }
   if(!data || !Array.isArray(data.games)) throw new Error('Format de sauvegarde invalide');
+  const validGame = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
+  const validBoardItem = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
+  const arrivals = Array.isArray(data.arrivals) ? data.arrivals : [];
+  const wishlist = Array.isArray(data.wishlist) ? data.wishlist : [];
+  if(!data.games.every(validGame) || !arrivals.every(validBoardItem) || !wishlist.every(validBoardItem)){
+    throw new Error('Contenu de sauvegarde invalide');
+  }
 
   const profile = data.profile && typeof data.profile === 'object' ? data.profile : null;
   return {
     games: data.games,
-    arrivals: Array.isArray(data.arrivals) ? data.arrivals : [],
-    wishlist: Array.isArray(data.wishlist) ? data.wishlist : [],
+    arrivals,
+    wishlist,
     platformMeta: data.platformMeta && typeof data.platformMeta === 'object' && !Array.isArray(data.platformMeta) ? data.platformMeta : {},
     platformOrder: Array.isArray(data.platformOrder) ? data.platformOrder : [],
     profileName: profile && typeof profile.name === 'string'
