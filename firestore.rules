@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsUserDocument(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function ownsShare(shareId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.shareToken == shareId;
+    }
+
+    function validPublicShare() {
+      return request.resource.data.keys().hasOnly([
+          'version', 'publishedAt', 'games', 'wishlist', 'arrivals'
+        ])
+        && request.resource.data.version == 1
+        && request.resource.data.publishedAt is int
+        && request.resource.data.games is list
+        && request.resource.data.wishlist is list
+        && request.resource.data.arrivals is list;
+    }
+
+    match /users/{userId} {
+      allow read, write: if ownsUserDocument(userId);
+    }
+
+    match /shares/{shareId} {
+      // Le token du document est l'autorisation de lecture : pas de listing global.
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if ownsShare(shareId) && validPublicShare();
+      allow delete: if ownsShare(shareId);
+    }
+  }
+}
