@@ -1815,7 +1815,6 @@ function addArrivalToCollection(id){
 function openWishlistModal(id){
   editingWishlistId = id || null;
   convertingArrivalToWishlistId = null; // ouverture normale (pas une bascule depuis les arrivages)
-  document.getElementById('w-image').dataset.transferCollector = '';
   populatePlatformSelect('w-plateforme');
   const title = document.getElementById('wishlist-modal-title');
   const deleteBtn = document.getElementById('w-delete-btn');
@@ -1830,6 +1829,7 @@ function openWishlistModal(id){
     setSelectValueAndSync('w-plateforme', item.plateforme || '');
     setFlexibleDate('w', item.date);
     document.getElementById('w-lien').value = item.lien || '';
+    document.getElementById('w-collector').checked = !!item.collector;
     document.getElementById('w-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter à la wishlist';
@@ -1839,6 +1839,7 @@ function openWishlistModal(id){
     document.getElementById('w-plateforme').value = '';
     setFlexibleDate('w', '');
     document.getElementById('w-lien').value = '';
+    document.getElementById('w-collector').checked = false;
     document.getElementById('w-image').value = '';
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
@@ -1851,7 +1852,6 @@ function openWishlistModal(id){
 
 function closeWishlistModal(){
   document.getElementById('wishlist-modal-overlay').classList.add('hidden');
-  document.getElementById('w-image').dataset.transferCollector = '';
   editingWishlistId = null;
   convertingArrivalToWishlistId = null; // annuler = l'arrivage reste où il était
 }
@@ -1864,14 +1864,15 @@ function saveWishlistModal(){
 
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
+  const collector = document.getElementById('w-collector').checked;
   const image = document.getElementById('w-image').value.trim() || null;
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, image });
+    Object.assign(item, { nom, plateforme, date, lien, collector, image });
     delete item.prix;
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, collector: document.getElementById('w-image').dataset.transferCollector === 'true' });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, collector, image });
   }
 
   if(convertingArrivalToWishlistId){
@@ -1884,7 +1885,6 @@ function saveWishlistModal(){
   ensurePlatformMeta(plateforme);
   savePlatformMeta();
   saveWishlist();
-  document.getElementById('w-image').dataset.transferCollector = '';
   closeWishlistModal();
   buildPlatformList();
   renderWishlist();
@@ -1948,8 +1948,8 @@ function moveArrivalToWishlist(id){
   setSelectValueAndSync('w-plateforme', item.plateforme || '');
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
+  document.getElementById('w-collector').checked = !!item.collector;
   document.getElementById('w-image').value = item.image || '';
-  document.getElementById('w-image').dataset.transferCollector = item.collector ? 'true' : '';
   updateImagePreviewFor('w-image', 'w-image-preview');
   setIdentityEditor('w', item, true);
   setContextEditor('w', item, 'wishlist', false);
