@@ -15,9 +15,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     messagingSenderId: "367742323465",
     appId: "1:367742323465:web:ad01acd9274d4d6ca2e1d8"
   };
-  const fbApp = initializeApp(firebaseConfig);
-  const auth = getAuth(fbApp);
-  const db = getFirestore(fbApp);
+  const previewMode = window.JTD_PREVIEW_MODE === true;
+  const fbApp = previewMode ? null : initializeApp(firebaseConfig);
+  const auth = previewMode ? null : getAuth(fbApp);
+  const db = previewMode ? null : getFirestore(fbApp);
 
   let currentUser = null;
   let syncTimer = null;
@@ -205,7 +206,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     if(el) el.classList.add('hidden');
   }
 
-  if(window.JTD_PREVIEW_MODE){
+  if(previewMode){
     currentUser = null;
     document.getElementById('logout-btn').classList.add('hidden');
     document.getElementById('profile-menu-divider').classList.add('hidden');
