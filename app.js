@@ -1301,12 +1301,12 @@ function renderHomeStats(){
   if(totalEl) totalEl.textContent = total;
   const metaEl = document.getElementById('home-summary-meta');
   if(metaEl){
-    const bits = [
-      `<span><strong>${platformsCount}</strong> plateformes</span>`,
-      collectors ? `<span><strong>${collectors}</strong> collectors</span>` : '',
-      spent ? `<span><strong>${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong> investis</span>` : ''
+    const stats = [
+      `<div class="home-summary-stat"><strong>${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
+      collectors ? `<div class="home-summary-stat"><strong>${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
+      spent ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>collection</span></div>` : ''
     ].filter(Boolean);
-    metaEl.innerHTML = bits.join('<span class="home-summary-sep">·</span>');
+    metaEl.innerHTML = stats.join('');
   }
 
   const barsEl = document.getElementById('home-platform-bars');
