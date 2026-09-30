@@ -1072,10 +1072,13 @@ function identitySummaryHtml(item){
   const platformIcon = logo
     ? `<img src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'identity-platform-dot\\' style=\\'background:${color}\\'></span>'">`
     : `<span class="identity-platform-dot" style="background:${color}"></span>`;
+  const collectorMark = item && item.collector
+    ? `<span class="identity-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
+    : '';
   return `
     <div class="identity-thumb" style="${image ? '' : `background:${color}`}">${thumb}</div>
     <div class="identity-copy">
-      <strong>${name}</strong>
+      <strong>${collectorMark}<span>${name}</span></strong>
       <span>${platformIcon}${platform}</span>
     </div>
     <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
@@ -1101,6 +1104,55 @@ function setIdentityEditor(prefix, item, compact){
       editor.classList.remove('hidden');
       const nameInput = editor.querySelector('input[type="text"]');
       if(nameInput) nameInput.focus();
+    }, {once:true});
+  }
+}
+
+function contextEditIcon(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>`;
+}
+
+function contextSummaryHtml(item, type){
+  if(type === 'purchase'){
+    const bits = [
+      `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
+      `<span><small>Date d'achat</small><strong>${item.date ? dateFR(item.date) : '—'}</strong></span>`,
+      `<span><small>Source</small><strong>${item.source || '—'}</strong></span>`
+    ].join('');
+    return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
+  }
+  if(type === 'arrival'){
+    const bits = [
+      `<span><small>Livraison</small><strong>${item.date ? dateFR(item.date) : '—'}</strong></span>`,
+      `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
+      `<span><small>Source</small><strong>${item.source || '—'}</strong></span>`
+    ].join('');
+    return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'arrivage" aria-label="Modifier l'arrivage">${contextEditIcon()}</button>`;
+  }
+  const parsed = parseWishlistDate(item.date);
+  const dateLabel = parsed && parsed.label ? parsed.label : '—';
+  const linkLabel = item.lien ? 'Lien renseigné' : 'Aucun lien';
+  return `<div class="context-summary-values">
+    <span><small>Sortie</small><strong>${dateLabel}</strong></span>
+    <span><small>Lien</small><strong>${linkLabel}</strong></span>
+  </div><button type="button" class="context-edit-btn" title="Modifier la wishlist" aria-label="Modifier la wishlist">${contextEditIcon()}</button>`;
+}
+
+function setContextEditor(prefix, item, type, compact){
+  const summary = document.getElementById(prefix+'-context-summary');
+  const editor = document.getElementById(prefix+'-context-editor');
+  if(!summary || !editor) return;
+  const showSummary = !!compact;
+  summary.classList.toggle('hidden', !showSummary);
+  editor.classList.toggle('hidden', showSummary);
+  if(item) summary.innerHTML = contextSummaryHtml(item, type);
+  const btn = summary.querySelector('.context-edit-btn');
+  if(btn){
+    btn.addEventListener('click', () => {
+      summary.classList.add('hidden');
+      editor.classList.remove('hidden');
+      const first = editor.querySelector('input,select,button');
+      if(first) first.focus();
     }, {once:true});
   }
 }
@@ -1155,6 +1207,7 @@ function openModal(id){
   updateImagePreview();
   const identityItem = editingId ? GAMES.find(x => x.id === editingId) : null;
   setIdentityEditor('f', identityItem, !!editingId);
+  setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.remove('hidden');
   if(!editingId) document.getElementById('f-nom').focus();
 }
@@ -1277,6 +1330,7 @@ function renderHomeStats(){
 
 const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
 const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+const ICON_COLLECTION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>`;
 
 
 function boardThumb(item){
@@ -1310,12 +1364,12 @@ function arrivalRowHtml(item){
       <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.nom}</div>
+        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}<span>${item.nom}</span></div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
       ${purchaseHtml}
       <div class="arrival-actions">
-        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_GAMEPAD}</button>
+        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_COLLECTION}</button>
       </div>
     </div>`;
 }
@@ -1539,7 +1593,7 @@ function renderWishlist(){
       ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.nom}</div>
+        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}<span>${item.nom}</span></div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
       ${linkHtml}
@@ -1649,6 +1703,7 @@ function openArrivalModal(id){
     document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
     document.getElementById('a-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
     document.getElementById('a-source').value = item.source || '';
+    document.getElementById('a-collector').checked = !!item.collector;
     document.getElementById('a-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter un arrivage';
@@ -1659,11 +1714,13 @@ function openArrivalModal(id){
     document.getElementById('a-date').value = '';
     document.getElementById('a-prix').value = '';
     document.getElementById('a-source').value = '';
+    document.getElementById('a-collector').checked = false;
     document.getElementById('a-image').value = '';
   }
   updateImagePreviewFor('a-image', 'a-image-preview');
   const identityItem = editingArrivalId ? ARRIVALS.find(x => x.id === editingArrivalId) : null;
   setIdentityEditor('a', identityItem, !!editingArrivalId);
+  setContextEditor('a', identityItem, 'arrival', !!editingArrivalId);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
   if(!editingArrivalId) document.getElementById('a-nom').focus();
 }
@@ -1684,13 +1741,14 @@ function saveArrivalModal(){
   if(!date){ document.getElementById('a-date').focus(); return; }
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
+  const collector = document.getElementById('a-collector').checked;
   const image = document.getElementById('a-image').value.trim() || null;
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
-    Object.assign(item, { nom, plateforme, date, prix, source, image });
+    Object.assign(item, { nom, plateforme, date, prix, source, collector, image });
   } else {
-    ARRIVALS.push({ id: 'arr-' + Date.now(), nom, plateforme, date, prix, source, image });
+    ARRIVALS.push({ id: 'arr-' + Date.now(), nom, plateforme, date, prix, source, collector, image });
   }
 
   if(convertingWishlistId){
@@ -1744,11 +1802,12 @@ function addArrivalToCollection(id){
   setSelectValueAndSync('f-format', 'Physique');
   populateTypeSelect('f-type', 'Physique');
   setSelectValueAndSync('f-type', 'Jeu simple');
-  document.getElementById('f-collector').checked = false;
+  document.getElementById('f-collector').checked = !!item.collector;
   toggleFormatDependentFields('Physique');
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
   setIdentityEditor('f', item, true);
+  setContextEditor('f', item, 'purchase', false);
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
@@ -1771,6 +1830,7 @@ function openWishlistModal(id){
     setSelectValueAndSync('w-plateforme', item.plateforme || '');
     setFlexibleDate('w', item.date);
     document.getElementById('w-lien').value = item.lien || '';
+    document.getElementById('w-collector').checked = !!item.collector;
     document.getElementById('w-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter à la wishlist';
@@ -1780,11 +1840,13 @@ function openWishlistModal(id){
     document.getElementById('w-plateforme').value = '';
     setFlexibleDate('w', '');
     document.getElementById('w-lien').value = '';
+    document.getElementById('w-collector').checked = false;
     document.getElementById('w-image').value = '';
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
   const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
   setIdentityEditor('w', identityItem, !!editingWishlistId);
+  setContextEditor('w', identityItem, 'wishlist', !!editingWishlistId);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
   if(!editingWishlistId) document.getElementById('w-nom').focus();
 }
@@ -1803,14 +1865,15 @@ function saveWishlistModal(){
 
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
+  const collector = document.getElementById('w-collector').checked;
   const image = document.getElementById('w-image').value.trim() || null;
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, image });
+    Object.assign(item, { nom, plateforme, date, lien, collector, image });
     delete item.prix;
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, collector, image });
   }
 
   if(convertingArrivalToWishlistId){
@@ -1863,9 +1926,11 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
   document.getElementById('a-prix').value = '';
   document.getElementById('a-source').value = '';
+  document.getElementById('a-collector').checked = !!item.collector;
   document.getElementById('a-image').value = item.image || '';
   updateImagePreviewFor('a-image', 'a-image-preview');
   setIdentityEditor('a', item, true);
+  setContextEditor('a', item, 'arrival', false);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
 }
 
@@ -1884,9 +1949,11 @@ function moveArrivalToWishlist(id){
   setSelectValueAndSync('w-plateforme', item.plateforme || '');
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
+  document.getElementById('w-collector').checked = !!item.collector;
   document.getElementById('w-image').value = item.image || '';
   updateImagePreviewFor('w-image', 'w-image-preview');
   setIdentityEditor('w', item, true);
+  setContextEditor('w', item, 'wishlist', false);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
 }
 
@@ -2218,8 +2285,10 @@ document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
 function toggleFormatDependentFields(format){
   const isPhysical = format !== 'Numérique';
-  document.getElementById('f-collector-field').classList.toggle('hidden', !isPhysical);
-  document.getElementById('f-type-field').classList.toggle('hidden', isPhysical);
+  const collectorField = document.getElementById('f-collector-field');
+  const typeField = document.getElementById('f-type-field');
+  if(collectorField) collectorField.classList.toggle('hidden', !isPhysical);
+  if(typeField) typeField.classList.toggle('hidden', isPhysical);
 }
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 document.addEventListener('keydown', (e) => {

@@ -70,8 +70,10 @@
       </h1>
     </div>
     <button type="button" class="mobile-filter-toggle topnav-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button>
-    <button class="nav-tab nav-tab-icon-only active" data-page="home" title="Accueil" aria-label="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg></button>
-    <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
+    <div class="topnav-nav" aria-label="Navigation principale">
+      <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
+      <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
+    </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
@@ -182,7 +184,6 @@
     <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
 
     <div class="form-section">
-      <div class="form-section-title">Le jeu</div>
       <div class="game-identity-summary hidden" id="a-identity-summary"></div>
       <div class="game-identity-editor" id="a-identity-editor">
       <div class="field">
@@ -190,10 +191,18 @@
         <input type="text" id="a-nom" placeholder="ex. Splatoon Raiders">
       </div>
 
-      <div class="field-row">
-        <div class="field" style="flex:1;">
+      <div class="field-row identity-core-row">
+        <div class="field">
           <label for="a-plateforme">Plateforme</label>
           <select id="a-plateforme"></select>
+        </div>
+        <div class="field">
+          <label>Édition</label>
+          <label class="identity-collector-control" for="a-collector">
+            <input type="checkbox" id="a-collector">
+            <span class="identity-collector-toggle-icon"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
+            <span>Collector</span>
+          </label>
         </div>
       </div>
 
@@ -203,6 +212,8 @@
 
     <div class="form-section">
       <div class="form-section-title">Arrivage</div>
+      <div class="context-summary hidden" id="a-context-summary"></div>
+      <div class="context-editor" id="a-context-editor">
     <div class="field-row">
       <div class="field">
         <label for="a-date">Date prévue de livraison</label>
@@ -215,6 +226,7 @@
     </div>
 
     <div class="field"><label for="a-source">Enseigne / source</label><input type="text" id="a-source" placeholder="ex. Fnac"></div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
@@ -231,7 +243,6 @@
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
     <div class="form-section">
-      <div class="form-section-title">Le jeu</div>
       <div class="game-identity-summary hidden" id="w-identity-summary"></div>
       <div class="game-identity-editor" id="w-identity-editor">
       <div class="field">
@@ -239,10 +250,18 @@
         <input type="text" id="w-nom" placeholder="ex. Metaphor: ReFantazio">
       </div>
 
-      <div class="field-row">
-        <div class="field" style="flex:1;">
+      <div class="field-row identity-core-row">
+        <div class="field">
           <label for="w-plateforme">Plateforme</label>
           <select id="w-plateforme"></select>
+        </div>
+        <div class="field">
+          <label>Édition</label>
+          <label class="identity-collector-control" for="w-collector">
+            <input type="checkbox" id="w-collector">
+            <span class="identity-collector-toggle-icon"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
+            <span>Collector</span>
+          </label>
         </div>
       </div>
 
@@ -252,6 +271,8 @@
 
     <div class="form-section">
       <div class="form-section-title">Wishlist</div>
+      <div class="context-summary hidden" id="w-context-summary"></div>
+      <div class="context-editor" id="w-context-editor">
     <div class="field flexible-date-field">
       <label>Date de sortie</label>
       <div class="date-mode" data-date-mode="w">
@@ -264,6 +285,7 @@
     </div>
 
     <div class="field"><label for="w-lien">Lien</label><input type="url" id="w-lien" placeholder="Bon plan, fiche du jeu…"></div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="w-delete-btn">Supprimer</button>
@@ -337,7 +359,6 @@
     <h2 id="modal-title">Ajouter un jeu</h2>
 
     <div class="form-section">
-      <div class="form-section-title">Le jeu</div>
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
       <div class="game-identity-editor" id="f-identity-editor">
       <div class="field">
@@ -345,15 +366,17 @@
         <input type="text" id="f-nom" placeholder="ex. Hollow Knight">
       </div>
       <input type="hidden" id="f-format" value="Physique">
-      <div class="field-row">
+      <div class="field-row identity-core-row">
         <div class="field">
           <label for="f-plateforme">Plateforme</label>
           <select id="f-plateforme"></select>
         </div>
         <div class="field" id="f-collector-field">
           <label>Édition</label>
-          <label class="digital-check-row control-height" for="f-collector">
-            <input type="checkbox" id="f-collector"><span>Collector</span>
+          <label class="identity-collector-control" for="f-collector">
+            <input type="checkbox" id="f-collector">
+            <span class="identity-collector-toggle-icon"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
+            <span>Collector</span>
           </label>
         </div>
         <div class="field" id="f-type-field">
@@ -373,11 +396,14 @@
 
     <div id="f-quick-hide-fields" class="form-section">
       <div class="form-section-title">Achat</div>
+      <div class="context-summary hidden" id="f-context-summary"></div>
+      <div class="context-editor" id="f-context-editor">
       <div class="field-row">
         <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div></div>
         <div class="field"><label for="f-date">Date d'achat</label><input type="date" id="f-date"></div>
       </div>
       <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, Steam…"></div>
+      </div>
     </div>
 
     <div class="modal-actions">
