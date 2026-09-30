@@ -23,29 +23,19 @@
       ],
       "headers": [
         {
-          "source": "**/*.js",
+          "source": "**",
           "headers": [
             {
               "key": "Cache-Control",
-              "value": "no-store, max-age=0"
-            }
-          ]
-        },
-        {
-          "source": "**/*.css",
-          "headers": [
+              "value": "no-store, max-age=0, must-revalidate"
+            },
             {
-              "key": "Cache-Control",
-              "value": "no-store, max-age=0"
-            }
-          ]
-        },
-        {
-          "source": "/index.html",
-          "headers": [
+              "key": "Pragma",
+              "value": "no-cache"
+            },
             {
-              "key": "Cache-Control",
-              "value": "no-store, max-age=0"
+              "key": "Expires",
+              "value": "0"
             }
           ]
         }
