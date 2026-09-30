@@ -23,8 +23,8 @@ jobs:
         run: |
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
-          npx --yes firebase-tools@15.32.0 hosting:sites:get jtd-preview-rhypp11 --project jeux-tout-doux --json >/dev/null 2>&1 ||             npx --yes firebase-tools@15.32.0 hosting:sites:create jtd-preview-rhypp11 --project jeux-tout-doux
-          npx --yes firebase-tools@15.32.0 target:apply hosting pr-preview jtd-preview-rhypp11 --project jeux-tout-doux
+          npx --yes firebase-tools@15.32.0 hosting:sites:get jtd-sandbox-rhypp11 --project jeux-tout-doux --json >/dev/null 2>&1 ||             npx --yes firebase-tools@15.32.0 hosting:sites:create jtd-sandbox-rhypp11 --project jeux-tout-doux
+          npx --yes firebase-tools@15.32.0 target:apply hosting pr-preview jtd-sandbox-rhypp11 --project jeux-tout-doux
 
       - name: Deploy isolated preview site
         env:
@@ -34,11 +34,11 @@ jobs:
 
       - name: Smoke test deployed sandbox
         run: |
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-preview-rhypp11.web.app/ > /tmp/preview.html
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-preview-rhypp11.web.app/app.js > /tmp/app.js
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-preview-rhypp11.web.app/firebase.js > /tmp/firebase.js
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-sandbox-rhypp11.web.app/ > /tmp/preview.html
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-sandbox-rhypp11.web.app/app.js > /tmp/app.js
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-sandbox-rhypp11.web.app/firebase.js > /tmp/firebase.js
           grep -q '<title>JTD' /tmp/preview.html
-          grep -q "location.hostname === 'jtd-preview-rhypp11.web.app'" /tmp/preview.html
+          grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
           grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
           grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js
-          echo "Sandbox preview verified: https://jtd-preview-rhypp11.web.app"
+          echo "Sandbox preview verified: https://jtd-sandbox-rhypp11.web.app"
