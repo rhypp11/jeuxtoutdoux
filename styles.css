@@ -4045,3 +4045,22 @@
 .card-purchase-edit{display:none!important;}
 .quick-purchase-modal{display:none!important;}
 @media(max-width:640px){.board-row{padding-left:14px;}}
+
+
+/* ---------- Collector = donnée d'identité du jeu ---------- */
+.identity-collector-toggle{
+  min-height:40px;
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;border-radius:9px;
+  background:rgba(255,255,255,.035);
+  color:var(--muted);cursor:pointer;
+  font:650 11.5px/1.2 'DM Sans',system-ui,sans-serif;
+}
+.identity-collector-toggle input{width:15px;height:15px;accent-color:var(--amber);}
+.identity-collector-toggle-icon{display:inline-flex;color:var(--amber);}
+.identity-collector-toggle-icon svg{width:14px;height:14px;}
+.identity-collector-toggle:has(input:checked){
+  background:rgba(255,194,14,.07);
+  color:var(--text);
+}
+.field-row:has(#f-plateforme){grid-template-columns:1.25fr .9fr;}
