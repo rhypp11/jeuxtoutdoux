@@ -1060,6 +1060,51 @@ function setLastUsed(key, value){
   try { localStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
+function identitySummaryHtml(item){
+  const name = item && item.nom ? item.nom : 'Jeu';
+  const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
+  const image = item && item.image ? item.image : null;
+  const color = getPlatformColor(platform);
+  const logo = getPlatformLogo(platform);
+  const thumb = image
+    ? `<img src="${image}" alt="" onerror="this.remove();this.parentElement.textContent='${platform.slice(0,2).toUpperCase()}';this.parentElement.style.background='${color}'">`
+    : platform.slice(0,2).toUpperCase();
+  const platformIcon = logo
+    ? `<img src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'identity-platform-dot\\' style=\\'background:${color}\\'></span>'">`
+    : `<span class="identity-platform-dot" style="background:${color}"></span>`;
+  return `
+    <div class="identity-thumb" style="${image ? '' : `background:${color}`}">${thumb}</div>
+    <div class="identity-copy">
+      <strong>${name}</strong>
+      <span>${platformIcon}${platform}</span>
+    </div>
+    <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
+    </button>
+  `;
+}
+
+function setIdentityEditor(prefix, item, compact){
+  const summary = document.getElementById(prefix+'-identity-summary');
+  const editor = document.getElementById(prefix+'-identity-editor');
+  if(!summary || !editor) return;
+
+  const showSummary = !!compact;
+  summary.classList.toggle('hidden', !showSummary);
+  editor.classList.toggle('hidden', showSummary);
+  if(item) summary.innerHTML = identitySummaryHtml(item);
+
+  const editBtn = summary.querySelector('.identity-edit-btn');
+  if(editBtn){
+    editBtn.addEventListener('click', () => {
+      summary.classList.add('hidden');
+      editor.classList.remove('hidden');
+      const nameInput = editor.querySelector('input[type="text"]');
+      if(nameInput) nameInput.focus();
+    }, {once:true});
+  }
+}
+
 function openModal(id){
   editingId = id || null;
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
@@ -1108,8 +1153,10 @@ function openModal(id){
     document.getElementById('f-image').value = '';
   }
   updateImagePreview();
+  const identityItem = editingId ? GAMES.find(x => x.id === editingId) : null;
+  setIdentityEditor('f', identityItem, !!editingId);
   document.getElementById('modal-overlay').classList.remove('hidden');
-  document.getElementById('f-nom').focus();
+  if(!editingId) document.getElementById('f-nom').focus();
 }
 
 function closeModal(){
@@ -1597,8 +1644,10 @@ function openArrivalModal(id){
     document.getElementById('a-image').value = '';
   }
   updateImagePreviewFor('a-image', 'a-image-preview');
+  const identityItem = editingArrivalId ? ARRIVALS.find(x => x.id === editingArrivalId) : null;
+  setIdentityEditor('a', identityItem, !!editingArrivalId);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
-  document.getElementById('a-nom').focus();
+  if(!editingArrivalId) document.getElementById('a-nom').focus();
 }
 
 function closeArrivalModal(){
@@ -1680,6 +1729,7 @@ function addArrivalToCollection(id){
   toggleFormatDependentFields('Physique');
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
+  setIdentityEditor('f', null, false);
   document.getElementById('modal-overlay').classList.remove('hidden');
   document.getElementById('f-nom').focus();
 }
@@ -1717,8 +1767,10 @@ function openWishlistModal(id){
     document.getElementById('w-prix').value = '';
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
+  const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
+  setIdentityEditor('w', identityItem, !!editingWishlistId);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
-  document.getElementById('w-nom').focus();
+  if(!editingWishlistId) document.getElementById('w-nom').focus();
 }
 
 function closeWishlistModal(){
@@ -1797,6 +1849,7 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-source').value = '';
   document.getElementById('a-image').value = item.image || '';
   updateImagePreviewFor('a-image', 'a-image-preview');
+  setIdentityEditor('a', null, false);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
   document.getElementById('a-nom').focus();
 }
@@ -1819,6 +1872,7 @@ function moveArrivalToWishlist(id){
   document.getElementById('w-image').value = item.image || '';
   document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   updateImagePreviewFor('w-image', 'w-image-preview');
+  setIdentityEditor('w', null, false);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
   document.getElementById('w-nom').focus();
 }
