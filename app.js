@@ -1,5 +1,4 @@
-const PREVIEW_HOSTS = new Set(['jtd-preview-rhypp11.web.app']);
-const IS_PREVIEW_MODE = PREVIEW_HOSTS.has(location.hostname) || (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
+const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true;
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
 const PREVIEW_SEED = {
   games: [
@@ -37,6 +36,7 @@ let PROFILE_NAME = '';
 let PROFILE_AVATAR = null;
 
 function loadProfile(){
+  if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; return; }
   try{
     const raw = localStorage.getItem(PROFILE_KEY);
     if(raw){
@@ -109,6 +109,7 @@ const PLATFORM_META_KEY = 'ludotheque:platform-meta-v1';
 let platformMeta = {}; // { [nom]: { color, logo } }
 
 function loadPlatformMeta(){
+  if(IS_PREVIEW_MODE){ platformMeta = {}; return; }
   try{
     const raw = localStorage.getItem(PLATFORM_META_KEY);
     platformMeta = raw ? JSON.parse(raw) : {};
@@ -199,6 +200,7 @@ const PLATFORM_ORDER_KEY = 'ludotheque:platform-order-v1';
 let platformOrder = [];
 
 function loadPlatformOrder(){
+  if(IS_PREVIEW_MODE){ platformOrder = []; return; }
   try{
     const raw = localStorage.getItem(PLATFORM_ORDER_KEY);
     platformOrder = raw ? JSON.parse(raw) : [];
@@ -237,7 +239,7 @@ function movePlatformOrder(name, direction){
 const PLATFORM_SORT_MODE_KEY = 'ludotheque:platform-sort-mode-v1';
 let platformSortMode = 'count'; // 'count' | 'custom'
 try{
-  const storedMode = localStorage.getItem(PLATFORM_SORT_MODE_KEY);
+  const storedMode = IS_PREVIEW_MODE ? null : localStorage.getItem(PLATFORM_SORT_MODE_KEY);
   if(storedMode === 'count' || storedMode === 'custom') platformSortMode = storedMode;
 }catch(e){ /* ignore */ }
 
