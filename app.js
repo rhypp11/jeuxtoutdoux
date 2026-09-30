@@ -1346,6 +1346,31 @@ function boardThumb(item){
   return `<div class="board-thumb">${fallback}</div>`;
 }
 
+function calendarDayHtml(date, opts = {}){
+  const raw = String(date || '').trim();
+  const exact = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(exact){
+    const d = new Date(Number(exact[1]), Number(exact[2]) - 1, Number(exact[3]));
+    const weekday = d.toLocaleDateString('fr-FR', {weekday:'short'}).replace('.', '');
+    return `<div class="calendar-day${opts.released ? ' released' : ''}">
+      <strong>${Number(exact[3])}</strong><span>${weekday}</span>
+    </div>`;
+  }
+  const parsed = parseWishlistDate(raw);
+  const label = parsed.label || '—';
+  return `<div class="calendar-day calendar-day-loose"><strong>${label}</strong></div>`;
+}
+
+function calendarGroupHtml(label, year, color, count, loose = false){
+  return `<div class="calendar-group-head${loose ? ' calendar-group-head-loose' : ''}"${color ? ` style="--calendar-accent:${color}"` : ''}>
+    <div class="calendar-group-title">
+      <strong>${label}</strong>
+      ${year ? `<span>${year}</span>` : ''}
+    </div>
+    <span class="calendar-group-count">${count}</span>
+  </div>`;
+}
+
 function arrivalRowHtml(item){
   const color = getPlatformColor(item.plateforme);
   const logo = getPlatformLogo(item.plateforme);
@@ -1361,7 +1386,7 @@ function arrivalRowHtml(item){
     : '';
   return `
     <div class="board-row" data-id="${item.id}" draggable="true" style="--spine:${color}">
-      <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
+      ${calendarDayHtml(item.date)}
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}<span>${item.nom}</span></div>
@@ -1402,23 +1427,29 @@ function renderArrivals(){
   const groupMap = new Map();
   sorted.forEach(item => {
     const rawDate = String(item.date || '');
-    const m = rawDate.match(/^(\d{4})-(\d{2})/);
-    const y = rawDate.match(/^(\d{4})$/);
-    const isTbd = rawDate.toUpperCase() === 'TBD';
-    const key = m ? `${m[1]}-${m[2]}` : y ? `year-${y[1]}` : isTbd ? 'tbd' : '__none__';
-    const label = m ? `${MONTH_NAMES_FULL[parseInt(m[2],10)-1]} ${m[1]}` : y ? y[1] : isTbd ? 'TBD' : 'Date à préciser';
-    const color = m ? MONTH_COLORS[parseInt(m[2],10)-1] : null;
+    const m = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const key = m ? `${m[1]}-${m[2]}` : '__none__';
+    const monthIndex = m ? parseInt(m[2], 10) - 1 : null;
+    const group = {
+      key,
+      label: m ? MONTH_NAMES_FULL[monthIndex] : 'Sans date',
+      year: m ? m[1] : '',
+      color: m ? MONTH_COLORS[monthIndex] : null,
+      loose: !m,
+      items: []
+    };
     if(!groupMap.has(key)){
-      const g = { key, label, color, items: [] };
-      groupMap.set(key, g);
-      groups.push(g);
+      groupMap.set(key, group);
+      groups.push(group);
     }
     groupMap.get(key).items.push(item);
   });
 
   container.innerHTML = groups.map(g => `
-    <div class="board-month-head${g.color ? ' month-accent' : ''}"${g.color ? ` style="--spine:${g.color}"` : ''}>${g.label} <span class="board-month-count">${g.items.length}</span></div>
-    ${g.items.map(arrivalRowHtml).join('')}
+    <section class="calendar-group${g.loose ? ' calendar-group-loose' : ''}">
+      ${calendarGroupHtml(g.label, g.year, g.color, g.items.length, g.loose)}
+      <div class="calendar-items">${g.items.map(arrivalRowHtml).join('')}</div>
+    </section>
   `).join('');
 
   container.querySelectorAll('.board-row').forEach(row => {
@@ -1543,16 +1574,15 @@ function wishlistGroupInfo(str){
     const mi = parseInt(m, 10) - 1;
     return { key:`month-${m}`, label:MONTH_NAMES_FULL[mi], color: MONTH_COLORS[mi], order:1 };
   }
-  if(parsed.priority === 2){
-    return { key:`year-${parsed.key}`, label:parsed.key, color:null, order:2 };
+  if(parsed.priority >= 2){
+    return { key:'__none__', label:'Sans date', color:null, order:2, loose:true };
   }
-  return { key:'__none__', label:'Date à préciser', color:null, order:3 };
+  return { key:'__none__', label:'Sans date', color:null, order:2, loose:true };
 }
 
 function wishlistIsReleased(str){
   const parsed = parseWishlistDate(str);
   if(parsed.priority === 0) return parsed.key <= new Date().toISOString().slice(0,10);
-  if(parsed.priority === 2) return parseInt(parsed.key, 10) < new Date().getFullYear();
   return false;
 }
 
@@ -1586,9 +1616,7 @@ function renderWishlist(){
     const linkHtml = item.lien
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
-    const dateHtml = released
-      ? `<div class="board-date board-date-released" title="Déjà sorti">–</div>`
-      : `<div class="board-date"${wishlistMonthColor(item.date) ? ` style="color:${wishlistMonthColor(item.date)}"` : ''}>${wishlistDayLabel(item.date)}</div>`;
+    const dateHtml = calendarDayHtml(item.date, {released});
     row.innerHTML = `
       ${dateHtml}
       ${boardThumb(item)}
@@ -1626,26 +1654,38 @@ function renderWishlist(){
   });
   const sortedReleased = [...released].sort((a,b) => parseWishlistDate(b.date).key.localeCompare(parseWishlistDate(a.date).key));
 
-  let lastGroupKey = null;
+  const pendingGroups = [];
+  const pendingMap = new Map();
   sortedPending.forEach(item => {
-    const group = wishlistGroupInfo(item.date);
-    if(group.key !== lastGroupKey){
-      lastGroupKey = group.key;
-      const head = document.createElement('div');
-      head.className = 'board-month-head' + (group.color ? ' month-accent' : '');
-      if(group.color) head.style.setProperty('--spine', group.color);
-      head.textContent = group.label;
-      container.appendChild(head);
+    const info = wishlistGroupInfo(item.date);
+    if(!pendingMap.has(info.key)){
+      const parsed = parseWishlistDate(item.date);
+      let year = '';
+      if(parsed.priority === 0) year = parsed.key.split('-')[0];
+      const group = {...info, year, items:[]};
+      pendingMap.set(info.key, group);
+      pendingGroups.push(group);
     }
-    container.appendChild(makeWishlistRow(item, false));
+    pendingMap.get(info.key).items.push(item);
+  });
+
+  pendingGroups.forEach(group => {
+    const section = document.createElement('section');
+    section.className = 'calendar-group' + (group.loose ? ' calendar-group-loose' : '');
+    const label = group.label.replace(/\s+\d{4}$/, '');
+    section.innerHTML = calendarGroupHtml(label, group.year, group.color, group.items.length, !!group.loose) + '<div class="calendar-items"></div>';
+    const itemsEl = section.querySelector('.calendar-items');
+    group.items.forEach(item => itemsEl.appendChild(makeWishlistRow(item, false)));
+    container.appendChild(section);
   });
 
   if(sortedReleased.length){
-    const head = document.createElement('div');
-    head.className = 'board-month-head';
-    head.textContent = 'Déjà sorti';
-    container.appendChild(head);
-    sortedReleased.forEach(item => container.appendChild(makeWishlistRow(item, true)));
+    const section = document.createElement('section');
+    section.className = 'calendar-group calendar-group-released';
+    section.innerHTML = calendarGroupHtml('Déjà sorti', '', null, sortedReleased.length, true) + '<div class="calendar-items"></div>';
+    const itemsEl = section.querySelector('.calendar-items');
+    sortedReleased.forEach(item => itemsEl.appendChild(makeWishlistRow(item, true)));
+    container.appendChild(section);
   }
 }
 
