@@ -2293,10 +2293,41 @@ document.getElementById('platform-modal-overlay').addEventListener('click', (e) 
 });
 
 document.getElementById('backup-btn').addEventListener('click', backupData);
-document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('restore-input').click());
-document.getElementById('restore-input').addEventListener('change', (e) => {
-  if(e.target.files && e.target.files[0]) restoreBackup(e.target.files[0]);
-  e.target.value = '';
+
+const restoreBtn = document.getElementById('restore-btn');
+const restoreInput = document.getElementById('restore-input');
+let restorePickerOpen = false;
+
+function closeRestorePickerGuard(){
+  window.setTimeout(() => {
+    restorePickerOpen = false;
+    restoreBtn.disabled = false;
+  }, 250);
+}
+
+restoreBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if(restorePickerOpen) return;
+
+  restorePickerOpen = true;
+  restoreBtn.disabled = true;
+  // On vide avant l'ouverture pour permettre de re-sélectionner le même fichier,
+  // sans toucher à l'input pendant la fermeture du sélecteur natif.
+  restoreInput.value = '';
+
+  const onWindowFocus = () => {
+    window.removeEventListener('focus', onWindowFocus);
+    closeRestorePickerGuard();
+  };
+  window.addEventListener('focus', onWindowFocus);
+  restoreInput.click();
+});
+
+restoreInput.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  closeRestorePickerGuard();
+  if(file) restoreBackup(file);
 });
 document.getElementById('share-btn').addEventListener('click', () => {
   if(window.JTDShare && typeof window.JTDShare.createOrCopy === 'function') window.JTDShare.createOrCopy();
