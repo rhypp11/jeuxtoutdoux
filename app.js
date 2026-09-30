@@ -1060,6 +1060,51 @@ function setLastUsed(key, value){
   try { localStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
+function identitySummaryHtml(item){
+  const name = item && item.nom ? item.nom : 'Jeu';
+  const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
+  const image = item && item.image ? item.image : null;
+  const color = getPlatformColor(platform);
+  const logo = getPlatformLogo(platform);
+  const thumb = image
+    ? `<img src="${image}" alt="" onerror="this.remove();this.parentElement.textContent='${platform.slice(0,2).toUpperCase()}';this.parentElement.style.background='${color}'">`
+    : platform.slice(0,2).toUpperCase();
+  const platformIcon = logo
+    ? `<img src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'identity-platform-dot\\' style=\\'background:${color}\\'></span>'">`
+    : `<span class="identity-platform-dot" style="background:${color}"></span>`;
+  return `
+    <div class="identity-thumb" style="${image ? '' : `background:${color}`}">${thumb}</div>
+    <div class="identity-copy">
+      <strong>${name}</strong>
+      <span>${platformIcon}${platform}</span>
+    </div>
+    <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
+    </button>
+  `;
+}
+
+function setIdentityEditor(prefix, item, compact){
+  const summary = document.getElementById(prefix+'-identity-summary');
+  const editor = document.getElementById(prefix+'-identity-editor');
+  if(!summary || !editor) return;
+
+  const showSummary = !!compact;
+  summary.classList.toggle('hidden', !showSummary);
+  editor.classList.toggle('hidden', showSummary);
+  if(item) summary.innerHTML = identitySummaryHtml(item);
+
+  const editBtn = summary.querySelector('.identity-edit-btn');
+  if(editBtn){
+    editBtn.addEventListener('click', () => {
+      summary.classList.add('hidden');
+      editor.classList.remove('hidden');
+      const nameInput = editor.querySelector('input[type="text"]');
+      if(nameInput) nameInput.focus();
+    }, {once:true});
+  }
+}
+
 function openModal(id){
   editingId = id || null;
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
@@ -1108,8 +1153,10 @@ function openModal(id){
     document.getElementById('f-image').value = '';
   }
   updateImagePreview();
+  const identityItem = editingId ? GAMES.find(x => x.id === editingId) : null;
+  setIdentityEditor('f', identityItem, !!editingId);
   document.getElementById('modal-overlay').classList.remove('hidden');
-  document.getElementById('f-nom').focus();
+  if(!editingId) document.getElementById('f-nom').focus();
 }
 
 function closeModal(){
@@ -1259,7 +1306,7 @@ function arrivalRowHtml(item){
     ? `<div class="arrival-purchase">${purchaseBits.join('<span class="arrival-meta-sep">·</span>')}</div>`
     : '';
   return `
-    <div class="board-row" data-id="${item.id}" style="--spine:${color}">
+    <div class="board-row" data-id="${item.id}" draggable="true" style="--spine:${color}">
       <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
@@ -1268,8 +1315,7 @@ function arrivalRowHtml(item){
       </div>
       ${purchaseHtml}
       <div class="arrival-actions">
-        <button class="icon-btn to-wishlist-btn" data-action="to-wishlist" title="Basculer vers la wishlist" aria-label="Basculer vers la wishlist">${ICON_STAR}</button>
-        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_PLUS}</button>
+        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_GAMEPAD}</button>
       </div>
     </div>`;
 }
@@ -1324,21 +1370,28 @@ function renderArrivals(){
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
     row.addEventListener('click', (e) => {
-      if(e.target.closest('[data-action="to-collection"], [data-action="to-wishlist"]')) return;
+      if(e.target.closest('[data-action="to-collection"]')) return;
       openArrivalModal(id);
     });
     row.querySelector('[data-action="to-collection"]').onclick = (e) => {
       e.stopPropagation();
       addArrivalToCollection(id);
     };
-    row.querySelector('[data-action="to-wishlist"]').onclick = (e) => {
-      e.stopPropagation();
-      moveArrivalToWishlist(id);
-    };
+    row.addEventListener('dragstart', () => {
+      homeDragArrivalId = id;
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      homeDragArrivalId = null;
+      const zone = document.querySelector('.board.wishlist');
+      if(zone) zone.classList.remove('drag-over');
+    });
   });
 }
 
 let homeDragWishlistId = null;
+let homeDragArrivalId = null;
 
 function wireArrivalsDropZone(){
   const zone = document.getElementById('arrivals-board');
@@ -1354,6 +1407,23 @@ function wireArrivalsDropZone(){
     zone.classList.remove('drag-over');
     if(homeDragWishlistId) moveWishlistToArrivals(homeDragWishlistId);
     homeDragWishlistId = null;
+  };
+}
+
+function wireWishlistDropZone(){
+  const zone = document.querySelector('.board.wishlist');
+  if(!zone) return;
+  zone.ondragover = (e) => {
+    if(!homeDragArrivalId) return;
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  };
+  zone.ondragleave = () => zone.classList.remove('drag-over');
+  zone.ondrop = (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if(homeDragArrivalId) moveArrivalToWishlist(homeDragArrivalId);
+    homeDragArrivalId = null;
   };
 }
 
@@ -1440,13 +1510,8 @@ function renderWishlist(){
   const countEl = document.getElementById('wishlist-count');
   if(countEl) countEl.textContent = WISHLIST.length;
 
-  const totalEl = document.getElementById('wishlist-total');
-  if(totalEl){
-    const total = WISHLIST.reduce((sum,w) => sum + (w.prix || 0), 0);
-    totalEl.textContent = total > 0 ? `≈ ${total.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimés` : '';
-  }
-
   renderHomeStats();
+  wireWishlistDropZone();
 
   if(WISHLIST.length === 0){
     container.innerHTML = `<div class="board-empty">La wishlist est vide pour l'instant.</div>`;
@@ -1581,7 +1646,7 @@ function openArrivalModal(id){
     toWishlistBtn.classList.remove('hidden');
     document.getElementById('a-nom').value = item.nom || '';
     setSelectValueAndSync('a-plateforme', item.plateforme || '');
-    setFlexibleDate('a', item.date);
+    document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
     document.getElementById('a-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
     document.getElementById('a-source').value = item.source || '';
     document.getElementById('a-image').value = item.image || '';
@@ -1591,14 +1656,16 @@ function openArrivalModal(id){
     toWishlistBtn.classList.add('hidden');
     document.getElementById('a-nom').value = '';
     document.getElementById('a-plateforme').value = '';
-    setFlexibleDate('a', '');
+    document.getElementById('a-date').value = '';
     document.getElementById('a-prix').value = '';
     document.getElementById('a-source').value = '';
     document.getElementById('a-image').value = '';
   }
   updateImagePreviewFor('a-image', 'a-image-preview');
+  const identityItem = editingArrivalId ? ARRIVALS.find(x => x.id === editingArrivalId) : null;
+  setIdentityEditor('a', identityItem, !!editingArrivalId);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
-  document.getElementById('a-nom').focus();
+  if(!editingArrivalId) document.getElementById('a-nom').focus();
 }
 
 function closeArrivalModal(){
@@ -1613,7 +1680,8 @@ function saveArrivalModal(){
   if(!nom){ document.getElementById('a-nom').focus(); return; }
   if(!plateforme){ document.getElementById('a-plateforme').focus(); return; }
 
-  const date = getFlexibleDate('a');
+  const date = document.getElementById('a-date').value || null;
+  if(!date){ document.getElementById('a-date').focus(); return; }
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
   const image = document.getElementById('a-image').value.trim() || null;
@@ -1680,8 +1748,8 @@ function addArrivalToCollection(id){
   toggleFormatDependentFields('Physique');
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
+  setIdentityEditor('f', item, true);
   document.getElementById('modal-overlay').classList.remove('hidden');
-  document.getElementById('f-nom').focus();
 }
 
 /* ----- Modal Wishlist ----- */
@@ -1704,7 +1772,6 @@ function openWishlistModal(id){
     setFlexibleDate('w', item.date);
     document.getElementById('w-lien').value = item.lien || '';
     document.getElementById('w-image').value = item.image || '';
-    document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   } else {
     title.textContent = 'Ajouter à la wishlist';
     deleteBtn.classList.add('hidden');
@@ -1714,11 +1781,12 @@ function openWishlistModal(id){
     setFlexibleDate('w', '');
     document.getElementById('w-lien').value = '';
     document.getElementById('w-image').value = '';
-    document.getElementById('w-prix').value = '';
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
+  const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
+  setIdentityEditor('w', identityItem, !!editingWishlistId);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
-  document.getElementById('w-nom').focus();
+  if(!editingWishlistId) document.getElementById('w-nom').focus();
 }
 
 function closeWishlistModal(){
@@ -1736,13 +1804,13 @@ function saveWishlistModal(){
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
   const image = document.getElementById('w-image').value.trim() || null;
-  const prix = parsePriceInput(document.getElementById('w-prix').value);
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, image, prix });
+    Object.assign(item, { nom, plateforme, date, lien, image });
+    delete item.prix;
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, prix });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image });
   }
 
   if(convertingArrivalToWishlistId){
@@ -1792,13 +1860,13 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-delete-btn').classList.add('hidden');
   document.getElementById('a-nom').value = item.nom || '';
   setSelectValueAndSync('a-plateforme', item.plateforme || '');
-  setFlexibleDate('a', item.date || '');
+  document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
   document.getElementById('a-prix').value = '';
   document.getElementById('a-source').value = '';
   document.getElementById('a-image').value = item.image || '';
   updateImagePreviewFor('a-image', 'a-image-preview');
+  setIdentityEditor('a', item, true);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
-  document.getElementById('a-nom').focus();
 }
 
 function moveArrivalToWishlist(id){
@@ -1817,10 +1885,9 @@ function moveArrivalToWishlist(id){
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
   document.getElementById('w-image').value = item.image || '';
-  document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   updateImagePreviewFor('w-image', 'w-image-preview');
+  setIdentityEditor('w', item, true);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
-  document.getElementById('w-nom').focus();
 }
 
 function updateImagePreviewFor(inputId, previewId){
