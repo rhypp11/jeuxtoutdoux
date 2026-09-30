@@ -1,5 +1,15 @@
 const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true;
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
+if(IS_PREVIEW_MODE){
+  document.documentElement.dataset.environment = 'sandbox';
+  window.addEventListener('DOMContentLoaded', () => {
+    const badge = document.createElement('div');
+    badge.id = 'sandbox-environment-badge';
+    badge.textContent = 'ENVIRONNEMENT TEST';
+    badge.style.cssText = 'position:fixed;z-index:99999;right:12px;bottom:12px;padding:7px 10px;border-radius:999px;background:#f5b942;color:#17130a;font:700 11px/1 system-ui,sans-serif;letter-spacing:.08em;box-shadow:0 4px 18px rgba(0,0,0,.35);pointer-events:none';
+    document.body.appendChild(badge);
+  });
+}
 const PREVIEW_SEED = {
   games: [
     {id:'test-p5r',nom:'Persona 5 Royal',plateforme:'PC',prix:59.99,format:'Numérique',collector:false,type:'Jeu simple',status:'termine',date:'2026-01-15',source:'Steam',image:null},
