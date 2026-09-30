@@ -44,6 +44,7 @@ function nameKeyOf(nom, plateforme){ return (nom||'').trim().toLowerCase() + '|'
 
 let PROFILE_NAME = '';
 let PROFILE_AVATAR = null;
+let SHARE_TOKEN = null;
 
 function loadProfile(){
   if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; return; }
@@ -433,157 +434,135 @@ async function saveGames(){
 }
 
 
-const LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
+const BACKUP_VERSION = 2;
+const LAST_BACKUP_KEY = 'ludotheque:last-backup-v2';
+const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
 
-function updateExportNote(){
-  const el = document.getElementById('export-note');
+function updateBackupNote(){
+  const el = document.getElementById('backup-note');
   if(!el) return;
-  const raw = localStorage.getItem(LAST_EXPORT_KEY);
+  const raw = localStorage.getItem(LAST_BACKUP_KEY) || localStorage.getItem(LEGACY_LAST_EXPORT_KEY);
   if(!raw){
-    el.textContent = 'Jamais exporté';
+    el.textContent = 'Aucune sauvegarde locale';
     return;
   }
   const d = new Date(raw);
-  el.textContent = 'Dernier export : ' + d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  el.textContent = 'Dernière : ' + d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 }
 
-async function loadArrivals(){
-  if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
-  try{
-    const raw = localStorage.getItem(ARRIVALS_KEY);
-    ARRIVALS = raw ? JSON.parse(raw) : [];
-  }catch(e){
-    console.error('Lecture des arrivages impossible', e);
-    ARRIVALS = [];
-  }
-}
-
-function saveArrivals(){
-  if(IS_PREVIEW_MODE) return;
-  try{
-    localStorage.setItem(ARRIVALS_KEY, JSON.stringify(ARRIVALS));
-  }catch(e){
-    console.error('Erreur de sauvegarde des arrivages', e);
-  }
-}
-
-async function loadWishlist(){
-  if(IS_PREVIEW_MODE){ WISHLIST = PREVIEW_SEED.wishlist.map(g => ({...g})); return; }
-  try{
-    const raw = localStorage.getItem(WISHLIST_KEY);
-    WISHLIST = raw ? JSON.parse(raw) : [];
-  }catch(e){
-    console.error('Lecture de la wishlist impossible', e);
-    WISHLIST = [];
-  }
-}
-
-function saveWishlist(){
-  if(IS_PREVIEW_MODE) return;
-  try{
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(WISHLIST));
-  }catch(e){
-    console.error('Erreur de sauvegarde de la wishlist', e);
-  }
-}
-
-function exportGames(){
-  const payload = {
-    games: GAMES,
-    arrivals: ARRIVALS,
-    wishlist: WISHLIST,
-    platformMeta: platformMeta,
-    platformOrder: platformOrder
+function buildBackupPayload(){
+  return {
+    app: 'Jeux Tout Doux',
+    version: BACKUP_VERSION,
+    createdAt: new Date().toISOString(),
+    data: {
+      games: GAMES,
+      arrivals: ARRIVALS,
+      wishlist: WISHLIST,
+      platformMeta,
+      platformOrder,
+      profile: { name: PROFILE_NAME, avatar: PROFILE_AVATAR }
+    }
   };
+}
+
+function downloadBackup(suffix){
+  const payload = buildBackupPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = 'ma-ludotheque-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = 'jeux-tout-doux-' + (suffix ? suffix + '-' : '') + date + '.json';
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  try{
-    localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString());
-  }catch(e){ /* ignore */ }
-  updateExportNote();
 }
 
-function mergeImportGames(file){
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try{
-      const parsed = JSON.parse(e.target.result);
-      const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.games) ? parsed.games : null);
-      if(!incoming) throw new Error('Format invalide');
+function backupData(){
+  downloadBackup('sauvegarde');
+  try{ localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){ /* ignore */ }
+  updateBackupNote();
+  showToast('Sauvegarde téléchargée.');
+}
 
-      const existingKeys = new Set(GAMES.map(g => nameKeyOf(g.nom, g.plateforme)));
-      let added = 0, skipped = 0;
-      incoming.forEach((g, i) => {
-        if(!g || !g.nom || !g.plateforme) return;
-        const key = nameKeyOf(g.nom, g.plateforme);
-        if(existingKeys.has(key)){ skipped++; return; }
-        existingKeys.add(key);
-        const incomingFormat = g.format === 'Collector' ? 'Physique' : (g.format || 'Physique');
-        GAMES.push({
-          id: 'imp-' + Date.now() + '-' + i,
-          nom: g.nom,
-          plateforme: g.plateforme,
-          date: g.date || null,
-          source: g.source || null,
-          prix: typeof g.prix === 'number' ? g.prix : null,
-          format: incomingFormat,
-          collector: g.collector === true || g.format === 'Collector',
-          type: incomingFormat === 'Numérique' ? migrateTypeValue(g.type) || 'Jeu simple' : null,
-          image: g.image || null,
-          status: g.status || null
-        });
-        added++;
-      });
+function cleanBackupData(parsed){
+  let data = null;
+  if(Array.isArray(parsed)){
+    data = { games: parsed, arrivals: [], wishlist: [], platformMeta: {}, platformOrder: [] };
+  } else if(parsed && parsed.app === 'Jeux Tout Doux' && parsed.data && typeof parsed.data === 'object'){
+    data = parsed.data;
+  } else if(parsed && typeof parsed === 'object' && Array.isArray(parsed.games)){
+    data = parsed;
+  }
+  if(!data || !Array.isArray(data.games)) throw new Error('Format de sauvegarde invalide');
 
-      saveGames();
-      buildPlatformList();
-      render();
-      alert(`${added} jeu(x) ajouté(s).` + (skipped ? ` ${skipped} déjà présent(s) dans ta collection ont été ignorés (même nom + plateforme).` : ''));
-    }catch(err){
-      alert("Ce fichier n'a pas pu être lu. Vérifie qu'il s'agit bien d'un JSON de jeux valide.");
-    }
+  const profile = data.profile && typeof data.profile === 'object' ? data.profile : null;
+  return {
+    games: data.games,
+    arrivals: Array.isArray(data.arrivals) ? data.arrivals : [],
+    wishlist: Array.isArray(data.wishlist) ? data.wishlist : [],
+    platformMeta: data.platformMeta && typeof data.platformMeta === 'object' && !Array.isArray(data.platformMeta) ? data.platformMeta : {},
+    platformOrder: Array.isArray(data.platformOrder) ? data.platformOrder : [],
+    profileName: profile && typeof profile.name === 'string'
+      ? profile.name
+      : (typeof data.profileName === 'string' ? data.profileName : PROFILE_NAME),
+    profileAvatar: profile && (typeof profile.avatar === 'string' || profile.avatar === null)
+      ? profile.avatar
+      : ((typeof data.profileAvatar === 'string' || data.profileAvatar === null) ? data.profileAvatar : PROFILE_AVATAR)
   };
-  reader.readAsText(file);
 }
 
-function importGames(file){
+function applyRestoredData(data){
+  GAMES = data.games;
+  ARRIVALS = data.arrivals;
+  WISHLIST = data.wishlist;
+  platformMeta = data.platformMeta;
+  platformOrder = data.platformOrder;
+  PROFILE_NAME = data.profileName;
+  PROFILE_AVATAR = data.profileAvatar;
+
+  migrateGameTypes();
+  saveGames();
+  saveArrivals();
+  saveWishlist();
+  savePlatformMeta();
+  savePlatformOrder();
+  saveProfile();
+
+  buildPlatformList();
+  buildFormatToggles();
+  buildTypeToggles();
+  buildStatusToggles();
+  render();
+  renderArrivals();
+  renderWishlist();
+  renderProfileAvatar();
+}
+
+function restoreBackup(file){
   const reader = new FileReader();
   reader.onload = (e) => {
     try{
-      const parsed = JSON.parse(e.target.result);
-      if(Array.isArray(parsed)){
-        // Ancien format : juste un tableau de jeux
-        GAMES = parsed;
-      } else if(parsed && typeof parsed === 'object'){
-        GAMES = Array.isArray(parsed.games) ? parsed.games : GAMES;
-        ARRIVALS = Array.isArray(parsed.arrivals) ? parsed.arrivals : ARRIVALS;
-        WISHLIST = Array.isArray(parsed.wishlist) ? parsed.wishlist : WISHLIST;
-        if(parsed.platformMeta && typeof parsed.platformMeta === 'object') platformMeta = parsed.platformMeta;
-        if(Array.isArray(parsed.platformOrder)) platformOrder = parsed.platformOrder;
-      } else {
-        throw new Error('Format invalide');
-      }
-      saveGames();
-      saveArrivals();
-      saveWishlist();
-      savePlatformMeta();
-      savePlatformOrder();
-        migrateGameTypes();
-      saveGames();
-      buildPlatformList();
-      render();
-      renderArrivals();
-      renderWishlist();
-      alert('Bibliothèque importée : ' + GAMES.length + ' jeux.');
+      const data = cleanBackupData(JSON.parse(e.target.result));
+      const summary = [
+        data.games.length + ' jeu(x)',
+        data.wishlist.length + ' souhait(s)',
+        data.arrivals.length + ' arrivage(s)'
+      ].join(' • ');
+      confirmAction(
+        'Cette restauration remplacera les données actuelles par : ' + summary + '. Une sauvegarde de sécurité sera téléchargée juste avant.',
+        () => {
+          downloadBackup('avant-restauration');
+          applyRestoredData(data);
+          showToast('Sauvegarde restaurée.');
+        },
+        { title:'Restaurer la sauvegarde ?', confirmLabel:'Restaurer' }
+      );
     }catch(err){
-      alert("Ce fichier n'a pas pu être lu comme une sauvegarde valide.");
+      console.error('Restauration impossible', err);
+      showToast("Ce fichier n'est pas une sauvegarde Jeux Tout Doux valide.");
     }
   };
   reader.readAsText(file);
@@ -2265,16 +2244,22 @@ document.getElementById('platform-modal-overlay').addEventListener('click', (e) 
   if(e.target.id === 'platform-modal-overlay') closePlatformModal();
 });
 
-document.getElementById('export-btn').addEventListener('click', exportGames);
-document.getElementById('import-btn').addEventListener('click', () => document.getElementById('import-input').click());
-document.getElementById('import-input').addEventListener('change', (e) => {
-  if(e.target.files && e.target.files[0]) importGames(e.target.files[0]);
+document.getElementById('backup-btn').addEventListener('click', backupData);
+document.getElementById('restore-btn').addEventListener('click', () => document.getElementById('restore-input').click());
+document.getElementById('restore-input').addEventListener('change', (e) => {
+  if(e.target.files && e.target.files[0]) restoreBackup(e.target.files[0]);
   e.target.value = '';
 });
-document.getElementById('import-merge-btn').addEventListener('click', () => document.getElementById('import-merge-input').click());
-document.getElementById('import-merge-input').addEventListener('change', (e) => {
-  if(e.target.files && e.target.files[0]) mergeImportGames(e.target.files[0]);
-  e.target.value = '';
+document.getElementById('share-btn').addEventListener('click', () => {
+  if(window.JTDShare && typeof window.JTDShare.createOrCopy === 'function') window.JTDShare.createOrCopy();
+});
+document.getElementById('share-disable-btn').addEventListener('click', () => {
+  if(!window.JTDShare || typeof window.JTDShare.disable !== 'function') return;
+  confirmAction(
+    'Le lien actuel cessera immédiatement de fonctionner.',
+    () => window.JTDShare.disable(),
+    { title:'Désactiver le partage ?', confirmLabel:'Désactiver' }
+  );
 });
 
 document.getElementById('profile-menu-btn').addEventListener('click', (e) => {
@@ -2470,5 +2455,5 @@ async function initApp(){
   render();
   renderArrivals();
   renderWishlist();
-  updateExportNote();
+  updateBackupNote();
 }
