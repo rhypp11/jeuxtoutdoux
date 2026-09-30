@@ -4026,3 +4026,22 @@
   .board-drag-handle{display:none;}
   .card-purchase-edit{opacity:.72;width:26px;height:26px;}
 }
+
+
+/* ---------- Ajustements ergonomie V3b ---------- */
+.form-section:has(.game-identity-summary),
+.form-section:has(.context-summary){
+  background:transparent;
+  padding:0;
+  border-radius:0;
+}
+.form-section:has(.game-identity-summary) + .form-section:has(.context-summary){margin-top:2px;}
+.identity-copy strong{display:flex;align-items:center;gap:6px;}
+.identity-copy strong>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.identity-collector{display:inline-flex;flex:0 0 auto;color:var(--amber);}
+.identity-collector svg{width:13px;height:13px;}
+.board-row{padding-left:18px;}
+.board-drag-handle{display:none!important;}
+.card-purchase-edit{display:none!important;}
+.quick-purchase-modal{display:none!important;}
+@media(max-width:640px){.board-row{padding-left:14px;}}
