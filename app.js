@@ -2510,7 +2510,8 @@ if(IS_PREVIEW_MODE){
       const loading = document.getElementById('auth-loading');
       if(loading){
         loading.classList.remove('auth-loading');
-        loading.innerHTML = '<div style="max-width:520px;padding:24px;text-align:center"><strong>Erreur de démarrage du sandbox</strong><p style="opacity:.7">Recharge la page ou ouvre la console pour le détail.</p></div>';
+        loading.textContent = 'Erreur de démarrage sandbox : ' + (err && err.stack ? err.stack : String(err));
+        loading.style.cssText += ';white-space:pre-wrap;padding:24px;overflow:auto;font:12px/1.5 monospace;';
       }
     });
 }
