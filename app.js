@@ -309,7 +309,6 @@ let editingWishlistId = null;
 let convertingWishlistId = null; // id de l'item wishlist en cours de bascule vers arrivage
 let convertingArrivalId = null; // id de l'arrivage en cours de bascule vers la collection
 let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascule vers la wishlist
-let quickEditingGameId = null;
 
 let state = {
   platform: null,
@@ -839,7 +838,7 @@ function renderCard(g){
   const purchaseBits = [];
   if(g.source) purchaseBits.push(`<span class="card-source" title="${g.source}">${g.source}</span>`);
   if(g.prix != null) purchaseBits.push(`<span class="card-price">${euros(g.prix)}</span>`);
-  const purchaseHtml = `<div class="card-purchase">${purchaseBits.join('')}<button type="button" class="card-purchase-edit" data-action="quick-purchase" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button></div>`;
+  const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('')}</div>` : '';
 
   card.innerHTML = `
     ${bannerHtml}
@@ -866,13 +865,6 @@ function renderCard(g){
       setStatus(g.id, btn.dataset.status);
     });
   });
-  const purchaseEdit = card.querySelector('[data-action="quick-purchase"]');
-  if(purchaseEdit){
-    purchaseEdit.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openQuickPurchaseModal(g.id);
-    });
-  }
   card.addEventListener('click', () => openModal(g.id));
   return card;
 }
@@ -1080,10 +1072,13 @@ function identitySummaryHtml(item){
   const platformIcon = logo
     ? `<img src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'identity-platform-dot\\' style=\\'background:${color}\\'></span>'">`
     : `<span class="identity-platform-dot" style="background:${color}"></span>`;
+  const collectorMark = item && item.collector
+    ? `<span class="identity-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
+    : '';
   return `
     <div class="identity-thumb" style="${image ? '' : `background:${color}`}">${thumb}</div>
     <div class="identity-copy">
-      <strong>${name}</strong>
+      <strong>${collectorMark}<span>${name}</span></strong>
       <span>${platformIcon}${platform}</span>
     </div>
     <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
@@ -1118,6 +1113,14 @@ function contextEditIcon(){
 }
 
 function contextSummaryHtml(item, type){
+  if(type === 'purchase'){
+    const bits = [
+      `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
+      `<span><small>Date d'achat</small><strong>${item.date ? dateFR(item.date) : '—'}</strong></span>`,
+      `<span><small>Source</small><strong>${item.source || '—'}</strong></span>`
+    ].join('');
+    return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
+  }
   if(type === 'arrival'){
     const bits = [
       `<span><small>Livraison</small><strong>${item.date ? dateFR(item.date) : '—'}</strong></span>`,
@@ -1152,35 +1155,6 @@ function setContextEditor(prefix, item, type, compact){
       if(first) first.focus();
     }, {once:true});
   }
-}
-
-function openQuickPurchaseModal(id){
-  const g = GAMES.find(x => x.id === id);
-  if(!g) return;
-  quickEditingGameId = id;
-  document.getElementById('quick-purchase-game').innerHTML = identitySummaryHtml(g).replace(/<button[\s\S]*?<\/button>/, '');
-  document.getElementById('q-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
-  document.getElementById('q-date').value = g.date || '';
-  document.getElementById('q-source').value = g.source || '';
-  document.getElementById('quick-purchase-overlay').classList.remove('hidden');
-  document.getElementById('q-prix').focus();
-}
-
-function closeQuickPurchaseModal(){
-  document.getElementById('quick-purchase-overlay').classList.add('hidden');
-  quickEditingGameId = null;
-}
-
-function saveQuickPurchase(){
-  const g = GAMES.find(x => x.id === quickEditingGameId);
-  if(!g) return closeQuickPurchaseModal();
-  g.prix = parsePriceInput(document.getElementById('q-prix').value);
-  g.date = document.getElementById('q-date').value || null;
-  g.source = document.getElementById('q-source').value.trim() || null;
-  saveGames();
-  closeQuickPurchaseModal();
-  render();
-  showToast(`Achat de « ${g.nom} » mis à jour`);
 }
 
 function openModal(id){
@@ -1223,7 +1197,7 @@ function openModal(id){
     }
     populateTypeSelect('f-type', lastFormat);
     setSelectValueAndSync('f-type', 'Jeu simple');
-    document.getElementById('f-collector').checked = false;
+    document.getElementById('f-collector').checked = !!item.collector;
     toggleFormatDependentFields(lastFormat);
     document.getElementById('f-prix').value = '';
     document.getElementById('f-date').value = '';
@@ -1233,6 +1207,7 @@ function openModal(id){
   updateImagePreview();
   const identityItem = editingId ? GAMES.find(x => x.id === editingId) : null;
   setIdentityEditor('f', identityItem, !!editingId);
+  setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.remove('hidden');
   if(!editingId) document.getElementById('f-nom').focus();
 }
@@ -1357,12 +1332,6 @@ const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
 
 
-function boardDragHandle(label){
-  return `<button type="button" class="board-drag-handle" draggable="true" title="${label}" aria-label="${label}">
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="7" r="1.25"></circle><circle cx="15" cy="7" r="1.25"></circle><circle cx="9" cy="12" r="1.25"></circle><circle cx="15" cy="12" r="1.25"></circle><circle cx="9" cy="17" r="1.25"></circle><circle cx="15" cy="17" r="1.25"></circle></svg>
-  </button>`;
-}
-
 function boardThumb(item){
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
   const logo = getPlatformLogo(item.plateforme);
@@ -1390,8 +1359,7 @@ function arrivalRowHtml(item){
     ? `<div class="arrival-purchase">${purchaseBits.join('<span class="arrival-meta-sep">·</span>')}</div>`
     : '';
   return `
-    <div class="board-row" data-id="${item.id}" style="--spine:${color}">
-      ${boardDragHandle('Glisser vers la wishlist')}
+    <div class="board-row" data-id="${item.id}" draggable="true" style="--spine:${color}">
       <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
@@ -1462,14 +1430,11 @@ function renderArrivals(){
       e.stopPropagation();
       addArrivalToCollection(id);
     };
-    const dragHandle = row.querySelector('.board-drag-handle');
-    dragHandle.addEventListener('click', (e) => e.stopPropagation());
-    dragHandle.addEventListener('dragstart', (e) => {
-      e.stopPropagation();
+    row.addEventListener('dragstart', () => {
       homeDragArrivalId = id;
       row.classList.add('dragging');
     });
-    dragHandle.addEventListener('dragend', () => {
+    row.addEventListener('dragend', () => {
       row.classList.remove('dragging');
       homeDragArrivalId = null;
       const zone = document.querySelector('.board.wishlist');
@@ -1615,7 +1580,8 @@ function renderWishlist(){
     const row = document.createElement('div');
     row.className = 'board-row';
     row.style.setProperty('--spine', color);
-    row.title = 'Clique pour modifier ou utilise la poignée pour déplacer';
+    row.draggable = true;
+    row.title = 'Glisse ce jeu vers les Arrivages pour le basculer';
     const linkHtml = item.lien
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
@@ -1623,7 +1589,6 @@ function renderWishlist(){
       ? `<div class="board-date board-date-released" title="Déjà sorti">–</div>`
       : `<div class="board-date"${wishlistMonthColor(item.date) ? ` style="color:${wishlistMonthColor(item.date)}"` : ''}>${wishlistDayLabel(item.date)}</div>`;
     row.innerHTML = `
-      ${boardDragHandle('Glisser vers les arrivages')}
       ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
@@ -1636,14 +1601,11 @@ function renderWishlist(){
       if(e.target.closest('.board-link')) return;
       openWishlistModal(item.id);
     });
-    const dragHandle = row.querySelector('.board-drag-handle');
-    dragHandle.addEventListener('click', (e) => e.stopPropagation());
-    dragHandle.addEventListener('dragstart', (e) => {
-      e.stopPropagation();
+    row.addEventListener('dragstart', () => {
       homeDragWishlistId = item.id;
       row.classList.add('dragging');
     });
-    dragHandle.addEventListener('dragend', () => {
+    row.addEventListener('dragend', () => {
       row.classList.remove('dragging');
       homeDragWishlistId = null;
       const zone = document.getElementById('arrivals-board');
@@ -1740,6 +1702,7 @@ function openArrivalModal(id){
     document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
     document.getElementById('a-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
     document.getElementById('a-source').value = item.source || '';
+    document.getElementById('a-collector').checked = !!item.collector;
     document.getElementById('a-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter un arrivage';
@@ -1750,6 +1713,7 @@ function openArrivalModal(id){
     document.getElementById('a-date').value = '';
     document.getElementById('a-prix').value = '';
     document.getElementById('a-source').value = '';
+    document.getElementById('a-collector').checked = false;
     document.getElementById('a-image').value = '';
   }
   updateImagePreviewFor('a-image', 'a-image-preview');
@@ -1776,13 +1740,14 @@ function saveArrivalModal(){
   if(!date){ document.getElementById('a-date').focus(); return; }
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
+  const collector = document.getElementById('a-collector').checked;
   const image = document.getElementById('a-image').value.trim() || null;
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
-    Object.assign(item, { nom, plateforme, date, prix, source, image });
+    Object.assign(item, { nom, plateforme, date, prix, source, collector, image });
   } else {
-    ARRIVALS.push({ id: 'arr-' + Date.now(), nom, plateforme, date, prix, source, image });
+    ARRIVALS.push({ id: 'arr-' + Date.now(), nom, plateforme, date, prix, source, collector, image });
   }
 
   if(convertingWishlistId){
@@ -1841,6 +1806,7 @@ function addArrivalToCollection(id){
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
   setIdentityEditor('f', item, true);
+  setContextEditor('f', item, 'purchase', false);
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
@@ -1903,7 +1869,7 @@ function saveWishlistModal(){
     Object.assign(item, { nom, plateforme, date, lien, image });
     delete item.prix;
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, collector: document.getElementById('w-image').dataset.transferCollector === 'true' });
   }
 
   if(convertingArrivalToWishlistId){
@@ -1916,6 +1882,7 @@ function saveWishlistModal(){
   ensurePlatformMeta(plateforme);
   savePlatformMeta();
   saveWishlist();
+  document.getElementById('w-image').dataset.transferCollector = '';
   closeWishlistModal();
   buildPlatformList();
   renderWishlist();
@@ -1956,6 +1923,7 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
   document.getElementById('a-prix').value = '';
   document.getElementById('a-source').value = '';
+  document.getElementById('a-collector').checked = !!item.collector;
   document.getElementById('a-image').value = item.image || '';
   updateImagePreviewFor('a-image', 'a-image-preview');
   setIdentityEditor('a', item, true);
@@ -1979,6 +1947,7 @@ function moveArrivalToWishlist(id){
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
   document.getElementById('w-image').value = item.image || '';
+  document.getElementById('w-image').dataset.transferCollector = item.collector ? 'true' : '';
   updateImagePreviewFor('w-image', 'w-image-preview');
   setIdentityEditor('w', item, true);
   setContextEditor('w', item, 'wishlist', false);
@@ -2304,12 +2273,6 @@ document.getElementById('profile-avatar-input').addEventListener('change', async
     console.error('Impossible de traiter cette image', err);
   }
   e.target.value = '';
-});
-
-document.getElementById('quick-purchase-cancel').addEventListener('click', closeQuickPurchaseModal);
-document.getElementById('quick-purchase-save').addEventListener('click', saveQuickPurchase);
-document.getElementById('quick-purchase-overlay').addEventListener('click', (e) => {
-  if(e.target.id === 'quick-purchase-overlay') closeQuickPurchaseModal();
 });
 
 document.getElementById('add-btn').addEventListener('click', () => openModal(null));
