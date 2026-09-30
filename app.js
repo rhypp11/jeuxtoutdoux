@@ -2465,3 +2465,52 @@ async function initApp(){
   renderWishlist();
   updateBackupNote();
 }
+
+/* ---------- Bootstrap totalement isolé de la preview ---------- */
+if(IS_PREVIEW_MODE){
+  window.JTDShare = {
+    async createOrCopy(){
+      const label = document.getElementById('share-label');
+      const note = document.getElementById('share-note');
+      const disableBtn = document.getElementById('share-disable-btn');
+      if(label) label.textContent = 'Copier le lien de partage';
+      if(note) note.textContent = 'Simulation sandbox • aucune donnée réelle publiée';
+      if(disableBtn) disableBtn.classList.remove('hidden');
+      try{ await navigator.clipboard.writeText('https://jtd-sandbox-rhypp11.web.app/?share-preview=sandbox'); }catch(e){}
+      showToast('Lien de partage test simulé. Aucune donnée réelle n’est publiée.');
+    },
+    disable(){
+      const label = document.getElementById('share-label');
+      const note = document.getElementById('share-note');
+      const disableBtn = document.getElementById('share-disable-btn');
+      if(label) label.textContent = 'Partager ma collection';
+      if(note) note.textContent = 'Crée un lien lecture seule à copier dans ChatGPT';
+      if(disableBtn) disableBtn.classList.add('hidden');
+      showToast('Partage test désactivé.');
+    }
+  };
+
+  initApp()
+    .then(() => {
+      const loading = document.getElementById('auth-loading');
+      const login = document.getElementById('login-gate');
+      const shell = document.getElementById('app-shell');
+      const logout = document.getElementById('logout-btn');
+      const divider = document.getElementById('profile-menu-divider');
+      const sync = document.getElementById('cloud-sync-status');
+      if(loading) loading.classList.add('hidden');
+      if(login) login.classList.add('hidden');
+      if(shell) shell.classList.remove('hidden');
+      if(logout) logout.classList.add('hidden');
+      if(divider) divider.classList.add('hidden');
+      if(sync) sync.classList.add('hidden');
+    })
+    .catch(err => {
+      console.error('Erreur de démarrage sandbox', err);
+      const loading = document.getElementById('auth-loading');
+      if(loading){
+        loading.classList.remove('auth-loading');
+        loading.innerHTML = '<div style="max-width:520px;padding:24px;text-align:center"><strong>Erreur de démarrage du sandbox</strong><p style="opacity:.7">Recharge la page ou ouvre la console pour le détail.</p></div>';
+      }
+    });
+}
