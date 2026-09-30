@@ -3339,6 +3339,107 @@
     }
   }
 
+
+  /* ---------- Mobile final : accueil pleine largeur + modales utilisables ---------- */
+  @media(max-width:900px){
+    .home-app{
+      display:block;
+      width:100%;
+    }
+    #home-sidebar{display:none;}
+    .home-main{
+      width:100%;
+      max-width:none;
+      min-width:0;
+      box-sizing:border-box;
+    }
+    #home-boards-switcher,
+    #home-boards,
+    #home-boards .board,
+    #home-boards .board-rows,
+    #home-boards .board-month-head,
+    #home-boards .board-row{
+      max-width:none;
+      box-sizing:border-box;
+    }
+    #home-boards-switcher,
+    #home-boards,
+    #home-boards .board,
+    #home-boards .board-rows,
+    #home-boards .board-month-head,
+    #home-boards .board-row{
+      width:100%;
+    }
+  }
+  @media(max-width:640px){
+    .modal-overlay{
+      align-items:flex-start;
+      overflow-y:auto;
+      padding:10px;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+    }
+    .modal-overlay > .modal{
+      width:100%;
+      max-width:none;
+      max-height:calc(100dvh - 20px);
+      margin:auto 0;
+      padding:18px 14px 14px;
+      gap:12px;
+      overflow-y:auto;
+      overflow-x:hidden;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      box-sizing:border-box;
+    }
+    .modal-overlay > .modal h2{
+      flex-shrink:0;
+      font-size:18px;
+    }
+    .modal-overlay > .modal .form-section{
+      padding:12px;
+      gap:10px;
+      flex-shrink:0;
+    }
+    .modal-overlay > .modal .field,
+    .modal-overlay > .modal .field-row,
+    .modal-overlay > .modal .image-url-row{
+      min-width:0;
+      width:100%;
+      box-sizing:border-box;
+    }
+    .modal-overlay > .modal input,
+    .modal-overlay > .modal select,
+    .modal-overlay > .modal textarea,
+    .modal-overlay > .modal .icon-select-wrap,
+    .modal-overlay > .modal .icon-select-trigger{
+      max-width:100%;
+      min-width:0;
+      box-sizing:border-box;
+    }
+    .modal-overlay > .modal .modal-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      width:100%;
+      min-height:0;
+      padding-top:4px;
+      flex-shrink:0;
+    }
+    .modal-overlay > .modal .modal-actions > div[style*="flex:1"]{display:none;}
+    .modal-overlay > .modal .modal-actions .btn{
+      width:100%;
+      min-width:0;
+      margin:0;
+    }
+    .modal-overlay > .modal .modal-actions .btn-danger{
+      grid-column:1 / -1;
+      order:3;
+    }
+    .modal-overlay > .modal .modal-actions .btn-ghost{order:1;}
+    .modal-overlay > .modal .modal-actions .btn-primary{order:2;}
+  }
+
 </style>
 </head>
 <body>
