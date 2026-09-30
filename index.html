@@ -155,7 +155,6 @@
         <div class="board-head">
           <div>
             <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>Wishlist <span class="board-count" id="wishlist-count">0</span></h2>
-            <span class="board-total-estimate" id="wishlist-total"></span>
           </div>
           <button class="board-add-btn" id="add-wishlist-btn">+ Ajouter</button>
         </div>
@@ -205,15 +204,9 @@
     <div class="form-section">
       <div class="form-section-title">Arrivage</div>
     <div class="field-row">
-      <div class="field flexible-date-field">
-        <label>Date prévue</label>
-        <div class="date-mode" data-date-mode="a">
-          <button type="button" class="date-mode-btn active" data-mode="date">Date</button>
-          <button type="button" class="date-mode-btn" data-mode="year">Année</button>
-          <button type="button" class="date-mode-btn" data-mode="tbd">TBD</button>
-        </div>
+      <div class="field">
+        <label for="a-date">Date prévue de livraison</label>
         <input type="date" id="a-date">
-        <input type="number" id="a-year" class="hidden" min="1970" max="2100" step="1" placeholder="2027">
       </div>
       <div class="field">
         <label for="a-prix">Prix (€)</label>
@@ -259,21 +252,15 @@
 
     <div class="form-section">
       <div class="form-section-title">Wishlist</div>
-    <div class="field-row">
-      <div class="field flexible-date-field">
-        <label>Date de sortie</label>
-        <div class="date-mode" data-date-mode="w">
-          <button type="button" class="date-mode-btn active" data-mode="date">Date</button>
-          <button type="button" class="date-mode-btn" data-mode="year">Année</button>
-          <button type="button" class="date-mode-btn" data-mode="tbd">TBD</button>
-        </div>
-        <input type="date" id="w-date">
-        <input type="number" id="w-year" class="hidden" min="1970" max="2100" step="1" placeholder="2027">
+    <div class="field flexible-date-field">
+      <label>Date de sortie</label>
+      <div class="date-mode" data-date-mode="w">
+        <button type="button" class="date-mode-btn active" data-mode="date">Date</button>
+        <button type="button" class="date-mode-btn" data-mode="year">Année</button>
+        <button type="button" class="date-mode-btn" data-mode="tbd">TBD</button>
       </div>
-      <div class="field">
-        <label for="w-prix">Prix estimé (€)</label>
-        <input type="text" id="w-prix" placeholder="ex. 59,99">
-      </div>
+      <input type="date" id="w-date">
+      <input type="number" id="w-year" class="hidden" min="1970" max="2100" step="1" placeholder="2027">
     </div>
 
     <div class="field"><label for="w-lien">Lien</label><input type="url" id="w-lien" placeholder="Bon plan, fiche du jeu…"></div>
