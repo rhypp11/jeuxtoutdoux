@@ -817,8 +817,8 @@ function renderCard(g){
       <div class="card-status-menu hidden">${statusMenu}</div>
     </div>`;
 
-  const collectorBadgeHtml = g.collector
-    ? `<div class="card-special-badge" title="Édition collector">${FORMAT_ICON_STAR}</div>`
+  const collectorTitleHtml = g.collector
+    ? `<span class="card-title-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
     : '';
 
   const bannerInner = g.image
@@ -828,7 +828,7 @@ function renderCard(g){
   const bannerHtml = `<div class="card-banner${g.image ? '' : ' placeholder'}">
       ${bannerInner}
       <span class="card-fallback${g.image ? ' hidden' : ''}">${g.plateforme.slice(0,2).toUpperCase()}</span>
-      <div class="card-badge-layer">${collectorBadgeHtml}${statusBadgeHtml}</div>
+      <div class="card-badge-layer">${statusBadgeHtml}</div>
     </div>`;
 
   const platformHtml = `${logo
@@ -838,12 +838,12 @@ function renderCard(g){
   const purchaseBits = [];
   if(g.source) purchaseBits.push(`<span class="card-source" title="${g.source}">${g.source}</span>`);
   if(g.prix != null) purchaseBits.push(`<span class="card-price">${euros(g.prix)}</span>`);
-  const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('<span class="card-meta-sep">·</span>')}</div>` : '';
+  const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('')}</div>` : '';
 
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
-      <div class="card-name" title="${g.nom}">${g.nom}</div>
+      <div class="card-name" title="${g.nom}">${collectorTitleHtml}<span class="card-name-text">${g.nom}</span></div>
       <div class="card-summary">
         <span class="card-platform">${platformHtml}</span>
         ${purchaseHtml}
