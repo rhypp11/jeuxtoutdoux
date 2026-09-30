@@ -4370,3 +4370,160 @@
   .home-summary-stat{padding:11px 12px;}
   .home-platform-bar-row{padding:9px 6px;}
 }
+
+
+/* ---------- Accueil : Wishlist / Arrivages en agenda ---------- */
+.board-rows{
+  padding:12px;
+  gap:12px;
+  background:color-mix(in srgb,var(--ink) 54%,var(--surface) 46%);
+}
+.calendar-group{
+  --calendar-accent:var(--muted);
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:12px;
+  background:rgba(255,255,255,.018);
+}
+.calendar-group-head{
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 13px 10px 16px;
+  border-left:4px solid var(--calendar-accent);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--calendar-accent) 12%,transparent),transparent 55%);
+}
+.calendar-group-title{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  min-width:0;
+}
+.calendar-group-title strong{
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:17px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.02em;
+  text-transform:capitalize;
+  color:color-mix(in srgb,var(--calendar-accent) 78%,white 22%);
+}
+.calendar-group-title span{
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+}
+.calendar-group-count{
+  min-width:25px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,.045);
+  text-align:center;
+  font:700 11px/1.2 'DM Sans',system-ui,sans-serif;
+  color:var(--muted);
+}
+.calendar-group-head-loose{
+  border-left-color:rgba(255,255,255,.14);
+  background:rgba(255,255,255,.025);
+}
+.calendar-group-head-loose .calendar-group-title strong{
+  color:var(--text);
+  font-size:14px;
+}
+.calendar-items{
+  display:flex;
+  flex-direction:column;
+  padding:0 10px 10px;
+}
+.calendar-items .board-row{
+  border-top:1px solid rgba(255,255,255,.05);
+  border-radius:9px;
+  background:transparent;
+}
+.calendar-items .board-row:first-child{border-top:0;}
+.calendar-items .board-row:hover{background:rgba(255,255,255,.035);}
+.calendar-day{
+  width:42px;height:42px;
+  border-radius:10px;
+  background:color-mix(in srgb,var(--calendar-accent,var(--spine)) 11%,rgba(255,255,255,.035));
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  color:var(--text);
+  text-align:center;
+}
+.calendar-day strong{
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:17px;
+  line-height:1;
+  font-weight:800;
+}
+.calendar-day span{
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:9px;
+  line-height:1;
+  font-weight:700;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.calendar-day-loose{
+  width:48px;
+  background:rgba(255,255,255,.035);
+}
+.calendar-day-loose strong{
+  max-width:42px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+  color:var(--muted);
+}
+.calendar-day.released{opacity:.55;}
+.board.arrivals .board-row,
+.board.wishlist .board-row{
+  grid-template-columns:48px 96px minmax(0,1fr) auto;
+  gap:11px;
+  padding:10px 8px;
+}
+.board.arrivals .board-row{grid-template-columns:48px 96px minmax(0,1fr) auto auto;}
+.board.arrivals .board-date,
+.board.wishlist .board-date,
+.board-month-head{display:none!important;}
+.board.arrivals .board-thumb,
+.board.wishlist .board-thumb{width:96px;height:54px;}
+.arrival-purchase{max-width:110px;}
+.board-link{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  width:fit-content;
+  max-width:95px;
+}
+.board-link svg{width:13px;height:13px;flex-shrink:0;}
+
+@media(max-width:640px){
+  .board-rows{padding:9px;gap:10px;}
+  .calendar-group-head{min-height:48px;padding:9px 11px 9px 13px;}
+  .calendar-group-title strong{font-size:16px;}
+  .calendar-items{padding:0 7px 7px;}
+  .board.arrivals .board-row,
+  .board.wishlist .board-row{
+    grid-template-columns:42px 72px minmax(0,1fr) auto;
+    gap:9px;
+    padding:9px 6px;
+  }
+  .board.arrivals .board-row{grid-template-columns:42px 72px minmax(0,1fr) auto;}
+  .calendar-day{width:38px;height:38px;border-radius:9px;}
+  .calendar-day strong{font-size:16px;}
+  .calendar-day-loose{width:40px;}
+  .board.arrivals .board-thumb,
+  .board.wishlist .board-thumb{width:72px;height:42px;}
+  .arrival-purchase{display:none;}
+  .board-link span{display:none;}
+  .board-link{max-width:none;}
+}
