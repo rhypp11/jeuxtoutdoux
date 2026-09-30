@@ -28,8 +28,13 @@ jobs:
         run: |
           npx --yes firebase-tools@15.32.0 deploy --only hosting:pr-preview --project jeux-tout-doux --non-interactive
 
-      - name: Smoke test deployed site
+      - name: Smoke test deployed sandbox
         run: |
           curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-preview-rhypp11.web.app/ > /tmp/preview.html
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-preview-rhypp11.web.app/app.js > /tmp/app.js
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 https://jtd-preview-rhypp11.web.app/firebase.js > /tmp/firebase.js
           grep -q '<title>JTD' /tmp/preview.html
-          echo "Preview reachable: https://jtd-preview-rhypp11.web.app"
+          grep -q "location.hostname === 'jtd-preview-rhypp11.web.app'" /tmp/preview.html
+          grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
+          grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js
+          echo "Sandbox preview verified: https://jtd-preview-rhypp11.web.app"
