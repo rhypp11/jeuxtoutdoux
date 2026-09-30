@@ -3765,3 +3765,143 @@
     .card-banner{width:104px!important;}
     .topnav-brand .brand-word{font-size:12px;}
   }
+
+
+/* ---------- Ergonomie V2 : hiérarchie des cartes ---------- */
+.card-name{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.card-name-text{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.card-title-collector{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  color:var(--amber);
+}
+.card-title-collector svg{width:14px;height:14px;}
+.card-purchase{gap:0;}
+.card-source{
+  max-width:88px;
+  opacity:.72;
+}
+.card-price{
+  margin-left:8px;
+  padding-left:8px;
+  border-left:1px solid rgba(255,255,255,.09);
+}
+@media(max-width:640px){
+  .card-title-collector svg{width:13px;height:13px;}
+  .card-source{display:inline;max-width:64px;}
+  .card-price{margin-left:6px;padding-left:6px;}
+}
+
+
+/* ---------- Gestion des plateformes V2 ---------- */
+.platform-modal{max-width:650px;padding:24px;gap:16px;}
+.platform-modal-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;}
+.platform-modal-heading h2{margin:0 0 5px;}
+.platform-modal-heading p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.45;}
+.platform-new-btn{
+  flex-shrink:0;border:1px solid rgba(99,197,181,.25);background:rgba(99,197,181,.08);
+  color:var(--teal);border-radius:9px;padding:8px 11px;cursor:pointer;
+  font-family:'DM Sans',system-ui,sans-serif;font-size:12px;font-weight:700;
+}
+.platform-new-btn:hover{background:rgba(99,197,181,.14);}
+.platform-modal .add-platform-row{
+  margin:0;padding:10px;background:rgba(255,255,255,.025);
+  border:1px solid var(--hairline);border-radius:10px;
+}
+.platform-modal .add-platform-row input{min-width:0;}
+.platform-modal .add-platform-row .add-platform-cancel{
+  color:var(--muted);background:transparent;border:0;padding:0 8px;
+}
+.platform-rows{gap:4px;}
+.platform-row{
+  display:block;padding:0;border:1px solid transparent;border-radius:11px;
+  transition:background .14s ease,border-color .14s ease;
+}
+.platform-row:last-child{border-bottom:1px solid transparent;}
+.platform-row:hover{background:rgba(255,255,255,.025);}
+.platform-row.editing{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.065);}
+.platform-row-main{min-height:58px;display:flex;align-items:center;gap:11px;padding:8px 9px;}
+.platform-row .swatch-preview{
+  width:40px;height:40px;border-radius:10px;font-size:10px;color:rgba(255,255,255,.65);
+}
+.platform-row .swatch-preview img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
+.platform-row-info{flex:1;min-width:0;display:flex;align-items:baseline;justify-content:space-between;gap:14px;}
+.platform-row-name{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:'DM Sans',system-ui,sans-serif;font-size:13.5px;font-weight:700;color:var(--text);
+}
+.platform-row .row-count{
+  flex-shrink:0;font-family:'DM Sans',system-ui,sans-serif;font-size:11.5px;color:var(--muted);
+}
+.platform-edit-btn{
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;opacity:.65;
+}
+.platform-edit-btn svg{width:16px;height:16px;}
+.platform-row:hover .platform-edit-btn,.platform-row.editing .platform-edit-btn{opacity:1;}
+.platform-edit-btn:hover{background:rgba(255,255,255,.055);color:var(--text);}
+.platform-row .row-order-btns{opacity:.28;transition:opacity .14s ease;}
+.platform-row:hover .row-order-btns,.platform-row.editing .row-order-btns{opacity:1;}
+.platform-row-editor{
+  margin:0 9px 9px 70px;padding:12px;
+  border-top:1px solid rgba(255,255,255,.06);
+  display:flex;flex-direction:column;gap:10px;
+}
+.platform-editor-topline{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;}
+.platform-editor-field{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.platform-editor-field>span{
+  color:var(--muted);font-family:'DM Sans',system-ui,sans-serif;
+  font-size:10.5px;font-weight:650;
+}
+.platform-editor-field small{font-size:10px;font-weight:500;opacity:.7;}
+.platform-row-editor input[type="text"]{
+  width:100%;background:var(--surface-raised);border:1px solid var(--hairline);
+  color:var(--text);padding:8px 10px;border-radius:8px;font-size:12.5px;outline:none;
+}
+.platform-row-editor input[type="text"]:focus{border-color:var(--teal);}
+.platform-editor-color input[type="color"]{
+  width:100%;height:35px;padding:3px;border-radius:8px;border:1px solid var(--hairline);
+  background:var(--surface-raised);cursor:pointer;
+}
+.platform-editor-actions{display:flex;align-items:center;gap:8px;padding-top:2px;}
+.platform-editor-spacer{flex:1;}
+.platform-delete-btn,.platform-cancel-btn,.platform-save-btn{
+  border:0;border-radius:8px;padding:7px 10px;cursor:pointer;
+  font-family:'DM Sans',system-ui,sans-serif;font-size:11.5px;font-weight:700;
+}
+.platform-delete-btn{background:transparent;color:var(--danger);padding-left:0;}
+.platform-delete-btn:hover{text-decoration:underline;}
+.platform-cancel-btn{background:transparent;color:var(--muted);}
+.platform-save-btn{background:var(--teal);color:var(--ink);}
+.platform-delete-hint{font-size:10.5px;color:color-mix(in srgb,var(--muted) 72%,transparent);}
+.platform-modal-actions{margin-top:2px;padding-top:12px;border-top:1px solid var(--hairline);}
+.platform-modal-note{font-size:10.5px;color:color-mix(in srgb,var(--muted) 70%,transparent);}
+
+@media(max-width:640px){
+  .platform-modal{padding:18px 16px 16px;max-height:92vh;}
+  .platform-modal-heading{align-items:center;gap:10px;}
+  .platform-modal-heading p{display:none;}
+  .platform-new-btn{padding:7px 9px;font-size:11px;}
+  .platform-row-main{padding:7px 5px;gap:9px;}
+  .platform-row .swatch-preview{width:38px;height:38px;}
+  .platform-row-info{display:block;}
+  .platform-row-name{display:block;font-size:13px;}
+  .platform-row .row-count{display:block;margin-top:2px;font-size:10.5px;}
+  .platform-row .row-order-btns{opacity:.55;}
+  .platform-row-editor{margin:0 5px 8px;padding:10px;}
+  .platform-editor-topline{grid-template-columns:minmax(0,1fr) 72px;}
+  .platform-modal .add-platform-row{flex-wrap:wrap;}
+  .platform-modal .add-platform-row input{flex-basis:100%;}
+  .platform-modal-note{display:none;}
+}
