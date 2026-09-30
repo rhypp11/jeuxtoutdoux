@@ -55,4 +55,11 @@ jobs:
           grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
           grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
           grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js
+          google-chrome --headless --disable-gpu --no-sandbox --virtual-time-budget=5000 --dump-dom https://jtd-sandbox-rhypp11.web.app/ > /tmp/rendered.html 2> /tmp/chrome.log
+          grep -q 'id="auth-loading" class="auth-loading hidden"' /tmp/rendered.html || {
+            echo "Rendered sandbox did not leave loading state"
+            cat /tmp/chrome.log
+            grep -n "auth-loading" /tmp/rendered.html || true
+            exit 1
+          }
           echo "Sandbox preview verified: https://jtd-sandbox-rhypp11.web.app"
