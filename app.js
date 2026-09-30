@@ -309,6 +309,7 @@ let editingWishlistId = null;
 let convertingWishlistId = null; // id de l'item wishlist en cours de bascule vers arrivage
 let convertingArrivalId = null; // id de l'arrivage en cours de bascule vers la collection
 let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascule vers la wishlist
+let quickEditingGameId = null;
 
 let state = {
   platform: null,
@@ -838,7 +839,7 @@ function renderCard(g){
   const purchaseBits = [];
   if(g.source) purchaseBits.push(`<span class="card-source" title="${g.source}">${g.source}</span>`);
   if(g.prix != null) purchaseBits.push(`<span class="card-price">${euros(g.prix)}</span>`);
-  const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('')}</div>` : '';
+  const purchaseHtml = `<div class="card-purchase">${purchaseBits.join('')}<button type="button" class="card-purchase-edit" data-action="quick-purchase" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button></div>`;
 
   card.innerHTML = `
     ${bannerHtml}
@@ -865,6 +866,13 @@ function renderCard(g){
       setStatus(g.id, btn.dataset.status);
     });
   });
+  const purchaseEdit = card.querySelector('[data-action="quick-purchase"]');
+  if(purchaseEdit){
+    purchaseEdit.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openQuickPurchaseModal(g.id);
+    });
+  }
   card.addEventListener('click', () => openModal(g.id));
   return card;
 }
@@ -1105,6 +1113,76 @@ function setIdentityEditor(prefix, item, compact){
   }
 }
 
+function contextEditIcon(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>`;
+}
+
+function contextSummaryHtml(item, type){
+  if(type === 'arrival'){
+    const bits = [
+      `<span><small>Livraison</small><strong>${item.date ? dateFR(item.date) : '—'}</strong></span>`,
+      `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
+      `<span><small>Source</small><strong>${item.source || '—'}</strong></span>`
+    ].join('');
+    return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'arrivage" aria-label="Modifier l'arrivage">${contextEditIcon()}</button>`;
+  }
+  const parsed = parseWishlistDate(item.date);
+  const dateLabel = parsed && parsed.label ? parsed.label : '—';
+  const linkLabel = item.lien ? 'Lien renseigné' : 'Aucun lien';
+  return `<div class="context-summary-values">
+    <span><small>Sortie</small><strong>${dateLabel}</strong></span>
+    <span><small>Lien</small><strong>${linkLabel}</strong></span>
+  </div><button type="button" class="context-edit-btn" title="Modifier la wishlist" aria-label="Modifier la wishlist">${contextEditIcon()}</button>`;
+}
+
+function setContextEditor(prefix, item, type, compact){
+  const summary = document.getElementById(prefix+'-context-summary');
+  const editor = document.getElementById(prefix+'-context-editor');
+  if(!summary || !editor) return;
+  const showSummary = !!compact;
+  summary.classList.toggle('hidden', !showSummary);
+  editor.classList.toggle('hidden', showSummary);
+  if(item) summary.innerHTML = contextSummaryHtml(item, type);
+  const btn = summary.querySelector('.context-edit-btn');
+  if(btn){
+    btn.addEventListener('click', () => {
+      summary.classList.add('hidden');
+      editor.classList.remove('hidden');
+      const first = editor.querySelector('input,select,button');
+      if(first) first.focus();
+    }, {once:true});
+  }
+}
+
+function openQuickPurchaseModal(id){
+  const g = GAMES.find(x => x.id === id);
+  if(!g) return;
+  quickEditingGameId = id;
+  document.getElementById('quick-purchase-game').innerHTML = identitySummaryHtml(g).replace(/<button[\s\S]*?<\/button>/, '');
+  document.getElementById('q-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
+  document.getElementById('q-date').value = g.date || '';
+  document.getElementById('q-source').value = g.source || '';
+  document.getElementById('quick-purchase-overlay').classList.remove('hidden');
+  document.getElementById('q-prix').focus();
+}
+
+function closeQuickPurchaseModal(){
+  document.getElementById('quick-purchase-overlay').classList.add('hidden');
+  quickEditingGameId = null;
+}
+
+function saveQuickPurchase(){
+  const g = GAMES.find(x => x.id === quickEditingGameId);
+  if(!g) return closeQuickPurchaseModal();
+  g.prix = parsePriceInput(document.getElementById('q-prix').value);
+  g.date = document.getElementById('q-date').value || null;
+  g.source = document.getElementById('q-source').value.trim() || null;
+  saveGames();
+  closeQuickPurchaseModal();
+  render();
+  showToast(`Achat de « ${g.nom} » mis à jour`);
+}
+
 function openModal(id){
   editingId = id || null;
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
@@ -1279,6 +1357,12 @@ const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
 
 
+function boardDragHandle(label){
+  return `<button type="button" class="board-drag-handle" draggable="true" title="${label}" aria-label="${label}">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="7" r="1.25"></circle><circle cx="15" cy="7" r="1.25"></circle><circle cx="9" cy="12" r="1.25"></circle><circle cx="15" cy="12" r="1.25"></circle><circle cx="9" cy="17" r="1.25"></circle><circle cx="15" cy="17" r="1.25"></circle></svg>
+  </button>`;
+}
+
 function boardThumb(item){
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
   const logo = getPlatformLogo(item.plateforme);
@@ -1306,7 +1390,8 @@ function arrivalRowHtml(item){
     ? `<div class="arrival-purchase">${purchaseBits.join('<span class="arrival-meta-sep">·</span>')}</div>`
     : '';
   return `
-    <div class="board-row" data-id="${item.id}" draggable="true" style="--spine:${color}">
+    <div class="board-row" data-id="${item.id}" style="--spine:${color}">
+      ${boardDragHandle('Glisser vers la wishlist')}
       <div class="board-date" style="color:${monthColor || 'var(--muted)'}">${dateD(item.date)}</div>
       ${boardThumb(item)}
       <div class="board-info">
@@ -1377,11 +1462,14 @@ function renderArrivals(){
       e.stopPropagation();
       addArrivalToCollection(id);
     };
-    row.addEventListener('dragstart', () => {
+    const dragHandle = row.querySelector('.board-drag-handle');
+    dragHandle.addEventListener('click', (e) => e.stopPropagation());
+    dragHandle.addEventListener('dragstart', (e) => {
+      e.stopPropagation();
       homeDragArrivalId = id;
       row.classList.add('dragging');
     });
-    row.addEventListener('dragend', () => {
+    dragHandle.addEventListener('dragend', () => {
       row.classList.remove('dragging');
       homeDragArrivalId = null;
       const zone = document.querySelector('.board.wishlist');
@@ -1527,8 +1615,7 @@ function renderWishlist(){
     const row = document.createElement('div');
     row.className = 'board-row';
     row.style.setProperty('--spine', color);
-    row.draggable = true;
-    row.title = 'Glisse ce jeu vers les Arrivages pour le basculer';
+    row.title = 'Clique pour modifier ou utilise la poignée pour déplacer';
     const linkHtml = item.lien
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : `<span class="board-link" style="color:var(--muted);">—</span>`;
@@ -1536,6 +1623,7 @@ function renderWishlist(){
       ? `<div class="board-date board-date-released" title="Déjà sorti">–</div>`
       : `<div class="board-date"${wishlistMonthColor(item.date) ? ` style="color:${wishlistMonthColor(item.date)}"` : ''}>${wishlistDayLabel(item.date)}</div>`;
     row.innerHTML = `
+      ${boardDragHandle('Glisser vers les arrivages')}
       ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
@@ -1548,11 +1636,14 @@ function renderWishlist(){
       if(e.target.closest('.board-link')) return;
       openWishlistModal(item.id);
     });
-    row.addEventListener('dragstart', () => {
+    const dragHandle = row.querySelector('.board-drag-handle');
+    dragHandle.addEventListener('click', (e) => e.stopPropagation());
+    dragHandle.addEventListener('dragstart', (e) => {
+      e.stopPropagation();
       homeDragWishlistId = item.id;
       row.classList.add('dragging');
     });
-    row.addEventListener('dragend', () => {
+    dragHandle.addEventListener('dragend', () => {
       row.classList.remove('dragging');
       homeDragWishlistId = null;
       const zone = document.getElementById('arrivals-board');
@@ -1664,6 +1755,7 @@ function openArrivalModal(id){
   updateImagePreviewFor('a-image', 'a-image-preview');
   const identityItem = editingArrivalId ? ARRIVALS.find(x => x.id === editingArrivalId) : null;
   setIdentityEditor('a', identityItem, !!editingArrivalId);
+  setContextEditor('a', identityItem, 'arrival', !!editingArrivalId);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
   if(!editingArrivalId) document.getElementById('a-nom').focus();
 }
@@ -1785,6 +1877,7 @@ function openWishlistModal(id){
   updateImagePreviewFor('w-image', 'w-image-preview');
   const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
   setIdentityEditor('w', identityItem, !!editingWishlistId);
+  setContextEditor('w', identityItem, 'wishlist', !!editingWishlistId);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
   if(!editingWishlistId) document.getElementById('w-nom').focus();
 }
@@ -1866,6 +1959,7 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-image').value = item.image || '';
   updateImagePreviewFor('a-image', 'a-image-preview');
   setIdentityEditor('a', item, true);
+  setContextEditor('a', item, 'arrival', false);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
 }
 
@@ -1887,6 +1981,7 @@ function moveArrivalToWishlist(id){
   document.getElementById('w-image').value = item.image || '';
   updateImagePreviewFor('w-image', 'w-image-preview');
   setIdentityEditor('w', item, true);
+  setContextEditor('w', item, 'wishlist', false);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
 }
 
@@ -2209,6 +2304,12 @@ document.getElementById('profile-avatar-input').addEventListener('change', async
     console.error('Impossible de traiter cette image', err);
   }
   e.target.value = '';
+});
+
+document.getElementById('quick-purchase-cancel').addEventListener('click', closeQuickPurchaseModal);
+document.getElementById('quick-purchase-save').addEventListener('click', saveQuickPurchase);
+document.getElementById('quick-purchase-overlay').addEventListener('click', (e) => {
+  if(e.target.id === 'quick-purchase-overlay') closeQuickPurchaseModal();
 });
 
 document.getElementById('add-btn').addEventListener('click', () => openModal(null));
