@@ -1510,12 +1510,6 @@ function renderWishlist(){
   const countEl = document.getElementById('wishlist-count');
   if(countEl) countEl.textContent = WISHLIST.length;
 
-  const totalEl = document.getElementById('wishlist-total');
-  if(totalEl){
-    const total = WISHLIST.reduce((sum,w) => sum + (w.prix || 0), 0);
-    totalEl.textContent = total > 0 ? `≈ ${total.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimés` : '';
-  }
-
   renderHomeStats();
   wireWishlistDropZone();
 
@@ -1652,7 +1646,7 @@ function openArrivalModal(id){
     toWishlistBtn.classList.remove('hidden');
     document.getElementById('a-nom').value = item.nom || '';
     setSelectValueAndSync('a-plateforme', item.plateforme || '');
-    setFlexibleDate('a', item.date);
+    document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
     document.getElementById('a-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
     document.getElementById('a-source').value = item.source || '';
     document.getElementById('a-image').value = item.image || '';
@@ -1662,7 +1656,7 @@ function openArrivalModal(id){
     toWishlistBtn.classList.add('hidden');
     document.getElementById('a-nom').value = '';
     document.getElementById('a-plateforme').value = '';
-    setFlexibleDate('a', '');
+    document.getElementById('a-date').value = '';
     document.getElementById('a-prix').value = '';
     document.getElementById('a-source').value = '';
     document.getElementById('a-image').value = '';
@@ -1686,7 +1680,8 @@ function saveArrivalModal(){
   if(!nom){ document.getElementById('a-nom').focus(); return; }
   if(!plateforme){ document.getElementById('a-plateforme').focus(); return; }
 
-  const date = getFlexibleDate('a');
+  const date = document.getElementById('a-date').value || null;
+  if(!date){ document.getElementById('a-date').focus(); return; }
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
   const image = document.getElementById('a-image').value.trim() || null;
@@ -1777,7 +1772,6 @@ function openWishlistModal(id){
     setFlexibleDate('w', item.date);
     document.getElementById('w-lien').value = item.lien || '';
     document.getElementById('w-image').value = item.image || '';
-    document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   } else {
     title.textContent = 'Ajouter à la wishlist';
     deleteBtn.classList.add('hidden');
@@ -1787,7 +1781,6 @@ function openWishlistModal(id){
     setFlexibleDate('w', '');
     document.getElementById('w-lien').value = '';
     document.getElementById('w-image').value = '';
-    document.getElementById('w-prix').value = '';
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
   const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
@@ -1811,13 +1804,13 @@ function saveWishlistModal(){
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
   const image = document.getElementById('w-image').value.trim() || null;
-  const prix = parsePriceInput(document.getElementById('w-prix').value);
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, image, prix });
+    Object.assign(item, { nom, plateforme, date, lien, image });
+    delete item.prix;
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image, prix });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, image });
   }
 
   if(convertingArrivalToWishlistId){
@@ -1867,7 +1860,7 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-delete-btn').classList.add('hidden');
   document.getElementById('a-nom').value = item.nom || '';
   setSelectValueAndSync('a-plateforme', item.plateforme || '');
-  setFlexibleDate('a', item.date || '');
+  document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
   document.getElementById('a-prix').value = '';
   document.getElementById('a-source').value = '';
   document.getElementById('a-image').value = item.image || '';
@@ -1892,7 +1885,6 @@ function moveArrivalToWishlist(id){
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
   document.getElementById('w-image').value = item.image || '';
-  document.getElementById('w-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   updateImagePreviewFor('w-image', 'w-image-preview');
   setIdentityEditor('w', item, true);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
