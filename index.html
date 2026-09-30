@@ -3287,6 +3287,36 @@
     .board.arrivals .board-thumb{width:82px;height:46px;}
   }
 
+
+  /* ---------- Mobile : un seul board plein écran ---------- */
+  @media(max-width:900px){
+    #home-boards{
+      display:block;
+      width:100%;
+      min-width:0;
+    }
+    #home-boards.show-wishlist .board.wishlist{
+      display:flex;
+      width:100%;
+      min-width:0;
+    }
+    #home-boards.show-wishlist .board.arrivals{display:none;}
+    #home-boards.show-arrivals .board.arrivals{
+      display:flex;
+      width:100%;
+      min-width:0;
+    }
+    #home-boards.show-arrivals .board.wishlist{display:none;}
+    #home-boards .board{
+      max-width:none;
+      box-sizing:border-box;
+    }
+    #home-boards .board-rows{
+      width:100%;
+      min-width:0;
+    }
+  }
+
 </style>
 </head>
 <body>
