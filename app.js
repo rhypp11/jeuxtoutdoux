@@ -434,6 +434,46 @@ async function saveGames(){
 }
 
 
+async function loadArrivals(){
+  if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
+  try{
+    const raw = localStorage.getItem(ARRIVALS_KEY);
+    ARRIVALS = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Lecture des arrivages impossible', e);
+    ARRIVALS = [];
+  }
+}
+
+function saveArrivals(){
+  if(IS_PREVIEW_MODE) return;
+  try{
+    localStorage.setItem(ARRIVALS_KEY, JSON.stringify(ARRIVALS));
+  }catch(e){
+    console.error('Erreur de sauvegarde des arrivages', e);
+  }
+}
+
+async function loadWishlist(){
+  if(IS_PREVIEW_MODE){ WISHLIST = PREVIEW_SEED.wishlist.map(g => ({...g})); return; }
+  try{
+    const raw = localStorage.getItem(WISHLIST_KEY);
+    WISHLIST = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Lecture de la wishlist impossible', e);
+    WISHLIST = [];
+  }
+}
+
+function saveWishlist(){
+  if(IS_PREVIEW_MODE) return;
+  try{
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(WISHLIST));
+  }catch(e){
+    console.error('Erreur de sauvegarde de la wishlist', e);
+  }
+}
+
 const BACKUP_VERSION = 2;
 const LAST_BACKUP_KEY = 'ludotheque:last-backup-v2';
 const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
