@@ -1,4 +1,5 @@
-const IS_PREVIEW_MODE = location.hostname.includes('--') && location.hostname.endsWith('.web.app');
+const PREVIEW_HOSTS = new Set(['jtd-preview-rhypp11.web.app']);
+const IS_PREVIEW_MODE = PREVIEW_HOSTS.has(location.hostname) || (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
 const PREVIEW_SEED = {
   games: [
