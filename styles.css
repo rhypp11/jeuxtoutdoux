@@ -5086,11 +5086,27 @@
 
 
 /* Édition japonaise : repère commun aux cartes et aux fiches. */
-.japanese-edition-mark{
-  display:inline-flex;
+/* Drapeau dessiné : rendu identique sur Windows et mobile. */
+.japanese-flag{
+  display:inline-block;
+  position:relative;
   flex:0 0 auto;
-  align-items:center;
-  font-size:13px;
-  line-height:1;
+  width:18px;
+  height:12px;
+  background:#fff;
+  border-radius:0;
+  box-shadow:0 0 0 1px rgba(0,0,0,.16);
+  vertical-align:-1px;
+}
+.japanese-flag::after{
+  content:"";
+  position:absolute;
+  width:7px;
+  height:7px;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:#bc002d;
 }
 .identity-collector-control + .identity-collector-control{margin-top:6px;}

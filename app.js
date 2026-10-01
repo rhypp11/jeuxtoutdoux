@@ -688,7 +688,7 @@ function buildFormatToggles(){
   const japaneseChip = document.createElement('div');
   japaneseChip.className = 'toggle-chip' + (state.japanese ? ' active' : '');
   japaneseChip.tabIndex = 0;
-  japaneseChip.innerHTML = '<span class="toggle-chip-label"><span aria-hidden="true">🇯🇵</span><span>Japonais</span></span>';
+  japaneseChip.innerHTML = '<span class="toggle-chip-label"><span class="japanese-flag" aria-hidden="true"></span><span>Japonais</span></span>';
   japaneseChip.onclick = () => { state.japanese = !state.japanese; buildFormatToggles(); render(); };
   container.appendChild(japaneseChip);
 }
@@ -910,7 +910,7 @@ function renderResultsBar(count){
   const filters = [];
   if(state.platform) filters.push(state.platform);
   if(state.collector) filters.push('⭐ Collector');
-  if(state.japanese) filters.push('🇯🇵 Japonais');
+  if(state.japanese) filters.push('<span class="japanese-flag" aria-hidden="true"></span> Japonais');
   if(state.type) filters.push((TYPE_META[state.type] || {}).label || state.type);
   if(state.status){
     const s = STATUS_OPTIONS.find(x => x.key === state.status);
@@ -975,7 +975,7 @@ function getPlatformOptionIconHtml(name){
 
 function japaneseEditionMark(item){
   return item && item.japanese
-    ? '<span class="japanese-edition-mark" title="Édition japonaise" aria-label="Édition japonaise">🇯🇵</span>'
+    ? '<span class="japanese-edition-mark japanese-flag" title="Édition japonaise" aria-label="Édition japonaise"></span>'
     : '';
 }
 
