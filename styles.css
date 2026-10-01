@@ -4543,6 +4543,20 @@
   color:var(--muted);
 }
 .calendar-day.released{opacity:.55;}
+.wishlist-release-date{
+  flex-shrink:0;
+  font-size:10px;
+  font-weight:400;
+  opacity:.65;
+}
+#home-boards .board.wishlist .wishlist-row-released{
+  grid-template-columns:96px minmax(0,1fr) auto;
+}
+#home-boards .wishlist-row-released .board-plat{
+  flex-wrap:wrap;
+  overflow:visible;
+  gap:3px 6px;
+}
 .board.arrivals .board-row,
 .board.wishlist .board-row{
   grid-template-columns:48px 96px minmax(0,1fr) auto;
@@ -4894,6 +4908,12 @@
   #home-boards .arrival-actions{
     display:none!important;
   }
+  #home-boards .board.wishlist .wishlist-row-released{
+    grid-template-columns:82px minmax(0,1fr) auto!important;
+  }
+  #home-boards .wishlist-row-released .board-thumb{grid-column:1!important;}
+  #home-boards .wishlist-row-released .board-info{grid-column:2!important;}
+  #home-boards .wishlist-row-released .board-link{grid-column:3!important;}
 }
 
 
