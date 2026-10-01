@@ -13,7 +13,7 @@ if(IS_PREVIEW_MODE){
 const PREVIEW_SEED = {
   games: [
     {id:'test-p5r',nom:'Persona 5 Royal',plateforme:'PC',prix:59.99,format:'Numérique',collector:false,type:'Jeu simple',status:'termine',date:'2026-01-15',source:'Steam',image:null},
-    {id:'test-fe',nom:'Fire Emblem — Test',plateforme:'Switch 2',prix:59.99,format:'Physique',collector:false,type:null,status:'a_jouer',date:'2026-09-17',source:'Test',image:null},
+    {id:'test-fe',japanese:true,nom:'Fire Emblem — Test',plateforme:'Switch 2',prix:59.99,format:'Physique',collector:false,type:null,status:'a_jouer',date:'2026-09-17',source:'Test',image:null},
     {id:'test-party',nom:'Jeu Multi — Test',plateforme:'Switch 2',prix:39.99,format:'Physique',collector:false,type:null,status:'multi',date:'2026-05-01',source:'Test',image:null},
     {id:'test-elsewhere',nom:'Terminé ailleurs — Test',plateforme:'PlayStation 5',prix:24.99,format:'Physique',collector:true,type:null,status:'termine_ailleurs',date:'2025-12-01',source:'Test',image:null}
   ],
@@ -316,6 +316,7 @@ let state = {
   format: null,
   type: null,
   collector: false,
+  japanese: false,
   status: null,
   search: "",
   sort: "name-asc"
@@ -684,6 +685,12 @@ function buildFormatToggles(){
   collectorChip.innerHTML = `<span class="toggle-chip-label">${FORMAT_ICON_STAR}<span>Collector</span></span>`;
   collectorChip.onclick = () => { state.collector = !state.collector; buildFormatToggles(); render(); };
   container.appendChild(collectorChip);
+  const japaneseChip = document.createElement('div');
+  japaneseChip.className = 'toggle-chip' + (state.japanese ? ' active' : '');
+  japaneseChip.tabIndex = 0;
+  japaneseChip.innerHTML = '<span class="toggle-chip-label"><span aria-hidden="true">🇯🇵</span><span>Japonais</span></span>';
+  japaneseChip.onclick = () => { state.japanese = !state.japanese; buildFormatToggles(); render(); };
+  container.appendChild(japaneseChip);
 }
 
 function buildTypeToggles(){
@@ -740,6 +747,7 @@ function filteredGames(){
       if(state.platform && g.plateforme !== state.platform) return false;
       if(state.format && g.format !== state.format) return false;
       if(state.collector && !g.collector) return false;
+      if(state.japanese && !g.japanese) return false;
       if(state.type && (g.type || 'Jeu simple') !== state.type) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
       if(state.status){
@@ -869,7 +877,7 @@ function renderCard(g){
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
-      <div class="card-name" title="${g.nom}">${collectorTitleHtml}<span class="card-name-text">${g.nom}</span></div>
+      <div class="card-name" title="${g.nom}">${collectorTitleHtml}${japaneseEditionMark(g)}<span class="card-name-text">${g.nom}</span></div>
       <div class="card-summary">
         <span class="card-platform">${platformHtml}</span>
         ${purchaseHtml}
@@ -902,6 +910,7 @@ function renderResultsBar(count){
   const filters = [];
   if(state.platform) filters.push(state.platform);
   if(state.collector) filters.push('⭐ Collector');
+  if(state.japanese) filters.push('🇯🇵 Japonais');
   if(state.type) filters.push((TYPE_META[state.type] || {}).label || state.type);
   if(state.status){
     const s = STATUS_OPTIONS.find(x => x.key === state.status);
@@ -962,6 +971,12 @@ function getPlatformOptionIconHtml(name){
   return logo
     ? `<img class="icon-select-icon" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'icon-select-dot\\' style=\\'background:${color}\\'></span>'">`
     : `<span class="icon-select-dot" style="background:${color}"></span>`;
+}
+
+function japaneseEditionMark(item){
+  return item && item.japanese
+    ? '<span class="japanese-edition-mark" title="Édition japonaise" aria-label="Édition japonaise">🇯🇵</span>'
+    : '';
 }
 
 const FORMAT_ICON_STAR = `<svg class="format-icon star-icon icon-select-icon-svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" title="Collector"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
@@ -1104,7 +1119,7 @@ function identitySummaryHtml(item){
   return `
     <div class="identity-thumb" style="${image ? '' : `background:${color}`}">${thumb}</div>
     <div class="identity-copy">
-      <strong>${collectorMark}<span>${name}</span></strong>
+      <strong>${collectorMark}${japaneseEditionMark(item)}<span>${name}</span></strong>
       <span>${platformIcon}${platform}</span>
     </div>
     <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
@@ -1203,6 +1218,7 @@ function openModal(id){
     populateTypeSelect('f-type', lockedFormat);
     setSelectValueAndSync('f-type', g.type || 'Jeu simple');
     document.getElementById('f-collector').checked = !!g.collector;
+  document.getElementById('f-japanese').checked = !!g.japanese;
     toggleFormatDependentFields(lockedFormat);
     document.getElementById('f-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
     document.getElementById('f-date').value = g.date || '';
@@ -1224,6 +1240,7 @@ function openModal(id){
     populateTypeSelect('f-type', lastFormat);
     setSelectValueAndSync('f-type', 'Jeu simple');
     document.getElementById('f-collector').checked = false;
+  document.getElementById('f-japanese').checked = false;
     toggleFormatDependentFields(lastFormat);
     document.getElementById('f-prix').value = '';
     document.getElementById('f-date').value = '';
@@ -1266,16 +1283,17 @@ function saveModal(){
   const source = document.getElementById('f-source').value.trim() || null;
   const format = document.getElementById('f-format').value;
   const collector = document.getElementById('f-collector').checked;
+  const japanese = document.getElementById('f-japanese').checked;
   const type = format === 'Numérique' ? document.getElementById('f-type').value : null;
   const image = document.getElementById('f-image').value.trim() || null;
 
   if(editingId){
     const g = GAMES.find(x => x.id === editingId);
-    Object.assign(g, { nom, plateforme, prix, date, source, format, collector, type, image });
+    Object.assign(g, { nom, plateforme, prix, date, source, format, collector, japanese, type, image });
   } else {
     GAMES.push({
       id: 'custom-' + Date.now(),
-      nom, plateforme, prix, date, source, format, collector, type, image,
+      nom, plateforme, prix, date, source, format, collector, japanese, type, image,
       status:null
     });
   }
@@ -1414,7 +1432,7 @@ function arrivalRowHtml(item){
       ${calendarDayHtml(item.date)}
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}<span>${item.nom}</span></div>
+        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${item.nom}</span></div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
       ${purchaseHtml}
@@ -1646,7 +1664,7 @@ function renderWishlist(){
       ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}<span>${item.nom}</span></div>
+        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${item.nom}</span></div>
         <div class="board-plat">${platIconHtml}${item.plateforme}</div>
       </div>
       ${linkHtml}
@@ -1769,6 +1787,7 @@ function openArrivalModal(id){
     document.getElementById('a-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
     document.getElementById('a-source').value = item.source || '';
     document.getElementById('a-collector').checked = !!item.collector;
+  document.getElementById('a-japanese').checked = !!item.japanese;
     document.getElementById('a-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter un arrivage';
@@ -1780,6 +1799,7 @@ function openArrivalModal(id){
     document.getElementById('a-prix').value = '';
     document.getElementById('a-source').value = '';
     document.getElementById('a-collector').checked = false;
+  document.getElementById('a-japanese').checked = false;
     document.getElementById('a-image').value = '';
   }
   updateImagePreviewFor('a-image', 'a-image-preview');
@@ -1807,13 +1827,14 @@ function saveArrivalModal(){
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
   const collector = document.getElementById('a-collector').checked;
+  const japanese = document.getElementById('a-japanese').checked;
   const image = document.getElementById('a-image').value.trim() || null;
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
-    Object.assign(item, { nom, plateforme, date, prix, source, collector, image });
+    Object.assign(item, { nom, plateforme, date, prix, source, collector, japanese, image });
   } else {
-    ARRIVALS.push({ id: 'arr-' + Date.now(), nom, plateforme, date, prix, source, collector, image });
+    ARRIVALS.push({ id: 'arr-' + Date.now(), nom, plateforme, date, prix, source, collector, japanese, image });
   }
 
   if(convertingWishlistId){
@@ -1868,6 +1889,7 @@ function addArrivalToCollection(id){
   populateTypeSelect('f-type', 'Physique');
   setSelectValueAndSync('f-type', 'Jeu simple');
   document.getElementById('f-collector').checked = !!item.collector;
+  document.getElementById('f-japanese').checked = !!item.japanese;
   toggleFormatDependentFields('Physique');
   document.getElementById('f-image').value = item.image || '';
   updateImagePreview();
@@ -1896,6 +1918,7 @@ function openWishlistModal(id){
     setFlexibleDate('w', item.date);
     document.getElementById('w-lien').value = item.lien || '';
     document.getElementById('w-collector').checked = !!item.collector;
+  document.getElementById('w-japanese').checked = !!item.japanese;
     document.getElementById('w-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter à la wishlist';
@@ -1906,6 +1929,7 @@ function openWishlistModal(id){
     setFlexibleDate('w', '');
     document.getElementById('w-lien').value = '';
     document.getElementById('w-collector').checked = false;
+  document.getElementById('w-japanese').checked = false;
     document.getElementById('w-image').value = '';
   }
   updateImagePreviewFor('w-image', 'w-image-preview');
@@ -1931,14 +1955,15 @@ function saveWishlistModal(){
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
   const collector = document.getElementById('w-collector').checked;
+  const japanese = document.getElementById('w-japanese').checked;
   const image = document.getElementById('w-image').value.trim() || null;
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, collector, image });
+    Object.assign(item, { nom, plateforme, date, lien, collector, japanese, image });
     delete item.prix;
   } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, collector, image });
+    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, collector, japanese, image });
   }
 
   if(convertingArrivalToWishlistId){
@@ -1992,6 +2017,7 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-prix').value = '';
   document.getElementById('a-source').value = '';
   document.getElementById('a-collector').checked = !!item.collector;
+  document.getElementById('a-japanese').checked = !!item.japanese;
   document.getElementById('a-image').value = item.image || '';
   updateImagePreviewFor('a-image', 'a-image-preview');
   setIdentityEditor('a', item, true);
@@ -2015,6 +2041,7 @@ function moveArrivalToWishlist(id){
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
   document.getElementById('w-collector').checked = !!item.collector;
+  document.getElementById('w-japanese').checked = !!item.japanese;
   document.getElementById('w-image').value = item.image || '';
   updateImagePreviewFor('w-image', 'w-image-preview');
   setIdentityEditor('w', item, true);
@@ -2384,7 +2411,7 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   const keepFormat = state.format;
-  state = { platform:null, format:keepFormat, type:null, collector:false, status:null, search:"", sort:"name-asc" };
+  state = { platform:null, format:keepFormat, type:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
@@ -2412,6 +2439,7 @@ function goToPage(page, format){
       state.format = fmt;
       state.platform = null;
       state.collector = false;
+      state.japanese = false;
       state.type = null;
     }
     applyCollectionSupportUI(fmt);
@@ -2560,3 +2588,4 @@ if(IS_PREVIEW_MODE){
       }
     });
 }
+

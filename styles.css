@@ -5083,3 +5083,14 @@
     height:16px;
   }
 }
+
+
+/* Édition japonaise : repère commun aux cartes et aux fiches. */
+.japanese-edition-mark{
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  font-size:13px;
+  line-height:1;
+}
+.identity-collector-control + .identity-collector-control{margin-top:6px;}
