@@ -600,9 +600,8 @@ function restoreBackup(file){
         data.arrivals.length + ' arrivage(s)'
       ].join(' • ');
       confirmAction(
-        'Cette restauration remplacera les données actuelles par : ' + summary + '. Une sauvegarde de sécurité sera téléchargée juste avant.',
+        'Cette restauration remplacera les données actuelles par : ' + summary + '.',
         () => {
-          downloadBackup('avant-restauration');
           applyRestoredData(data);
           showToast('Sauvegarde restaurée.');
         },
