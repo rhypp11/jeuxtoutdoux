@@ -19,13 +19,15 @@ jobs:
 
       - name: Validate JavaScript syntax
         run: |
+          node --check jtd-data.js
           node --check app.js
           node --check firebase.js
-          if [ -f theme.js ]; then node --check theme.js; fi
+          node --check theme.js
+          node --test tests/data.test.cjs
 
       - name: Check themes on desktop and mobile in local sandbox
         run: |
-          npm install --prefix "$RUNNER_TEMP/jtd-browser" --no-package-lock playwright
+          npm install --prefix "$RUNNER_TEMP/jtd-browser" --no-package-lock playwright@1.58.2
           python3 -m http.server 8765 > "$RUNNER_TEMP/theme-server.log" 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID"' EXIT
@@ -38,6 +40,11 @@ jobs:
           name: jtd-theme-screenshots
           path: /tmp/jtd-*.png
           retention-days: 7
+
+      - name: Test sandbox data flows on mobile and desktop
+        run: |
+          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/browser.cjs
+
 
       - uses: actions/setup-java@v4
         with:
@@ -101,3 +108,4 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.url }}
         run: echo "Sandbox preview (7 days) — $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+

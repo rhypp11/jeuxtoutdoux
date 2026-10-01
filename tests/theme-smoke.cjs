@@ -17,6 +17,34 @@ const fs=require('fs');
    if(theme==='dark')await page.click('#theme-toggle');
    for(const name of ['home','collection']){
     await page.click(`[data-page="${name}"]`);
+    if(name === 'collection') {
+      const ratios = await page.evaluate(() => {
+        const parent = document.querySelector('.card');
+        const group = document.createElement('div');
+        group.className = 'card-identity'; parent.appendChild(group);
+        const ctx = document.createElement('canvas').getContext('2d');
+        function luminance(color) {
+          ctx.clearRect(0,0,1,1); ctx.fillStyle = color; ctx.fillRect(0,0,1,1);
+          const rgb = ctx.getImageData(0,0,1,1).data;
+          const linear = Array.from(rgb).slice(0,3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
+          return linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722;
+        }
+        const result = [];
+        for(const status of ['todo','multi','done','elsewhere']) {
+          const badge = document.createElement('button'); badge.className = 'card-status-badge';
+          badge.style.setProperty('--status-color', `var(--status-${status})`); badge.textContent = status; group.appendChild(badge);
+          for(const state of ['normal','hover']) {
+            if(state === 'hover') badge.style.background = 'color-mix(in srgb,var(--status-color) 18%,var(--surface))';
+            const css = getComputedStyle(badge), a = luminance(css.color), b = luminance(css.backgroundColor);
+            result.push({status,state,ratio:(Math.max(a,b) + .05)/(Math.min(a,b) + .05)});
+          }
+          badge.remove();
+        }
+        group.remove(); return result;
+      });
+      if(ratios.some(tag => tag.ratio < 4.5)) throw Error(JSON.stringify({theme,width,ratios}));
+      console.log(JSON.stringify({theme,width,tagContrast:ratios}));
+    }
     await page.screenshot({path:`/tmp/jtd-${width}-${theme}-${name}.png`,fullPage:true});
     const state=await page.evaluate(()=>({theme:document.documentElement.dataset.theme,overflow:document.documentElement.scrollWidth>innerWidth,body:getComputedStyle(document.body).backgroundColor,button:document.getElementById('theme-toggle').getBoundingClientRect().toJSON(),profile:document.getElementById('profile-menu-btn').getBoundingClientRect().toJSON(),brand:document.querySelector('.brand-word').getBoundingClientRect().toJSON()}));
     if(state.overflow||state.theme!==theme||state.brand.right>state.button.x||state.profile.right>width)throw Error(JSON.stringify({width,name,state}));

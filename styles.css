@@ -13,10 +13,11 @@
   --accent:#BB6248;
   --hairline:#DDD3C5;
   --danger:#B63845;
-  --status-todo:#966526;
-  --status-done:#507345;
+  --status-todo:#805211;
+  --status-done:#35582D;
   --status-progress:#416F9C;
-  --status-multi:#7554A0;
+  --status-elsewhere:#325D84;
+  --status-multi:#594082;
   --status-cyan:#327C7C;
   --status-salmon:#A14F38;
   --ui-rgb:41,39,35;
@@ -39,10 +40,11 @@
   --accent:#B1A2D5;
   --hairline:#3B4259;
   --danger:#EA9199;
-  --status-todo:#D9BA7C;
-  --status-done:#A2BE95;
+  --status-todo:#E5C48B;
+  --status-done:#B4D4A3;
   --status-progress:#91B5D5;
-  --status-multi:#B1A2D5;
+  --status-elsewhere:#A8C9EA;
+  --status-multi:#CAB7F0;
   --status-cyan:#92C5C1;
   --status-salmon:#D4A189;
   --ui-rgb:240,236,231;
@@ -3847,7 +3849,8 @@
   padding:4px 7px;
   gap:5px;
   border-radius:7px;
-  background:color-mix(in srgb,var(--status-color) 10%,transparent);
+  background:color-mix(in srgb,var(--status-color) 10%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--status-color) 20%,var(--surface));
   box-shadow:none;
   backdrop-filter:none;
   font-size:10px;
@@ -3856,7 +3859,7 @@
 }
 .card-identity .card-status-badge:hover{
   transform:none;
-  background:color-mix(in srgb,var(--status-color) 18%,transparent);
+  background:color-mix(in srgb,var(--status-color) 18%,var(--surface));
 }
 .card-identity .card-status-badge .card-status-label{display:inline;}
 .card-identity .card-status-badge:focus-visible{
