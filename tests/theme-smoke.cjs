@@ -32,9 +32,11 @@ const fs=require('fs');
         const result = [];
         for(const status of ['todo','multi','done','elsewhere']) {
           const badge = document.createElement('button'); badge.className = 'card-status-badge';
-          badge.style.setProperty('--status-color', `var(--status-${status})`); badge.textContent = status; group.appendChild(badge);
+          badge.style.setProperty('--status-color', `var(--status-${status})`);
+          badge.style.setProperty('--status-fill', `var(--status-${status}-fill)`);
+          badge.style.transition = 'none'; badge.textContent = status; group.appendChild(badge);
           for(const state of ['normal','hover']) {
-            if(state === 'hover') badge.style.background = 'color-mix(in srgb,var(--status-color) 18%,var(--surface))';
+            if(state === 'hover') badge.style.background = 'color-mix(in srgb,var(--status-fill) 36%,var(--surface))';
             const css = getComputedStyle(badge), a = luminance(css.color), b = luminance(css.backgroundColor);
             result.push({status,state,ratio:(Math.max(a,b) + .05)/(Math.min(a,b) + .05)});
           }
