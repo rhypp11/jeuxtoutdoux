@@ -3797,6 +3797,65 @@
   padding-left:8px;
   border-left:1px solid rgba(255,255,255,.09);
 }
+/* Statut avec la plateforme, puis informations d'achat. */
+.card:has(.card-status-menu:not(.hidden)){
+  overflow:visible;
+  z-index:31;
+}
+.card-identity{
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  gap:5px 8px;
+}
+.card-identity .card-platform{
+  flex:0 1 auto;
+  max-width:100%;
+}
+.card-identity .card-status-control{
+  order:initial;
+  margin-left:0;
+  max-width:100%;
+  flex:0 0 auto;
+}
+.card-identity .card-status-badge{
+  width:auto;
+  height:auto;
+  min-height:25px;
+  padding:4px 7px;
+  gap:5px;
+  border-radius:7px;
+  background:color-mix(in srgb,var(--status-color) 10%,transparent);
+  box-shadow:none;
+  backdrop-filter:none;
+  font-size:10px;
+  line-height:1.2;
+  white-space:nowrap;
+}
+.card-identity .card-status-badge:hover{
+  transform:none;
+  background:color-mix(in srgb,var(--status-color) 18%,transparent);
+}
+.card-identity .card-status-badge .card-status-label{display:inline;}
+.card-identity .card-status-badge:focus-visible{
+  outline:2px solid var(--status-color);
+  outline-offset:2px;
+}
+.card-identity .card-status-menu{top:calc(100% + 5px);right:0;}
+.card-acquisition{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:5px 8px;
+  min-width:0;
+}
+.card-purchase-date{
+  flex-shrink:0;
+  color:var(--muted);
+  font-size:10.5px;
+  line-height:1.4;
+}
+.card-acquisition .card-price:first-child{margin-left:0;padding-left:0;border-left:0;}
 @media(max-width:640px){
   .card-title-collector svg{width:13px;height:13px;}
   .card-source{display:inline;max-width:64px;}

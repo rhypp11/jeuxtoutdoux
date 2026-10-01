@@ -846,7 +846,7 @@ function renderCard(g){
 
   const statusBadgeHtml = `<div class="card-status-control">
       <button type="button" class="card-status-badge" style="--status-color:${statusColor};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
-        ${statusIcon}
+        ${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span>
       </button>
       <div class="card-status-menu hidden">${statusMenu}</div>
     </div>`;
@@ -862,7 +862,6 @@ function renderCard(g){
   const bannerHtml = `<div class="card-banner${g.image ? '' : ' placeholder'}">
       ${bannerInner}
       <span class="card-fallback${g.image ? ' hidden' : ''}">${g.plateforme.slice(0,2).toUpperCase()}</span>
-      <div class="card-badge-layer">${statusBadgeHtml}</div>
     </div>`;
 
   const platformHtml = `${logo
@@ -873,15 +872,20 @@ function renderCard(g){
   if(g.source) purchaseBits.push(`<span class="card-source" title="${g.source}">${g.source}</span>`);
   if(g.prix != null) purchaseBits.push(`<span class="card-price">${euros(g.prix)}</span>`);
   const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('')}</div>` : '';
+  const purchaseDateHtml = g.date ? `<time class="card-purchase-date" datetime="${g.date}" title="Date d'achat">${dateFR(g.date)}</time>` : '';
+  const acquisitionHtml = purchaseDateHtml || purchaseHtml
+    ? `<div class="card-acquisition">${purchaseDateHtml}${purchaseHtml}</div>`
+    : '';
 
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
       <div class="card-name" title="${g.nom}">${collectorTitleHtml}${japaneseEditionMark(g)}<span class="card-name-text">${g.nom}</span></div>
-      <div class="card-summary">
+      <div class="card-summary card-identity">
         <span class="card-platform">${platformHtml}</span>
-        ${purchaseHtml}
+        ${statusBadgeHtml}
       </div>
+      ${acquisitionHtml}
     </div>
   `;
 
