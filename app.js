@@ -1053,11 +1053,10 @@ function syncIconSelectTrigger(selectId){
   trigger.innerHTML = `${cfg.getIcon(val)}<span class="icon-select-trigger-label">${escapeHTML(label)}</span><svg class="icon-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
 }
 
-function populatePlatformSelect(selectId, digitalOnly){
+function populatePlatformSelect(selectId){
   const select = document.getElementById(selectId);
   if(!select) return;
   let platforms = allPlatformNames();
-  if(digitalOnly) platforms = platforms.filter(isDigitalCapable);
   const current = select.value;
   select.innerHTML = platforms.map(p => `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`).join('');
   if(current && platforms.includes(current)) select.value = current;
@@ -1209,7 +1208,7 @@ function openModal(id){
     document.getElementById('f-nom').value = g.nom || '';
     const lockedFormat = state.format || g.format || 'Physique';
     setSelectValueAndSync('f-format', lockedFormat);
-    populatePlatformSelect('f-plateforme', lockedFormat === 'Numérique');
+    populatePlatformSelect('f-plateforme');
     setSelectValueAndSync('f-plateforme', g.plateforme);
     populateTypeSelect('f-type', lockedFormat);
     setSelectValueAndSync('f-type', g.type || 'Jeu simple');
@@ -1226,7 +1225,7 @@ function openModal(id){
     document.getElementById('f-nom').value = '';
     const lastFormat = state.format || getLastUsed('format', 'Physique');
     setSelectValueAndSync('f-format', lastFormat);
-    populatePlatformSelect('f-plateforme', lastFormat === 'Numérique');
+    populatePlatformSelect('f-plateforme');
     if(state.platform){
       setSelectValueAndSync('f-plateforme', state.platform);
     } else {
@@ -1307,14 +1306,14 @@ function deleteGame(){
   if(!editingId) return;
   const g = GAMES.find(x => x.id === editingId);
   if(!g) return;
-  confirmAction(`Supprimer « ${escapeHTML(g.nom)} » de la ludothèque ?`, () => {
+  confirmAction(`Supprimer « ${g.nom} » de la ludothèque ?`, () => {
     const idx = GAMES.indexOf(g);
     GAMES = GAMES.filter(x => x.id !== editingId);
     saveGames();
     closeModal();
     buildPlatformList();
     render();
-    showToast(`« ${escapeHTML(g.nom)} » supprimé`, 'Annuler', () => {
+    showToast(`« ${g.nom} » supprimé`, 'Annuler', () => {
       GAMES.splice(Math.min(idx, GAMES.length), 0, g);
       saveGames();
       buildPlatformList();
@@ -1850,13 +1849,13 @@ function deleteArrival(){
   if(!editingArrivalId) return;
   const item = ARRIVALS.find(x => x.id === editingArrivalId);
   if(!item) return;
-  confirmAction(`Supprimer l'arrivage « ${escapeHTML(item.nom)} » ?`, () => {
+  confirmAction(`Supprimer l'arrivage « ${item.nom} » ?`, () => {
     const idx = ARRIVALS.indexOf(item);
     ARRIVALS = ARRIVALS.filter(x => x.id !== editingArrivalId);
     saveArrivals();
     closeArrivalModal();
     renderArrivals();
-    showToast(`« ${escapeHTML(item.nom)} » supprimé`, 'Annuler', () => {
+    showToast(`« ${item.nom} » supprimé`, 'Annuler', () => {
       ARRIVALS.splice(Math.min(idx, ARRIVALS.length), 0, item);
       saveArrivals();
       renderArrivals();
@@ -1979,13 +1978,13 @@ function deleteWishlist(){
   if(!editingWishlistId) return;
   const item = WISHLIST.find(x => x.id === editingWishlistId);
   if(!item) return;
-  confirmAction(`Retirer « ${escapeHTML(item.nom)} » de la wishlist ?`, () => {
+  confirmAction(`Retirer « ${item.nom} » de la wishlist ?`, () => {
     const idx = WISHLIST.indexOf(item);
     WISHLIST = WISHLIST.filter(x => x.id !== editingWishlistId);
     saveWishlist();
     closeWishlistModal();
     renderWishlist();
-    showToast(`« ${escapeHTML(item.nom)} » retiré de la wishlist`, 'Annuler', () => {
+    showToast(`« ${item.nom} » retiré de la wishlist`, 'Annuler', () => {
       WISHLIST.splice(Math.min(idx, WISHLIST.length), 0, item);
       saveWishlist();
       renderWishlist();
