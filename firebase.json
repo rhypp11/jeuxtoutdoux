@@ -8,6 +8,7 @@
         ".firebaserc",
         ".git/**",
         ".github/**",
+        "tests/**",
         "firebase-debug.log"
       ]
     },
@@ -19,6 +20,7 @@
         ".firebaserc",
         ".git/**",
         ".github/**",
+        "tests/**",
         "firebase-debug.log"
       ],
       "headers": [

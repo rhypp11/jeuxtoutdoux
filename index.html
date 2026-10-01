@@ -7,14 +7,15 @@
 <link rel="icon" type="image/png" href="logo-icon.png">
 <link rel="apple-touch-icon" href="logo-icon-apple.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#5B8E71">
+<meta name="theme-color" content="#F5F0E7">
+<script src="theme.js?v=identity-1"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JTD">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=sandbox-2">
+<link rel="stylesheet" href="styles.css?v=identity-1">
 </head>
 <body>
 
@@ -64,9 +65,9 @@
 <nav class="topnav">
   <div class="topnav-inner">
     <div class="topnav-brand">
-      <h1 class="brand-logo">
-        <img class="brand-icon" src="logo-icon.png" alt="" aria-hidden="true">
-        <span class="brand-word"><span class="w-plain">JEUX</span><span class="w-green">TOUT</span><span class="w-plain">DOUX</span></span>
+      <h1 class="brand-logo" aria-label="Jeux tout doux">
+        <img class="brand-icon" src="brand-light.svg" data-brand-icon alt="" aria-hidden="true">
+        <span class="brand-word"><span class="w-plain">jeux </span><span class="w-green">tout </span><span class="w-plain">doux</span></span>
       </h1>
     </div>
     <button type="button" class="mobile-filter-toggle topnav-filter-toggle" id="global-filter-toggle" aria-label="Afficher le menu">
@@ -82,6 +83,10 @@
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Activer le thème sombre" title="Activer le thème sombre" aria-pressed="false">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 13A9 9 0 0 1 11 3.2 9 9 0 1 0 20.8 13Z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+      </button>
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
       <div class="profile-menu-wrap">
         <button class="profile-menu-btn" id="profile-menu-btn" title="Menu" aria-label="Menu du profil">
