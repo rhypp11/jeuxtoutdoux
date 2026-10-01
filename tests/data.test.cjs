@@ -110,6 +110,33 @@ test('cloud read failure blocks automatic writes', async () => {
   await ctx.authCallback({uid:'A'});ctx.window.JTDDataChanged();
   await new Promise(resolve=>setTimeout(resolve,950));assert.equal(writes.length,0);
 });
+test('revoking a share waits for an in-flight save and leaves the token revoked', async () => {
+  const {ctx,writes}=await cloudHarness();
+  ctx.getDoc=async()=>({exists:()=>true,data:()=>({games:[],shareToken:'token-A'})});
+  await ctx.authCallback({uid:'A'});writes.length=0;
+  let release;const order=[];
+  ctx.setDoc=async(ref,data)=>{
+    writes.push({ref,data:JSON.parse(JSON.stringify(data))});
+    if(ref.collection==='users' && writes.length===1) await new Promise(resolve=>{release=resolve;});
+    order.push('write-'+ref.collection);
+  };
+  ctx.deleteDoc=async()=>{order.push('delete-share');};
+  ctx.window.JTDDataChanged();await new Promise(resolve=>setTimeout(resolve,950));
+  const revoke=ctx.window.JTDShare.disable();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(order.includes('delete-share'),false);
+  release();await revoke;
+  assert.equal(ctx.SHARE_TOKEN,null);
+  assert.equal(writes.at(-1).data.shareToken,null);
+  assert.ok(order.indexOf('delete-share')>order.indexOf('write-users'));
+});
+test('a failed restore does not replace memory or request cloud sync', () => {
+  const source=fs.readFileSync(require.resolve('../app.js'),'utf8');
+  const fn=source.slice(source.indexOf('function applyRestoredData('),source.indexOf('function restoreBackup('));
+  let replaced=false,scheduled=false;
+  const ctx={IS_PREVIEW_MODE:false,accountStorage:{atomicWrite(){throw new Error('quota');}},restoredStorageEntries:()=>[],replaceAppData:()=>{replaced=true;},window:{JTDDataChanged:()=>{scheduled=true;}}};
+  vm.createContext(ctx);vm.runInContext(fn,ctx);assert.throws(()=>ctx.applyRestoredData({games:[]}),/quota/);
+  assert.equal(replaced,false);assert.equal(scheduled,false);
+});
 test('renaming updates all three lists and preserves flags and purchases', () => {
   const source=fs.readFileSync(require.resolve('../app.js'),'utf8');
   const fn=source.slice(source.indexOf('function renamePlatform('),source.indexOf('function updatePlatformColor('));

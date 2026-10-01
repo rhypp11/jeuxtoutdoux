@@ -30,6 +30,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   const sessions = JTDData.createSession();
   let syncQueue = Promise.resolve();
   const sessionIsCurrent = session => sessions.isCurrent(session);
+  function enqueueCloudOperation(operation){
+    const result = syncQueue.then(operation);
+    syncQueue = result.catch(() => {});
+    return result;
+  }
   function cancelPendingSync(){ clearTimeout(syncTimer); syncTimer = null; }
   function emptyData(){ return JTDData.normalizeData({games:[]}); }
 
@@ -146,7 +151,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     await setDoc(doc(db, 'shares', token), payload);
   }
 
-  async function createOrCopyShare(){
+  async function createOrCopyShare(session){
     if(previewMode){
       SHARE_TOKEN = 'sandbox-preview';
       renderShareUI();
@@ -154,8 +159,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       showToast('Lien de partage test copié. Aucune donnée réelle n’est publiée.');
       return;
     }
-    if(!currentUser || suppressSync) return;
-    const session = sessions.current();
+    if(!currentUser || suppressSync || !sessionIsCurrent(session)) return;
     try{
       if(!SHARE_TOKEN){
         SHARE_TOKEN = generateShareToken();
@@ -178,15 +182,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }
   }
 
-  async function disableShare(){
+  async function disableShare(session){
     if(previewMode){
       SHARE_TOKEN = null;
       renderShareUI();
       showToast('Partage test désactivé.');
       return;
     }
-    if(!currentUser || suppressSync || !SHARE_TOKEN) return;
-    const session = sessions.current();
+    if(!currentUser || suppressSync || !SHARE_TOKEN || !sessionIsCurrent(session)) return;
     try{
       clearTimeout(syncTimer);
       const oldToken = SHARE_TOKEN;
@@ -208,7 +211,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }
   }
 
-  window.JTDShare = { createOrCopy: createOrCopyShare, disable: disableShare };
+  window.JTDShare = {
+    createOrCopy(){
+      const session = sessions.current();
+      return enqueueCloudOperation(() => createOrCopyShare(session));
+    },
+    disable(){
+      const session = sessions.current();
+      return enqueueCloudOperation(() => disableShare(session));
+    }
+  };
   window.renderShareUI = renderShareUI;
   renderShareUI();
 
@@ -226,6 +238,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     setSyncStatus('syncing', 'Synchronisation...');
     try{
       // The UID and data are captured together; a later login cannot retarget this write.
+      payload.shareToken = SHARE_TOKEN;
       await setDoc(doc(db, 'users', session.uid), payload);
       if(!sessionIsCurrent(session)) return;
       if(payload.shareToken && payload.shareToken === SHARE_TOKEN){
@@ -248,7 +261,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       if(!sessionIsCurrent(session) || suppressSync) return;
       const payload = buildCloudPayload();
       const publicPayload = buildPublicSharePayload();
-      syncQueue = syncQueue.then(() => doCloudSync(session, payload, publicPayload));
+      enqueueCloudOperation(() => doCloudSync(session, payload, publicPayload));
     }, 900);
   }
   window.JTDDataChanged = scheduleCloudSync;
