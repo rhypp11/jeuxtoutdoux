@@ -31,6 +31,14 @@ jobs:
           trap 'kill "$SERVER_PID"' EXIT
           NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" node tests/theme-smoke.cjs
 
+      - name: Save theme screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtd-theme-screenshots
+          path: /tmp/jtd-*.png
+          retention-days: 7
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
