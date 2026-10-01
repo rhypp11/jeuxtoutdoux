@@ -332,10 +332,10 @@ const ICON_FLAME = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 
 
 const STATUS_OPTIONS = [
-  { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", bg: "rgba(255,194,14,0.07)", border: "rgba(255,194,14,0.3)" },
-  { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", bg: "rgba(142,111,217,0.07)", border: "rgba(142,111,217,0.3)" },
-  { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" },
-  { key: "termine_ailleurs", label: "Terminé ailleurs", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg>`, color: "var(--status-done)", bg: "rgba(47,174,74,0.07)", border: "rgba(47,174,74,0.3)" }
+  { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", fill: "var(--status-todo-fill)", bg: "color-mix(in srgb,var(--status-todo-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-todo-fill) 55%,var(--surface))" },
+  { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", fill: "var(--status-multi-fill)", bg: "color-mix(in srgb,var(--status-multi-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-multi-fill) 55%,var(--surface))" },
+  { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", fill: "var(--status-done-fill)", bg: "color-mix(in srgb,var(--status-done-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-done-fill) 55%,var(--surface))" },
+  { key: "termine_ailleurs", label: "Terminé ailleurs", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg>`, color: "var(--status-elsewhere)", fill: "var(--status-elsewhere-fill)", bg: "color-mix(in srgb,var(--status-elsewhere-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-elsewhere-fill) 55%,var(--surface))" }
 ];
 
 let GAMES = [];
@@ -831,13 +831,14 @@ function renderCard(g){
   const statusIcon = activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
   const statusTitle = activeStatus ? activeStatus.label : 'Définir le statut';
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
+  const statusFill = activeStatus ? activeStatus.fill : 'var(--muted)';
   const statusMenu = STATUS_OPTIONS.map(s => `
     <button type="button" class="card-status-option${g.status === s.key ? ' active' : ''}" data-status="${s.key}" style="--option-color:${s.color};" title="${s.label}" aria-label="${s.label}">
       ${s.icon}<span>${s.label}</span>
     </button>`).join('');
 
   const statusBadgeHtml = `<div class="card-status-control">
-      <button type="button" class="card-status-badge" style="--status-color:${statusColor};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
+      <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
         ${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span>
       </button>
       <div class="card-status-menu hidden">${statusMenu}</div>

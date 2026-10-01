@@ -39,8 +39,8 @@ async function restore(page, value, confirm=true){
   const url = process.env.JTD_TEST_URL || 'http://127.0.0.1:' + server.address().port;
   const browser = await chromium.launch({headless:true,...(process.env.JTD_CHROME ? {executablePath:process.env.JTD_CHROME} : {})});
   try{
-    for(const width of [390,1440]){
-      const context = await browser.newContext({viewport:{width,height:900},isMobile:width<500,hasTouch:width<500,serviceWorkers:'block'});
+    for(const {width,theme} of [{width:390,theme:'light'},{width:1440,theme:'light'},{width:390,theme:'dark'},{width:1440,theme:'dark'}]){
+      const context = await browser.newContext({viewport:{width,height:900},colorScheme:theme,isMobile:width<500,hasTouch:width<500,serviceWorkers:'block'});
       const page = await context.newPage();
       const errors=[],firebaseRequests=[];let pickers=0;
       page.on('pageerror',error=>errors.push(error.message));
