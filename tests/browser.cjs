@@ -19,7 +19,7 @@ const server = http.createServer((req,res)=>{
 });
 const payload = {
   app:'Jeux Tout Doux',version:2,data:{
-    games:[{id:'g',nom:'<img src=x onerror="window.INJECTED=1"> & "Persona"',plateforme:'PC',format:'Numérique',collector:true,japanese:true,prix:20,date:'2026-10-01',source:'L\'enseigne <b>test</b>',image:'http://127.0.0.1:1/broken.png'}],
+    games:[{id:'g',nom:'<img src=x onerror="window.INJECTED=1"> & "Persona"',plateforme:'PC',format:'Physique',collector:true,japanese:true,prix:20,date:'2026-10-01',source:'L\'enseigne <b>test</b>',image:'http://127.0.0.1:1/broken.png'}],
     arrivals:[{id:'a',nom:'Arrivage',plateforme:'PC',collector:true,japanese:true,prix:30,date:'2026-11-10',source:'Test'}],
     wishlist:[{id:'w',nom:'Wishlist <b>test</b>',plateforme:'PC',collector:true,japanese:true,date:'2027',lien:'javascript:alert(1)'}],
     platformMeta:{PC:{color:'#123456',logo:null}},platformOrder:['PC'],profile:{name:'Test',avatar:null}
@@ -75,6 +75,13 @@ async function restore(page, value, confirm=true){
       await page.evaluate(()=>{renamePlatform('PC','Ordinateur "test"');buildPlatformList();render();});
       assert.ok(await page.evaluate(()=>[GAMES,ARRIVALS,WISHLIST].every(list=>list.every(item=>item.plateforme==='Ordinateur "test"'))));
       await page.locator('.card').click();
+      await page.locator('#cancel-btn').click();
+      // Historical digital entries must also open without the removed capability helper.
+      await page.evaluate(()=>{
+        const previous = GAMES[0].format;
+        GAMES[0].format = 'Numérique'; state.format = null;
+        openModal(GAMES[0].id); GAMES[0].format = previous;
+      });
       await page.locator('#cancel-btn').click();
       const downloadEvent=page.waitForEvent('download');
       await page.locator('#profile-menu-btn').click();await page.locator('#backup-btn').click();
