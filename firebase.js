@@ -4,7 +4,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     createUserWithEmailAndPassword, signOut
   } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, setDoc
+    getFirestore, doc, getDoc, setDoc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -38,6 +38,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       platformOrder: platformOrder,
       profileName: PROFILE_NAME,
       profileAvatar: PROFILE_AVATAR,
+      shareToken: SHARE_TOKEN,
       updatedAt: Date.now()
     };
     // Firestore refuse toute valeur "undefined" explicite : ce passage par JSON
@@ -53,7 +54,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     if(Array.isArray(data.platformOrder)) platformOrder = data.platformOrder;
     if(typeof data.profileName === 'string') PROFILE_NAME = data.profileName;
     if(typeof data.profileAvatar === 'string' || data.profileAvatar === null) PROFILE_AVATAR = data.profileAvatar;
+    SHARE_TOKEN = typeof data.shareToken === 'string' && data.shareToken ? data.shareToken : null;
     saveProfile();
+    renderShareUI();
   }
 
   function refreshAllViews(){
@@ -66,8 +69,135 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     renderArrivals();
     renderWishlist();
     renderProfileAvatar();
-    updateExportNote();
+    updateBackupNote();
   }
+
+  /* ---------- Partage public lecture seule ---------- */
+  const FIRESTORE_SHARE_BASE = 'https://firestore.googleapis.com/v1/projects/' +
+    firebaseConfig.projectId + '/databases/(default)/documents/shares/';
+
+  function buildPublicSharePayload(){
+    const cleanGame = (g) => ({
+      nom: String(g.nom || ''),
+      plateforme: String(g.plateforme || ''),
+      format: g.format || null,
+      collector: g.collector === true,
+      type: g.type || null,
+      status: g.status || null
+    });
+    const cleanBoardItem = (g) => ({
+      nom: String(g.nom || ''),
+      plateforme: String(g.plateforme || ''),
+      date: g.date || null
+    });
+    return {
+      version: 1,
+      publishedAt: Date.now(),
+      games: GAMES.filter(g => g && g.nom && g.plateforme).map(cleanGame),
+      wishlist: WISHLIST.filter(g => g && g.nom && g.plateforme).map(cleanBoardItem),
+      arrivals: ARRIVALS.filter(g => g && g.nom && g.plateforme).map(cleanBoardItem)
+    };
+  }
+
+  function generateShareToken(){
+    const bytes = new Uint8Array(24);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function shareUrl(token){
+    return FIRESTORE_SHARE_BASE + encodeURIComponent(token) + '?key=' + encodeURIComponent(firebaseConfig.apiKey);
+  }
+
+  function renderShareUI(){
+    const label = document.getElementById('share-label');
+    const note = document.getElementById('share-note');
+    const disableBtn = document.getElementById('share-disable-btn');
+    if(!label || !note || !disableBtn) return;
+    const active = !!SHARE_TOKEN;
+    label.textContent = active ? 'Copier le lien de partage' : 'Partager ma collection';
+    note.textContent = active
+      ? 'Lien vivant en lecture seule • collection, wishlist et arrivages'
+      : 'Crée un lien lecture seule à copier dans ChatGPT';
+    disableBtn.classList.toggle('hidden', !active);
+  }
+
+  async function copyText(text){
+    try{
+      await navigator.clipboard.writeText(text);
+    }catch(err){
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      area.remove();
+    }
+  }
+
+  async function publishSharedSnapshot(){
+    if(previewMode || !currentUser || !SHARE_TOKEN) return;
+    await setDoc(doc(db, 'shares', SHARE_TOKEN), buildPublicSharePayload());
+  }
+
+  async function createOrCopyShare(){
+    if(previewMode){
+      SHARE_TOKEN = 'sandbox-preview';
+      renderShareUI();
+      await copyText('https://jtd-sandbox-rhypp11.web.app/?share-preview=sandbox');
+      showToast('Lien de partage test copié. Aucune donnée réelle n’est publiée.');
+      return;
+    }
+    if(!currentUser) return;
+    try{
+      if(!SHARE_TOKEN){
+        SHARE_TOKEN = generateShareToken();
+        // Le token doit d'abord être enregistré sur le document privé de l'utilisateur :
+        // les règles Firestore s'en servent pour autoriser l'écriture du snapshot public.
+        await setDoc(doc(db, 'users', currentUser.uid), buildCloudPayload());
+      }
+      await publishSharedSnapshot();
+      await copyText(shareUrl(SHARE_TOKEN));
+      renderShareUI();
+      showToast('Lien de partage copié. Il restera à jour avec ta collection.');
+    }catch(err){
+      console.error('Création du partage impossible', err);
+      setSyncStatus('error', 'Partage impossible : ' + err.message);
+      showToast("Impossible de créer le lien de partage pour l'instant.");
+    }
+  }
+
+  async function disableShare(){
+    if(previewMode){
+      SHARE_TOKEN = null;
+      renderShareUI();
+      showToast('Partage test désactivé.');
+      return;
+    }
+    if(!currentUser || !SHARE_TOKEN) return;
+    try{
+      clearTimeout(syncTimer);
+      const oldToken = SHARE_TOKEN;
+      // Suppression avant d'effacer le token privé, sinon la règle d'écriture ne
+      // reconnaîtrait plus le propriétaire du document public.
+      await deleteDoc(doc(db, 'shares', oldToken));
+      SHARE_TOKEN = null;
+      await setDoc(doc(db, 'users', currentUser.uid), buildCloudPayload());
+      renderShareUI();
+      setSyncStatus('ok', 'Synchronisé avec le cloud');
+      showToast('Partage désactivé. L’ancien lien ne fonctionne plus.');
+    }catch(err){
+      console.error('Désactivation du partage impossible', err);
+      setSyncStatus('error', 'Désactivation du partage impossible : ' + err.message);
+      showToast("Impossible de désactiver le partage pour l'instant.");
+    }
+  }
+
+  window.JTDShare = { createOrCopy: createOrCopyShare, disable: disableShare };
+  window.renderShareUI = renderShareUI;
+  renderShareUI();
 
   /* ---------- Indicateur de synchronisation ---------- */
   function setSyncStatus(status, message){
@@ -83,6 +213,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     setSyncStatus('syncing', 'Synchronisation...');
     try{
       await setDoc(doc(db, 'users', currentUser.uid), buildCloudPayload());
+      if(SHARE_TOKEN) await publishSharedSnapshot();
       setSyncStatus('ok', 'Synchronisé avec le cloud');
     }catch(err){
       console.error('Erreur de synchronisation Firebase', err);
@@ -128,6 +259,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       }
       suppressSync = false;
       refreshAllViews();
+      if(SHARE_TOKEN) await publishSharedSnapshot();
       setSyncStatus('ok', 'Synchronisé avec le cloud');
     }catch(err){
       suppressSync = false;

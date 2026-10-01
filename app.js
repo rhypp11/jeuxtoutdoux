@@ -44,6 +44,7 @@ function nameKeyOf(nom, plateforme){ return (nom||'').trim().toLowerCase() + '|'
 
 let PROFILE_NAME = '';
 let PROFILE_AVATAR = null;
+let SHARE_TOKEN = null;
 
 function loadProfile(){
   if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; return; }
@@ -433,20 +434,6 @@ async function saveGames(){
 }
 
 
-const LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
-
-function updateExportNote(){
-  const el = document.getElementById('export-note');
-  if(!el) return;
-  const raw = localStorage.getItem(LAST_EXPORT_KEY);
-  if(!raw){
-    el.textContent = 'Jamais exporté';
-    return;
-  }
-  const d = new Date(raw);
-  el.textContent = 'Dernier export : ' + d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-}
-
 async function loadArrivals(){
   if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
   try{
@@ -487,103 +474,142 @@ function saveWishlist(){
   }
 }
 
-function exportGames(){
-  const payload = {
-    games: GAMES,
-    arrivals: ARRIVALS,
-    wishlist: WISHLIST,
-    platformMeta: platformMeta,
-    platformOrder: platformOrder
+const BACKUP_VERSION = 2;
+const LAST_BACKUP_KEY = 'ludotheque:last-backup-v2';
+const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
+
+function updateBackupNote(){
+  const el = document.getElementById('backup-note');
+  if(!el) return;
+  const raw = localStorage.getItem(LAST_BACKUP_KEY) || localStorage.getItem(LEGACY_LAST_EXPORT_KEY);
+  if(!raw){
+    el.textContent = 'Aucune sauvegarde locale';
+    return;
+  }
+  const d = new Date(raw);
+  el.textContent = 'Dernière : ' + d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function buildBackupPayload(){
+  return {
+    app: 'Jeux Tout Doux',
+    version: BACKUP_VERSION,
+    createdAt: new Date().toISOString(),
+    data: {
+      games: GAMES,
+      arrivals: ARRIVALS,
+      wishlist: WISHLIST,
+      platformMeta,
+      platformOrder,
+      profile: { name: PROFILE_NAME, avatar: PROFILE_AVATAR }
+    }
   };
+}
+
+function downloadBackup(suffix){
+  const payload = buildBackupPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = 'ma-ludotheque-' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = 'jeux-tout-doux-' + (suffix ? suffix + '-' : '') + date + '.json';
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  try{
-    localStorage.setItem(LAST_EXPORT_KEY, new Date().toISOString());
-  }catch(e){ /* ignore */ }
-  updateExportNote();
 }
 
-function mergeImportGames(file){
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try{
-      const parsed = JSON.parse(e.target.result);
-      const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.games) ? parsed.games : null);
-      if(!incoming) throw new Error('Format invalide');
+function backupData(){
+  downloadBackup('sauvegarde');
+  try{ localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){ /* ignore */ }
+  updateBackupNote();
+  showToast('Sauvegarde téléchargée.');
+}
 
-      const existingKeys = new Set(GAMES.map(g => nameKeyOf(g.nom, g.plateforme)));
-      let added = 0, skipped = 0;
-      incoming.forEach((g, i) => {
-        if(!g || !g.nom || !g.plateforme) return;
-        const key = nameKeyOf(g.nom, g.plateforme);
-        if(existingKeys.has(key)){ skipped++; return; }
-        existingKeys.add(key);
-        const incomingFormat = g.format === 'Collector' ? 'Physique' : (g.format || 'Physique');
-        GAMES.push({
-          id: 'imp-' + Date.now() + '-' + i,
-          nom: g.nom,
-          plateforme: g.plateforme,
-          date: g.date || null,
-          source: g.source || null,
-          prix: typeof g.prix === 'number' ? g.prix : null,
-          format: incomingFormat,
-          collector: g.collector === true || g.format === 'Collector',
-          type: incomingFormat === 'Numérique' ? migrateTypeValue(g.type) || 'Jeu simple' : null,
-          image: g.image || null,
-          status: g.status || null
-        });
-        added++;
-      });
+function cleanBackupData(parsed){
+  let data = null;
+  if(Array.isArray(parsed)){
+    data = { games: parsed, arrivals: [], wishlist: [], platformMeta: {}, platformOrder: [] };
+  } else if(parsed && parsed.app === 'Jeux Tout Doux' && parsed.data && typeof parsed.data === 'object'){
+    if(Number.isFinite(parsed.version) && parsed.version > BACKUP_VERSION) throw new Error('Version de sauvegarde trop récente');
+    data = parsed.data;
+  } else if(parsed && typeof parsed === 'object' && Array.isArray(parsed.games)){
+    data = parsed;
+  }
+  if(!data || !Array.isArray(data.games)) throw new Error('Format de sauvegarde invalide');
+  const validGame = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
+  const validBoardItem = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
+  const arrivals = Array.isArray(data.arrivals) ? data.arrivals : [];
+  const wishlist = Array.isArray(data.wishlist) ? data.wishlist : [];
+  if(!data.games.every(validGame) || !arrivals.every(validBoardItem) || !wishlist.every(validBoardItem)){
+    throw new Error('Contenu de sauvegarde invalide');
+  }
 
-      saveGames();
-      buildPlatformList();
-      render();
-      alert(`${added} jeu(x) ajouté(s).` + (skipped ? ` ${skipped} déjà présent(s) dans ta collection ont été ignorés (même nom + plateforme).` : ''));
-    }catch(err){
-      alert("Ce fichier n'a pas pu être lu. Vérifie qu'il s'agit bien d'un JSON de jeux valide.");
-    }
+  const profile = data.profile && typeof data.profile === 'object' ? data.profile : null;
+  return {
+    games: data.games,
+    arrivals,
+    wishlist,
+    platformMeta: data.platformMeta && typeof data.platformMeta === 'object' && !Array.isArray(data.platformMeta) ? data.platformMeta : {},
+    platformOrder: Array.isArray(data.platformOrder) ? data.platformOrder : [],
+    profileName: profile && typeof profile.name === 'string'
+      ? profile.name
+      : (typeof data.profileName === 'string' ? data.profileName : PROFILE_NAME),
+    profileAvatar: profile && (typeof profile.avatar === 'string' || profile.avatar === null)
+      ? profile.avatar
+      : ((typeof data.profileAvatar === 'string' || data.profileAvatar === null) ? data.profileAvatar : PROFILE_AVATAR)
   };
-  reader.readAsText(file);
 }
 
-function importGames(file){
+function applyRestoredData(data){
+  GAMES = data.games;
+  ARRIVALS = data.arrivals;
+  WISHLIST = data.wishlist;
+  platformMeta = data.platformMeta;
+  platformOrder = data.platformOrder;
+  PROFILE_NAME = data.profileName;
+  PROFILE_AVATAR = data.profileAvatar;
+
+  migrateGameTypes();
+  saveGames();
+  saveArrivals();
+  saveWishlist();
+  savePlatformMeta();
+  savePlatformOrder();
+  saveProfile();
+
+  buildPlatformList();
+  buildFormatToggles();
+  buildTypeToggles();
+  buildStatusToggles();
+  render();
+  renderArrivals();
+  renderWishlist();
+  renderProfileAvatar();
+}
+
+function restoreBackup(file){
   const reader = new FileReader();
   reader.onload = (e) => {
     try{
-      const parsed = JSON.parse(e.target.result);
-      if(Array.isArray(parsed)){
-        // Ancien format : juste un tableau de jeux
-        GAMES = parsed;
-      } else if(parsed && typeof parsed === 'object'){
-        GAMES = Array.isArray(parsed.games) ? parsed.games : GAMES;
-        ARRIVALS = Array.isArray(parsed.arrivals) ? parsed.arrivals : ARRIVALS;
-        WISHLIST = Array.isArray(parsed.wishlist) ? parsed.wishlist : WISHLIST;
-        if(parsed.platformMeta && typeof parsed.platformMeta === 'object') platformMeta = parsed.platformMeta;
-        if(Array.isArray(parsed.platformOrder)) platformOrder = parsed.platformOrder;
-      } else {
-        throw new Error('Format invalide');
-      }
-      saveGames();
-      saveArrivals();
-      saveWishlist();
-      savePlatformMeta();
-      savePlatformOrder();
-        migrateGameTypes();
-      saveGames();
-      buildPlatformList();
-      render();
-      renderArrivals();
-      renderWishlist();
-      alert('Bibliothèque importée : ' + GAMES.length + ' jeux.');
+      const data = cleanBackupData(JSON.parse(e.target.result));
+      const summary = [
+        data.games.length + ' jeu(x)',
+        data.wishlist.length + ' souhait(s)',
+        data.arrivals.length + ' arrivage(s)'
+      ].join(' • ');
+      confirmAction(
+        'Cette restauration remplacera les données actuelles par : ' + summary + '.',
+        () => {
+          applyRestoredData(data);
+          showToast('Sauvegarde restaurée.');
+        },
+        { title:'Restaurer la sauvegarde ?', confirmLabel:'Restaurer' }
+      );
     }catch(err){
-      alert("Ce fichier n'a pas pu être lu comme une sauvegarde valide.");
+      console.error('Restauration impossible', err);
+      showToast("Ce fichier n'est pas une sauvegarde Jeux Tout Doux valide.");
     }
   };
   reader.readAsText(file);
@@ -2265,16 +2291,28 @@ document.getElementById('platform-modal-overlay').addEventListener('click', (e) 
   if(e.target.id === 'platform-modal-overlay') closePlatformModal();
 });
 
-document.getElementById('export-btn').addEventListener('click', exportGames);
-document.getElementById('import-btn').addEventListener('click', () => document.getElementById('import-input').click());
-document.getElementById('import-input').addEventListener('change', (e) => {
-  if(e.target.files && e.target.files[0]) importGames(e.target.files[0]);
-  e.target.value = '';
+document.getElementById('backup-btn').addEventListener('click', backupData);
+
+const restoreInput = document.getElementById('restore-input');
+restoreInput.addEventListener('click', () => {
+  // Permet de sélectionner à nouveau exactement le même fichier.
+  restoreInput.value = '';
 });
-document.getElementById('import-merge-btn').addEventListener('click', () => document.getElementById('import-merge-input').click());
-document.getElementById('import-merge-input').addEventListener('change', (e) => {
-  if(e.target.files && e.target.files[0]) mergeImportGames(e.target.files[0]);
-  e.target.value = '';
+restoreInput.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if(file) restoreBackup(file);
+});
+
+document.getElementById('share-btn').addEventListener('click', () => {
+  if(window.JTDShare && typeof window.JTDShare.createOrCopy === 'function') window.JTDShare.createOrCopy();
+});
+document.getElementById('share-disable-btn').addEventListener('click', () => {
+  if(!window.JTDShare || typeof window.JTDShare.disable !== 'function') return;
+  confirmAction(
+    'Le lien actuel cessera immédiatement de fonctionner.',
+    () => window.JTDShare.disable(),
+    { title:'Désactiver le partage ?', confirmLabel:'Désactiver' }
+  );
 });
 
 document.getElementById('profile-menu-btn').addEventListener('click', (e) => {
@@ -2470,5 +2508,55 @@ async function initApp(){
   render();
   renderArrivals();
   renderWishlist();
-  updateExportNote();
+  updateBackupNote();
+}
+
+/* ---------- Bootstrap totalement isolé de la preview ---------- */
+if(IS_PREVIEW_MODE){
+  window.JTDShare = {
+    async createOrCopy(){
+      const label = document.getElementById('share-label');
+      const note = document.getElementById('share-note');
+      const disableBtn = document.getElementById('share-disable-btn');
+      if(label) label.textContent = 'Copier le lien de partage';
+      if(note) note.textContent = 'Simulation sandbox • aucune donnée réelle publiée';
+      if(disableBtn) disableBtn.classList.remove('hidden');
+      try{ await navigator.clipboard.writeText('https://jtd-sandbox-rhypp11.web.app/?share-preview=sandbox'); }catch(e){}
+      showToast('Lien de partage test simulé. Aucune donnée réelle n’est publiée.');
+    },
+    disable(){
+      const label = document.getElementById('share-label');
+      const note = document.getElementById('share-note');
+      const disableBtn = document.getElementById('share-disable-btn');
+      if(label) label.textContent = 'Partager ma collection';
+      if(note) note.textContent = 'Crée un lien lecture seule à copier dans ChatGPT';
+      if(disableBtn) disableBtn.classList.add('hidden');
+      showToast('Partage test désactivé.');
+    }
+  };
+
+  initApp()
+    .then(() => {
+      const loading = document.getElementById('auth-loading');
+      const login = document.getElementById('login-gate');
+      const shell = document.getElementById('app-shell');
+      const logout = document.getElementById('logout-btn');
+      const divider = document.getElementById('profile-menu-divider');
+      const sync = document.getElementById('cloud-sync-status');
+      if(loading) loading.classList.add('hidden');
+      if(login) login.classList.add('hidden');
+      if(shell) shell.classList.remove('hidden');
+      if(logout) logout.classList.add('hidden');
+      if(divider) divider.classList.add('hidden');
+      if(sync) sync.classList.add('hidden');
+    })
+    .catch(err => {
+      console.error('Erreur de démarrage sandbox', err);
+      const loading = document.getElementById('auth-loading');
+      if(loading){
+        loading.classList.remove('auth-loading');
+        loading.textContent = 'Erreur de démarrage sandbox : ' + (err && err.stack ? err.stack : String(err));
+        loading.style.cssText += ';white-space:pre-wrap;padding:24px;overflow:auto;font:12px/1.5 monospace;';
+      }
+    });
 }

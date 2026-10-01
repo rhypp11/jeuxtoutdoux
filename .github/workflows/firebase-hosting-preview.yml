@@ -17,6 +17,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate JavaScript syntax
+        run: |
+          node --check app.js
+          node --check firebase.js
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Prepare isolated Firebase preview site
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JEUX_TOUT_DOUX }}
@@ -25,6 +35,10 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
           npx --yes firebase-tools@15.32.0 hosting:sites:get jtd-sandbox-rhypp11 --project jeux-tout-doux --json >/dev/null 2>&1 ||             npx --yes firebase-tools@15.32.0 hosting:sites:create jtd-sandbox-rhypp11 --project jeux-tout-doux
           npx --yes firebase-tools@15.32.0 target:apply hosting pr-preview jtd-sandbox-rhypp11 --project jeux-tout-doux
+
+      - name: Validate Firestore rules in emulator
+        run: |
+          npx --yes firebase-tools@15.32.0 emulators:exec --only firestore --project demo-jeux-tout-doux "echo Firestore rules compiled"
 
       - name: Deploy isolated preview site
         env:
@@ -41,4 +55,11 @@ jobs:
           grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
           grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
           grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js
+          google-chrome --headless --disable-gpu --no-sandbox --virtual-time-budget=5000 --dump-dom https://jtd-sandbox-rhypp11.web.app/ > /tmp/rendered.html 2> /tmp/chrome.log
+          grep -Eq 'class="auth-loading hidden"[^>]*id="auth-loading"|id="auth-loading"[^>]*class="auth-loading hidden"' /tmp/rendered.html || {
+            echo "Rendered sandbox did not leave loading state"
+            cat /tmp/chrome.log
+            grep -n "auth-loading" /tmp/rendered.html || true
+            exit 1
+          }
           echo "Sandbox preview verified: https://jtd-sandbox-rhypp11.web.app"

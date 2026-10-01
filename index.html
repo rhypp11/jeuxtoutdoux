@@ -100,17 +100,22 @@
             <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
           </div>
           <div class="profile-menu-divider"></div>
-          <button class="profile-menu-item" id="export-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter</span></span>
-            <span class="profile-menu-sub" id="export-note"></span>
+          <button class="profile-menu-item" id="backup-btn">
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Sauvegarder</span></span>
+            <span class="profile-menu-sub" id="backup-note"></span>
           </button>
-          <button class="profile-menu-item" id="import-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Importer</span></span>
-            <span class="profile-menu-sub">Remplace toute ta bibliothèque</span>
+          <label class="profile-menu-item" id="restore-trigger" for="restore-input">
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer</span></span>
+            <span class="profile-menu-sub">Depuis une sauvegarde Jeux Tout Doux</span>
+          </label>
+          <div class="profile-menu-divider"></div>
+          <button class="profile-menu-item" id="share-btn">
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4"></path><path d="m8.6 13.5 6.8 4"></path></svg><span id="share-label">Partager ma collection</span></span>
+            <span class="profile-menu-sub" id="share-note">Crée un lien lecture seule à copier dans ChatGPT</span>
           </button>
-          <button class="profile-menu-item" id="import-merge-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg><span>Ajouter des jeux</span></span>
-            <span class="profile-menu-sub">Depuis un fichier JSON, sans rien écraser</span>
+          <button class="profile-menu-item profile-menu-danger hidden" id="share-disable-btn">
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg><span>Désactiver le partage</span></span>
+            <span class="profile-menu-sub">Invalide immédiatement le lien actuel</span>
           </button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -118,8 +123,7 @@
           </button>
         </div>
       </div>
-      <input type="file" id="import-input" accept="application/json" style="display:none;">
-      <input type="file" id="import-merge-input" accept="application/json" style="display:none;">
+      <input type="file" id="restore-input" accept="application/json,.json" style="display:none;">
       <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
     </div>
   </div>
@@ -443,7 +447,14 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="app.js?v=sandbox-2"></script>
-<script type="module" src="firebase.js?v=sandbox-2"></script>
+<script src="app.js?v=profile-v3"></script>
+<script>
+  if(!window.JTD_PREVIEW_MODE){
+    const firebaseScript = document.createElement('script');
+    firebaseScript.type = 'module';
+    firebaseScript.src = 'firebase.js?v=profile-v3';
+    document.body.appendChild(firebaseScript);
+  }
+</script>
 </body>
 </html>
