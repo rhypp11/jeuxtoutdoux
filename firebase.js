@@ -82,13 +82,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       plateforme: String(g.plateforme || ''),
       format: g.format || null,
       collector: g.collector === true,
+      japanese: g.japanese === true,
       type: g.type || null,
       status: g.status || null
     });
     const cleanBoardItem = (g) => ({
       nom: String(g.nom || ''),
       plateforme: String(g.plateforme || ''),
-      date: g.date || null
+      date: g.date || null,
+      collector: g.collector === true,
+      japanese: g.japanese === true
     });
     return {
       version: 1,
@@ -371,3 +374,4 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }
   });
   }
+
