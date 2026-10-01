@@ -27,6 +27,17 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   // le document Firestore avant qu'on ait pu lire les vraies données du compte.
   let suppressSync = true;
   let appInitialized = false;
+  const sessions = JTDData.createSession();
+  let syncQueue = Promise.resolve();
+  const sessionIsCurrent = session => sessions.isCurrent(session);
+  function enqueueCloudOperation(operation){
+    const result = syncQueue.then(operation);
+    syncQueue = result.catch(() => {});
+    return result;
+  }
+  function cancelPendingSync(){ clearTimeout(syncTimer); syncTimer = null; }
+  function emptyData(){ return JTDData.normalizeData({games:[]}); }
+
 
   /* ---------- Construction / application du paquet de données cloud ---------- */
   function buildCloudPayload(){
@@ -47,16 +58,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   }
 
   function applyCloudPayload(data){
-    if(Array.isArray(data.games)) GAMES = data.games;
-    if(Array.isArray(data.arrivals)) ARRIVALS = data.arrivals;
-    if(Array.isArray(data.wishlist)) WISHLIST = data.wishlist;
-    if(data.platformMeta && typeof data.platformMeta === 'object') platformMeta = data.platformMeta;
-    if(Array.isArray(data.platformOrder)) platformOrder = data.platformOrder;
-    if(typeof data.profileName === 'string') PROFILE_NAME = data.profileName;
-    if(typeof data.profileAvatar === 'string' || data.profileAvatar === null) PROFILE_AVATAR = data.profileAvatar;
+    const normalized = JTDData.normalizeData(data);
+    replaceAppData(normalized);
     SHARE_TOKEN = typeof data.shareToken === 'string' && data.shareToken ? data.shareToken : null;
-    saveProfile();
     renderShareUI();
+    return normalized;
   }
 
   function refreshAllViews(){
@@ -140,12 +146,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }
   }
 
-  async function publishSharedSnapshot(){
-    if(previewMode || !currentUser || !SHARE_TOKEN) return;
-    await setDoc(doc(db, 'shares', SHARE_TOKEN), buildPublicSharePayload());
+  async function publishSharedSnapshot(session = sessions.current(), token = SHARE_TOKEN, payload = buildPublicSharePayload()){
+    if(previewMode || suppressSync || !sessionIsCurrent(session) || !token) return;
+    await setDoc(doc(db, 'shares', token), payload);
   }
 
-  async function createOrCopyShare(){
+  async function createOrCopyShare(session){
     if(previewMode){
       SHARE_TOKEN = 'sandbox-preview';
       renderShareUI();
@@ -153,52 +159,68 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       showToast('Lien de partage test copié. Aucune donnée réelle n’est publiée.');
       return;
     }
-    if(!currentUser) return;
+    if(!currentUser || suppressSync || !sessionIsCurrent(session)) return;
     try{
       if(!SHARE_TOKEN){
         SHARE_TOKEN = generateShareToken();
         // Le token doit d'abord être enregistré sur le document privé de l'utilisateur :
         // les règles Firestore s'en servent pour autoriser l'écriture du snapshot public.
-        await setDoc(doc(db, 'users', currentUser.uid), buildCloudPayload());
+        await setDoc(doc(db, 'users', session.uid), buildCloudPayload());
       }
-      await publishSharedSnapshot();
-      await copyText(shareUrl(SHARE_TOKEN));
+      if(!sessionIsCurrent(session)) return;
+      const token = SHARE_TOKEN;
+      await publishSharedSnapshot(session, token);
+      if(!sessionIsCurrent(session)) return;
+      await copyText(shareUrl(token));
       renderShareUI();
       showToast('Lien de partage copié. Il restera à jour avec ta collection.');
     }catch(err){
+      if(!sessionIsCurrent(session)) return;
       console.error('Création du partage impossible', err);
       setSyncStatus('error', 'Partage impossible : ' + err.message);
       showToast("Impossible de créer le lien de partage pour l'instant.");
     }
   }
 
-  async function disableShare(){
+  async function disableShare(session){
     if(previewMode){
       SHARE_TOKEN = null;
       renderShareUI();
       showToast('Partage test désactivé.');
       return;
     }
-    if(!currentUser || !SHARE_TOKEN) return;
+    if(!currentUser || suppressSync || !SHARE_TOKEN || !sessionIsCurrent(session)) return;
     try{
       clearTimeout(syncTimer);
       const oldToken = SHARE_TOKEN;
       // Suppression avant d'effacer le token privé, sinon la règle d'écriture ne
       // reconnaîtrait plus le propriétaire du document public.
       await deleteDoc(doc(db, 'shares', oldToken));
+      if(!sessionIsCurrent(session)) return;
       SHARE_TOKEN = null;
-      await setDoc(doc(db, 'users', currentUser.uid), buildCloudPayload());
+      await setDoc(doc(db, 'users', session.uid), buildCloudPayload());
+      if(!sessionIsCurrent(session)) return;
       renderShareUI();
       setSyncStatus('ok', 'Synchronisé avec le cloud');
       showToast('Partage désactivé. L’ancien lien ne fonctionne plus.');
     }catch(err){
+      if(!sessionIsCurrent(session)) return;
       console.error('Désactivation du partage impossible', err);
       setSyncStatus('error', 'Désactivation du partage impossible : ' + err.message);
       showToast("Impossible de désactiver le partage pour l'instant.");
     }
   }
 
-  window.JTDShare = { createOrCopy: createOrCopyShare, disable: disableShare };
+  window.JTDShare = {
+    createOrCopy(){
+      const session = sessions.current();
+      return enqueueCloudOperation(() => createOrCopyShare(session));
+    },
+    disable(){
+      const session = sessions.current();
+      return enqueueCloudOperation(() => disableShare(session));
+    }
+  };
   window.renderShareUI = renderShareUI;
   renderShareUI();
 
@@ -211,14 +233,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     el.textContent = status === 'error' ? '⚠ Sync' : (status === 'syncing' || status === 'pending' ? '☁ …' : '☁ Sync');
   }
 
-  async function doCloudSync(){
-    if(!currentUser) return;
+  async function doCloudSync(session, payload, publicPayload){
+    if(suppressSync || !sessionIsCurrent(session)) return;
     setSyncStatus('syncing', 'Synchronisation...');
     try{
-      await setDoc(doc(db, 'users', currentUser.uid), buildCloudPayload());
-      if(SHARE_TOKEN) await publishSharedSnapshot();
-      setSyncStatus('ok', 'Synchronisé avec le cloud');
+      // The UID and data are captured together; a later login cannot retarget this write.
+      payload.shareToken = SHARE_TOKEN;
+      await setDoc(doc(db, 'users', session.uid), payload);
+      if(!sessionIsCurrent(session)) return;
+      if(payload.shareToken && payload.shareToken === SHARE_TOKEN){
+        await publishSharedSnapshot(session, payload.shareToken, publicPayload);
+      }
+      if(sessionIsCurrent(session)) setSyncStatus('ok', 'Synchronisé avec le cloud');
     }catch(err){
+      if(!sessionIsCurrent(session)) return;
       console.error('Erreur de synchronisation Firebase', err);
       setSyncStatus('error', 'Erreur de synchronisation : ' + err.message);
     }
@@ -226,48 +254,55 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
 
   function scheduleCloudSync(){
     if(!currentUser || suppressSync) return;
+    const session = sessions.current();
     setSyncStatus('pending', 'Synchronisation en attente...');
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(doCloudSync, 900);
+    cancelPendingSync();
+    syncTimer = setTimeout(() => {
+      if(!sessionIsCurrent(session) || suppressSync) return;
+      const payload = buildCloudPayload();
+      const publicPayload = buildPublicSharePayload();
+      enqueueCloudOperation(() => doCloudSync(session, payload, publicPayload));
+    }, 900);
   }
+  window.JTDDataChanged = scheduleCloudSync;
 
-  // Branche la synchro cloud sur toutes les fonctions de sauvegarde existantes, sans y toucher
-  [
-    'saveGames','saveArrivals','saveWishlist','savePlatformMeta','savePlatformOrder','saveProfile'
-  ].forEach(name => {
-    const orig = window[name];
-    if(typeof orig !== 'function') return;
-    window[name] = function(...args){
-      const result = orig.apply(this, args);
-      scheduleCloudSync();
-      return result;
-    };
-  });
-
-  async function loadFromCloudOrSeed(uid){
-    const ref = doc(db, 'users', uid);
+  async function loadFromCloudOrSeed(session){
+    const ref = doc(db, 'users', session.uid);
     try{
       const snap = await getDoc(ref);
-      suppressSync = true;
-      const cloudData = snap.exists() ? snap.data() : null;
-      const cloudIsEmpty = !cloudData || !Array.isArray(cloudData.games) || cloudData.games.length === 0;
-      const localHasData = Array.isArray(GAMES) && GAMES.length > 0;
-      if(cloudData && !(cloudIsEmpty && localHasData)){
+      if(!sessionIsCurrent(session)) return false;
+      // An existing document is authoritative, even when its collection is empty.
+      if(snap.exists()){
+        const cloudData = snap.data();
+        const normalized = JTDData.normalizeData(cloudData);
+        // Cache only validated data; errors must not trigger a cloud replacement.
+        try{
+          persistAppData(normalized);
+        }catch(cacheError){
+          console.error('Cache local indisponible', cacheError);
+          showToast('Données cloud chargées. Le stockage local est indisponible sur cet appareil.');
+        }
         applyCloudPayload(cloudData);
-      } else {
-        // Cloud vide/absent mais des données locales existent (ou premier lancement) :
-        // on considère le local comme référence et on le pousse, plutôt que d'écraser
-        // silencieusement une vraie collection locale avec un cloud vide.
+      }else{
+        // Only scoped data loaded for this UID may initialize its new document.
+        replaceAppData(JTDData.normalizeData(buildCloudPayload()));
         await setDoc(ref, buildCloudPayload());
+        if(!sessionIsCurrent(session)) return false;
       }
-      suppressSync = false;
       refreshAllViews();
-      if(SHARE_TOKEN) await publishSharedSnapshot();
-      setSyncStatus('ok', 'Synchronisé avec le cloud');
-    }catch(err){
       suppressSync = false;
+      if(SHARE_TOKEN) await publishSharedSnapshot(session);
+      if(!sessionIsCurrent(session)) return false;
+      setSyncStatus('ok', 'Synchronisé avec le cloud');
+      return true;
+    }catch(err){
+      if(!sessionIsCurrent(session)) return false;
+      // Leave editing and automatic writes blocked until a successful reload.
+      suppressSync = true;
       console.error('Erreur de chargement Firebase', err);
       setSyncStatus('error', 'Erreur de chargement : ' + err.message);
+      setLoginError('Chargement des données impossible. Recharge la page pour réessayer.');
+      return false;
     }
   }
 
@@ -352,26 +387,58 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     hideLoginGate();
   } else {
   onAuthStateChanged(auth, async (user) => {
+    const session = sessions.start(user && user.uid);
+    window.JTDAccountGeneration = session.generation;
+    window.cancelPendingConfirmation();
+    state.platform = null;
+    state.search = '';
+    document.getElementById('search-input').value = '';
+    cancelPendingSync();
+    suppressSync = true;
+    currentUser = user || null;
+    accountStorage.setAccount(user && user.uid);
+    replaceAppData(emptyData());
+    SHARE_TOKEN = null;
+    closeModal();
+    closeArrivalModal();
+    closeWishlistModal();
+    closePlatformModal();
+    closeMobileDrawers();
+    document.getElementById('confirm-modal-overlay').classList.add('hidden');
+    document.getElementById('profile-menu').classList.add('hidden');
+    showLoginGate();
     if(user){
-      currentUser = user;
       document.getElementById('logout-btn').classList.remove('hidden');
       document.getElementById('profile-menu-divider').classList.remove('hidden');
       document.getElementById('cloud-sync-status').classList.remove('hidden');
-      if(!appInitialized){
-        await initApp();
-        appInitialized = true;
+      setLoginError('');
+      // Keep the whole application hidden until this account's data is loaded.
+      try{
+        await initApp(() => sessionIsCurrent(session));
+        if(!sessionIsCurrent(session)) return;
+        const loaded = await loadFromCloudOrSeed(session);
+        if(!sessionIsCurrent(session)) return;
+        hideAuthLoading();
+        if(loaded){
+          appInitialized = true;
+          hideLoginGate();
+          if(accountStorage.hasLegacy(STORAGE_KEY)){
+            showToast('Anciennes données locales conservées. Le compte utilise sa sauvegarde cloud ou son stockage dédié.');
+          }
+        }
+      }catch(error){
+        if(!sessionIsCurrent(session)) return;
+        hideAuthLoading();
+        setLoginError('Chargement impossible. Recharge la page pour réessayer.');
+        console.error('Chargement du compte impossible', error);
       }
-      hideAuthLoading();
-      hideLoginGate();
-      await loadFromCloudOrSeed(user.uid);
-    } else {
-      currentUser = null;
+    }else{
       document.getElementById('logout-btn').classList.add('hidden');
       document.getElementById('profile-menu-divider').classList.add('hidden');
       document.getElementById('cloud-sync-status').classList.add('hidden');
       hideAuthLoading();
-      showLoginGate();
     }
   });
   }
+
 
