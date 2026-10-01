@@ -28,6 +28,43 @@ const PREVIEW_SEED = {
   ]
 };
 const SEED_GAMES = [];
+const {escapeHTML, safeURL} = window.JTDData;
+const accountStorage = JTDData.createStorage(localStorage);
+window.JTDStorage = accountStorage;
+function writeStoredValue(key, value){
+  if(IS_PREVIEW_MODE) return true;
+  try{
+    accountStorage.setItem(key, value);
+    if(window.JTDDataChanged) window.JTDDataChanged();
+    return true;
+  }catch(error){
+    console.error('Sauvegarde locale impossible', error);
+    showToast('Sauvegarde locale impossible. Télécharge une sauvegarde pour conserver tes changements.');
+    return false;
+  }
+}
+function restoredStorageEntries(data){
+  return [
+    [STORAGE_KEY, JSON.stringify(data.games)],
+    [ARRIVALS_KEY, JSON.stringify(data.arrivals)],
+    [WISHLIST_KEY, JSON.stringify(data.wishlist)],
+    [PLATFORM_META_KEY, JSON.stringify(data.platformMeta)],
+    [PLATFORM_ORDER_KEY, JSON.stringify(data.platformOrder)],
+    [PROFILE_KEY, JSON.stringify({name:data.profileName, avatar:data.profileAvatar})]
+  ];
+}
+function replaceAppData(data){
+  GAMES = data.games;
+  ARRIVALS = data.arrivals;
+  WISHLIST = data.wishlist;
+  platformMeta = data.platformMeta;
+  platformOrder = data.platformOrder;
+  PROFILE_NAME = data.profileName;
+  PROFILE_AVATAR = data.profileAvatar;
+}
+window.replaceAppData = replaceAppData;
+window.persistAppData = data => accountStorage.atomicWrite(restoredStorageEntries(data));
+
 const STORAGE_KEY = 'ludotheque:games-v2';
 const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
 const WISHLIST_KEY = 'ludotheque:wishlist-v1';
@@ -56,7 +93,7 @@ let SHARE_TOKEN = null;
 function loadProfile(){
   if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; return; }
   try{
-    const raw = localStorage.getItem(PROFILE_KEY);
+    const raw = accountStorage.getItem(PROFILE_KEY);
     if(raw){
       const p = JSON.parse(raw);
       PROFILE_NAME = p.name || '';
@@ -65,8 +102,7 @@ function loadProfile(){
   }catch(e){ /* ignore */ }
 }
 function saveProfile(){
-  if(IS_PREVIEW_MODE) return;
-  try{ localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: PROFILE_NAME, avatar: PROFILE_AVATAR })); }catch(e){ /* ignore */ }
+  return writeStoredValue(PROFILE_KEY, JSON.stringify({ name: PROFILE_NAME, avatar: PROFILE_AVATAR }));
 }
 function profileInitials(){
   const trimmed = PROFILE_NAME.trim();
@@ -124,12 +160,12 @@ const PLATFORM_COLORS = {
 };
 const FALLBACK_PALETTE = ["#D9A441","#4FC7B5","#8B7CD9","#D97757","#5EA8D9","#C97BB0"];
 const PLATFORM_META_KEY = 'ludotheque:platform-meta-v1';
-let platformMeta = {}; // { [nom]: { color, logo } }
+let platformMeta = Object.create(null); // { [nom]: { color, logo } }
 
 function loadPlatformMeta(){
   if(IS_PREVIEW_MODE){ platformMeta = {}; return; }
   try{
-    const raw = localStorage.getItem(PLATFORM_META_KEY);
+    const raw = accountStorage.getItem(PLATFORM_META_KEY);
     platformMeta = raw ? JSON.parse(raw) : {};
   }catch(e){
     platformMeta = {};
@@ -137,12 +173,7 @@ function loadPlatformMeta(){
 }
 
 function savePlatformMeta(){
-  if(IS_PREVIEW_MODE) return;
-  try{
-    localStorage.setItem(PLATFORM_META_KEY, JSON.stringify(platformMeta));
-  }catch(e){
-    console.error('Erreur de sauvegarde des plateformes', e);
-  }
+  return writeStoredValue(PLATFORM_META_KEY, JSON.stringify(platformMeta));
 }
 
 function hashColor(name){
@@ -152,17 +183,17 @@ function hashColor(name){
 }
 
 function getPlatformColor(name){
-  if(platformMeta[name] && platformMeta[name].color) return platformMeta[name].color;
-  if(PLATFORM_COLORS[name]) return PLATFORM_COLORS[name];
+  if(platformMeta[name] && /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(platformMeta[name].color || '')) return platformMeta[name].color;
+  if(Object.hasOwn(PLATFORM_COLORS, name)) return PLATFORM_COLORS[name];
   return hashColor(name);
 }
 
 function getPlatformLogo(name){
-  return (platformMeta[name] && platformMeta[name].logo) || null;
+  return safeURL(platformMeta[name] && platformMeta[name].logo, true) || null;
 }
 
 function ensurePlatformMeta(name){
-  if(!platformMeta[name]) platformMeta[name] = { color: getPlatformColor(name), logo: null, digital: false };
+  if(!Object.hasOwn(platformMeta, name)) platformMeta[name] = { color: getPlatformColor(name), logo: null, digital: false };
   return platformMeta[name];
 }
 
@@ -185,7 +216,7 @@ function seedPcPlatformOnce(){
 function renamePlatform(oldName, newName){
   newName = newName.trim();
   if(!newName || newName === oldName) return false;
-  GAMES.forEach(g => { if(g.plateforme === oldName) g.plateforme = newName; });
+  [GAMES, ARRIVALS, WISHLIST].forEach(items => items.forEach(g => { if(g.plateforme === oldName) g.plateforme = newName; }));
   const meta = platformMeta[oldName];
   delete platformMeta[oldName];
   platformMeta[newName] = meta || { color: getPlatformColor(oldName), logo: null };
@@ -194,7 +225,11 @@ function renamePlatform(oldName, newName){
   if(orderIdx !== -1) platformOrder[orderIdx] = newName;
   savePlatformOrder();
   saveGames();
+  saveArrivals();
+  saveWishlist();
   savePlatformMeta();
+  renderArrivals();
+  renderWishlist();
   return true;
 }
 
@@ -220,7 +255,7 @@ let platformOrder = [];
 function loadPlatformOrder(){
   if(IS_PREVIEW_MODE){ platformOrder = []; return; }
   try{
-    const raw = localStorage.getItem(PLATFORM_ORDER_KEY);
+    const raw = accountStorage.getItem(PLATFORM_ORDER_KEY);
     platformOrder = raw ? JSON.parse(raw) : [];
   }catch(e){
     platformOrder = [];
@@ -228,12 +263,7 @@ function loadPlatformOrder(){
 }
 
 function savePlatformOrder(){
-  if(IS_PREVIEW_MODE) return;
-  try{
-    localStorage.setItem(PLATFORM_ORDER_KEY, JSON.stringify(platformOrder));
-  }catch(e){
-    console.error('Erreur de sauvegarde de l\'ordre des plateformes', e);
-  }
+  return writeStoredValue(PLATFORM_ORDER_KEY, JSON.stringify(platformOrder));
 }
 
 function getOrderedPlatformNames(){
@@ -257,13 +287,13 @@ function movePlatformOrder(name, direction){
 const PLATFORM_SORT_MODE_KEY = 'ludotheque:platform-sort-mode-v1';
 let platformSortMode = 'count'; // 'count' | 'custom'
 try{
-  const storedMode = IS_PREVIEW_MODE ? null : localStorage.getItem(PLATFORM_SORT_MODE_KEY);
+  const storedMode = IS_PREVIEW_MODE ? null : accountStorage.getItem(PLATFORM_SORT_MODE_KEY);
   if(storedMode === 'count' || storedMode === 'custom') platformSortMode = storedMode;
 }catch(e){ /* ignore */ }
 
 function togglePlatformSortMode(){
   platformSortMode = platformSortMode === 'count' ? 'custom' : 'count';
-  try{ localStorage.setItem(PLATFORM_SORT_MODE_KEY, platformSortMode); }catch(e){ /* ignore */ }
+  try{ accountStorage.setItem(PLATFORM_SORT_MODE_KEY, platformSortMode); }catch(e){ /* ignore */ }
   buildPlatformList();
 }
 
@@ -337,8 +367,8 @@ function showToast(message, actionLabel, onAction, duration){
   stack.innerHTML = '';
   const toast = document.createElement('div');
   toast.className = 'toast';
-  const actionHtml = actionLabel ? `<button type="button" class="toast-action">${actionLabel}</button>` : '';
-  toast.innerHTML = `<span class="toast-message">${message}</span>${actionHtml}<button type="button" class="toast-close" aria-label="Fermer">✕</button>`;
+  const actionHtml = actionLabel ? `<button type="button" class="toast-action">${escapeHTML(actionLabel)}</button>` : '';
+  toast.innerHTML = `<span class="toast-message">${escapeHTML(message)}</span>${actionHtml}<button type="button" class="toast-close" aria-label="Fermer">✕</button>`;
   stack.appendChild(toast);
 
   const remove = () => {
@@ -360,7 +390,10 @@ function showToast(message, actionLabel, onAction, duration){
   toastTimer = setTimeout(remove, duration || 6000);
 }
 
+let activeConfirmationCleanup = null;
+window.cancelPendingConfirmation = () => { if(activeConfirmationCleanup) activeConfirmationCleanup(); };
 function confirmAction(message, onConfirm, opts){
+  window.cancelPendingConfirmation();
   const overlay = document.getElementById('confirm-modal-overlay');
   document.getElementById('confirm-modal-title').textContent = (opts && opts.title) || 'Confirmer la suppression';
   document.getElementById('confirm-modal-message').textContent = message;
@@ -372,12 +405,14 @@ function confirmAction(message, onConfirm, opts){
     overlay.classList.add('hidden');
     confirmBtn.removeEventListener('click', onConfirmClick);
     cancelBtn.removeEventListener('click', onCancelClick);
+    activeConfirmationCleanup = null;
   };
   const onConfirmClick = () => { cleanup(); onConfirm(); };
   const onCancelClick = () => { cleanup(); };
   const cancelBtn = document.getElementById('confirm-modal-cancel-btn');
   confirmBtn.addEventListener('click', onConfirmClick);
   cancelBtn.addEventListener('click', onCancelClick);
+  activeConfirmationCleanup = cleanup;
 }
 
 function euros(n){
@@ -401,7 +436,7 @@ function parsePriceInput(s){
 async function loadGames(){
   if(IS_PREVIEW_MODE){ GAMES = PREVIEW_SEED.games.map(g => ({...g})); return; }
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = accountStorage.getItem(STORAGE_KEY);
     if(raw){
       GAMES = JSON.parse(raw);
       return;
@@ -432,20 +467,15 @@ function migrateGameTypes(){
   });
 }
 
-async function saveGames(){
-  if(IS_PREVIEW_MODE) return;
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(GAMES));
-  }catch(e){
-    console.error('Erreur de sauvegarde locale', e);
-  }
+function saveGames(){
+  return writeStoredValue(STORAGE_KEY, JSON.stringify(GAMES));
 }
 
 
 async function loadArrivals(){
   if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
   try{
-    const raw = localStorage.getItem(ARRIVALS_KEY);
+    const raw = accountStorage.getItem(ARRIVALS_KEY);
     ARRIVALS = raw ? JSON.parse(raw) : [];
   }catch(e){
     console.error('Lecture des arrivages impossible', e);
@@ -454,18 +484,13 @@ async function loadArrivals(){
 }
 
 function saveArrivals(){
-  if(IS_PREVIEW_MODE) return;
-  try{
-    localStorage.setItem(ARRIVALS_KEY, JSON.stringify(ARRIVALS));
-  }catch(e){
-    console.error('Erreur de sauvegarde des arrivages', e);
-  }
+  return writeStoredValue(ARRIVALS_KEY, JSON.stringify(ARRIVALS));
 }
 
 async function loadWishlist(){
   if(IS_PREVIEW_MODE){ WISHLIST = PREVIEW_SEED.wishlist.map(g => ({...g})); return; }
   try{
-    const raw = localStorage.getItem(WISHLIST_KEY);
+    const raw = accountStorage.getItem(WISHLIST_KEY);
     WISHLIST = raw ? JSON.parse(raw) : [];
   }catch(e){
     console.error('Lecture de la wishlist impossible', e);
@@ -474,12 +499,7 @@ async function loadWishlist(){
 }
 
 function saveWishlist(){
-  if(IS_PREVIEW_MODE) return;
-  try{
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(WISHLIST));
-  }catch(e){
-    console.error('Erreur de sauvegarde de la wishlist', e);
-  }
+  return writeStoredValue(WISHLIST_KEY, JSON.stringify(WISHLIST));
 }
 
 const BACKUP_VERSION = 2;
@@ -489,7 +509,7 @@ const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
 function updateBackupNote(){
   const el = document.getElementById('backup-note');
   if(!el) return;
-  const raw = localStorage.getItem(LAST_BACKUP_KEY) || localStorage.getItem(LEGACY_LAST_EXPORT_KEY);
+  const raw = IS_PREVIEW_MODE ? null : (accountStorage.getItem(LAST_BACKUP_KEY) || accountStorage.getItem(LEGACY_LAST_EXPORT_KEY));
   if(!raw){
     el.textContent = 'Aucune sauvegarde locale';
     return;
@@ -530,63 +550,18 @@ function downloadBackup(suffix){
 
 function backupData(){
   downloadBackup('sauvegarde');
-  try{ localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){ /* ignore */ }
+  try{ accountStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){ /* ignore */ }
   updateBackupNote();
   showToast('Sauvegarde téléchargée.');
 }
 
 function cleanBackupData(parsed){
-  let data = null;
-  if(Array.isArray(parsed)){
-    data = { games: parsed, arrivals: [], wishlist: [], platformMeta: {}, platformOrder: [] };
-  } else if(parsed && parsed.app === 'Jeux Tout Doux' && parsed.data && typeof parsed.data === 'object'){
-    if(Number.isFinite(parsed.version) && parsed.version > BACKUP_VERSION) throw new Error('Version de sauvegarde trop récente');
-    data = parsed.data;
-  } else if(parsed && typeof parsed === 'object' && Array.isArray(parsed.games)){
-    data = parsed;
-  }
-  if(!data || !Array.isArray(data.games)) throw new Error('Format de sauvegarde invalide');
-  const validGame = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
-  const validBoardItem = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
-  const arrivals = Array.isArray(data.arrivals) ? data.arrivals : [];
-  const wishlist = Array.isArray(data.wishlist) ? data.wishlist : [];
-  if(!data.games.every(validGame) || !arrivals.every(validBoardItem) || !wishlist.every(validBoardItem)){
-    throw new Error('Contenu de sauvegarde invalide');
-  }
-
-  const profile = data.profile && typeof data.profile === 'object' ? data.profile : null;
-  return {
-    games: data.games,
-    arrivals,
-    wishlist,
-    platformMeta: data.platformMeta && typeof data.platformMeta === 'object' && !Array.isArray(data.platformMeta) ? data.platformMeta : {},
-    platformOrder: Array.isArray(data.platformOrder) ? data.platformOrder : [],
-    profileName: profile && typeof profile.name === 'string'
-      ? profile.name
-      : (typeof data.profileName === 'string' ? data.profileName : PROFILE_NAME),
-    profileAvatar: profile && (typeof profile.avatar === 'string' || profile.avatar === null)
-      ? profile.avatar
-      : ((typeof data.profileAvatar === 'string' || data.profileAvatar === null) ? data.profileAvatar : PROFILE_AVATAR)
-  };
+  return JTDData.parseBackup(parsed, {profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR});
 }
-
 function applyRestoredData(data){
-  GAMES = data.games;
-  ARRIVALS = data.arrivals;
-  WISHLIST = data.wishlist;
-  platformMeta = data.platformMeta;
-  platformOrder = data.platformOrder;
-  PROFILE_NAME = data.profileName;
-  PROFILE_AVATAR = data.profileAvatar;
-
-  migrateGameTypes();
-  saveGames();
-  saveArrivals();
-  saveWishlist();
-  savePlatformMeta();
-  savePlatformOrder();
-  saveProfile();
-
+  if(!IS_PREVIEW_MODE) accountStorage.atomicWrite(restoredStorageEntries(data));
+  replaceAppData(data);
+  state.platform = null;
   buildPlatformList();
   buildFormatToggles();
   buildTypeToggles();
@@ -595,11 +570,14 @@ function applyRestoredData(data){
   renderArrivals();
   renderWishlist();
   renderProfileAvatar();
+  if(window.JTDDataChanged) window.JTDDataChanged();
 }
 
 function restoreBackup(file){
+  const accountGeneration = window.JTDAccountGeneration;
   const reader = new FileReader();
   reader.onload = (e) => {
+    if(accountGeneration !== window.JTDAccountGeneration) return;
     try{
       const data = cleanBackupData(JSON.parse(e.target.result));
       const summary = [
@@ -610,8 +588,14 @@ function restoreBackup(file){
       confirmAction(
         'Cette restauration remplacera les données actuelles par : ' + summary + '.',
         () => {
-          applyRestoredData(data);
-          showToast('Sauvegarde restaurée.');
+          if(accountGeneration !== window.JTDAccountGeneration) return;
+          try{
+            applyRestoredData(data);
+            showToast('Sauvegarde restaurée.' + (IS_PREVIEW_MODE ? '' : ' Synchronisation cloud en attente.'));
+          }catch(error){
+            console.error('Restauration impossible', error);
+            showToast(error.message || 'Restauration impossible.');
+          }
         },
         { title:'Restaurer la sauvegarde ?', confirmLabel:'Restaurer' }
       );
@@ -620,6 +604,7 @@ function restoreBackup(file){
       showToast("Ce fichier n'est pas une sauvegarde Jeux Tout Doux valide.");
     }
   };
+  reader.onerror = () => showToast('Lecture du fichier impossible.');
   reader.readAsText(file);
 }
 
@@ -633,7 +618,7 @@ function setStatus(id, statusKey){
 
 function buildPlatformList(){
   const scoped = state.format ? GAMES.filter(g => g.format === state.format) : GAMES;
-  const counts = {};
+  const counts = Object.create(null);
   scoped.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
   const platforms = platformSortMode === 'custom'
     ? getOrderedPlatformNames().filter(p => counts[p])
@@ -664,9 +649,9 @@ function buildPlatformList(){
     item.style.setProperty('--spine', color);
     item.tabIndex = 0;
     const iconHtml = logo
-      ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'spine-chip\\'></span>'">`
+      ? `<img class="mini-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
       : `<span class="spine-chip"></span>`;
-    item.innerHTML = `${iconHtml}<span class="plat-name">${p}</span><span class="plat-count">${counts[p]}</span>`;
+    item.innerHTML = `${iconHtml}<span class="plat-name">${escapeHTML(p)}</span><span class="plat-count">${counts[p]}</span>`;
     item.onclick = () => { state.platform = (state.platform === p ? null : p); buildPlatformList(); render(); closeMobileDrawers(); };
     container.appendChild(item);
   });
@@ -792,7 +777,7 @@ function renderPlatformBanner(games){
   const termineCount = games.filter(g => g.status === 'termine' || g.status === 'termine_ailleurs').length;
 
   const stat = (value, label, extraClass='') =>
-    `<span class="library-stat ${extraClass}"><strong>${value}</strong><span>${label}</span></span>`;
+    `<span class="library-stat ${extraClass}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
 
   const statsHtml = [
     stat(total, total > 1 ? 'jeux' : 'jeu'),
@@ -826,10 +811,10 @@ function renderPlatformBanner(games){
   banner.style.color = '';
   banner.style.setProperty('--platform-accent',color);
   const logoHtml = logo
-    ? `<img class="platform-banner-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'platform-banner-fallback\\'>${initials}</span>'">`
-    : `<span class="platform-banner-fallback">${initials}</span>`;
+    ? `<img class="platform-banner-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
+    : `<span class="platform-banner-fallback">${escapeHTML(initials)}</span>`;
   banner.innerHTML = `
-    <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-kicker">Ma collection</span><span class="platform-banner-title">${state.platform}</span></div></div>
+    <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-kicker">Ma collection</span><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
     <div class="platform-banner-stats">${statsHtml}</div>
   `;
 }
@@ -863,23 +848,23 @@ function renderCard(g){
     : '';
 
   const bannerInner = g.image
-    ? `<img src="${g.image}" alt="${g.nom}" onerror="this.style.display='none';this.parentElement.classList.add('placeholder');this.parentElement.querySelector('.card-fallback').classList.remove('hidden')">`
+    ? `<img src="${escapeHTML(safeURL(g.image, true))}" alt="${escapeHTML(g.nom)}">`
     : '';
 
   const bannerHtml = `<div class="card-banner${g.image ? '' : ' placeholder'}">
       ${bannerInner}
-      <span class="card-fallback${g.image ? ' hidden' : ''}">${g.plateforme.slice(0,2).toUpperCase()}</span>
+      <span class="card-fallback${g.image ? ' hidden' : ''}">${escapeHTML(g.plateforme.slice(0,2).toUpperCase())}</span>
     </div>`;
 
   const platformHtml = `${logo
-    ? `<img class="mini-logo" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\' style=\\'--spine:${color}\\'></span>'">`
-    : `<span class="dot" style="--spine:${color}"></span>`}<span>${g.plateforme}</span>`;
+    ? `<img class="mini-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
+    : `<span class="dot" style="--spine:${color}"></span>`}<span>${escapeHTML(g.plateforme)}</span>`;
 
   const purchaseBits = [];
-  if(g.source) purchaseBits.push(`<span class="card-source" title="${g.source}">${g.source}</span>`);
+  if(g.source) purchaseBits.push(`<span class="card-source" title="${escapeHTML(g.source)}">${escapeHTML(g.source)}</span>`);
   if(g.prix != null) purchaseBits.push(`<span class="card-price">${euros(g.prix)}</span>`);
   const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('')}</div>` : '';
-  const purchaseDateHtml = g.date ? `<time class="card-purchase-date" datetime="${g.date}" title="Date d'achat">${dateFR(g.date)}</time>` : '';
+  const purchaseDateHtml = g.date ? `<time class="card-purchase-date" datetime="${escapeHTML(g.date)}" title="Date d'achat">${escapeHTML(dateFR(g.date))}</time>` : '';
   const acquisitionHtml = purchaseDateHtml || purchaseHtml
     ? `<div class="card-acquisition">${purchaseDateHtml}${purchaseHtml}</div>`
     : '';
@@ -887,7 +872,7 @@ function renderCard(g){
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
-      <div class="card-name" title="${g.nom}">${collectorTitleHtml}${japaneseEditionMark(g)}<span class="card-name-text">${g.nom}</span></div>
+      <div class="card-name" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></div>
       <div class="card-summary card-identity">
         <span class="card-platform">${platformHtml}</span>
         ${statusBadgeHtml}
@@ -931,7 +916,7 @@ function renderResultsBar(count){
 
   let html = `<span class="results-count">${count} jeu${count > 1 ? 'x' : ''}</span>`;
   if(filters.length){
-    html += `<span class="results-filters">${filters.map(f => `<b>${f}</b>`).join(' · ')}</span>`;
+    html += `<span class="results-filters">${filters.map(f => `<b>${escapeHTML(f)}</b>`).join(' · ')}</span>`;
     html += `<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>`;
   }
   bar.innerHTML = html;
@@ -980,7 +965,7 @@ function getPlatformOptionIconHtml(name){
   const color = getPlatformColor(name);
   const logo = getPlatformLogo(name);
   return logo
-    ? `<img class="icon-select-icon" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'icon-select-dot\\' style=\\'background:${color}\\'></span>'">`
+    ? `<img class="icon-select-icon" src="${escapeHTML(safeURL(logo, true))}" alt="">`
     : `<span class="icon-select-dot" style="background:${color}"></span>`;
 }
 
@@ -1045,7 +1030,7 @@ function rebuildIconSelectList(selectId){
   Array.from(select.options).forEach(opt => {
     const row = document.createElement('div');
     row.className = 'icon-select-option';
-    row.innerHTML = `${cfg.getIcon(opt.value)}<span>${opt.textContent}</span>`;
+    row.innerHTML = `${cfg.getIcon(opt.value)}<span>${escapeHTML(opt.textContent)}</span>`;
     row.onclick = () => {
       select.value = opt.value;
       select.dispatchEvent(new Event('change'));
@@ -1065,7 +1050,7 @@ function syncIconSelectTrigger(selectId){
   const val = select.value;
   const opt = select.options[select.selectedIndex];
   const label = opt ? opt.textContent : 'Choisir...';
-  trigger.innerHTML = `${cfg.getIcon(val)}<span class="icon-select-trigger-label">${label}</span><svg class="icon-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+  trigger.innerHTML = `${cfg.getIcon(val)}<span class="icon-select-trigger-label">${escapeHTML(label)}</span><svg class="icon-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
 }
 
 function populatePlatformSelect(selectId, digitalOnly){
@@ -1074,7 +1059,7 @@ function populatePlatformSelect(selectId, digitalOnly){
   let platforms = allPlatformNames();
   if(digitalOnly) platforms = platforms.filter(isDigitalCapable);
   const current = select.value;
-  select.innerHTML = platforms.map(p => `<option value="${p}">${p}</option>`).join('');
+  select.innerHTML = platforms.map(p => `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`).join('');
   if(current && platforms.includes(current)) select.value = current;
   else if(platforms.length) select.value = platforms[0];
   rebuildIconSelectList(selectId);
@@ -1104,12 +1089,12 @@ function setSelectValueAndSync(selectId, value){
 
 function getLastUsed(key, fallback){
   try {
-    const v = localStorage.getItem('jtd-last-'+key);
+    const v = accountStorage.getItem('jtd-last-'+key);
     return (v !== null && v !== '') ? v : fallback;
   } catch(e){ return fallback; }
 }
 function setLastUsed(key, value){
-  try { localStorage.setItem('jtd-last-'+key, value); } catch(e){}
+  try { accountStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
 function identitySummaryHtml(item){
@@ -1119,10 +1104,10 @@ function identitySummaryHtml(item){
   const color = getPlatformColor(platform);
   const logo = getPlatformLogo(platform);
   const thumb = image
-    ? `<img src="${image}" alt="" onerror="this.remove();this.parentElement.textContent='${platform.slice(0,2).toUpperCase()}';this.parentElement.style.background='${color}'">`
-    : platform.slice(0,2).toUpperCase();
+    ? `<img src="${escapeHTML(safeURL(image, true))}" alt="">`
+    : escapeHTML(platform.slice(0,2).toUpperCase());
   const platformIcon = logo
-    ? `<img src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'identity-platform-dot\\' style=\\'background:${color}\\'></span>'">`
+    ? `<img src="${escapeHTML(safeURL(logo, true))}" alt="">`
     : `<span class="identity-platform-dot" style="background:${color}"></span>`;
   const collectorMark = item && item.collector
     ? `<span class="identity-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
@@ -1130,8 +1115,8 @@ function identitySummaryHtml(item){
   return `
     <div class="identity-thumb" style="${image ? '' : `background:${color}`}">${thumb}</div>
     <div class="identity-copy">
-      <strong>${collectorMark}${japaneseEditionMark(item)}<span>${name}</span></strong>
-      <span>${platformIcon}${platform}</span>
+      <strong>${collectorMark}${japaneseEditionMark(item)}<span>${escapeHTML(name)}</span></strong>
+      <span>${platformIcon}${escapeHTML(platform)}</span>
     </div>
     <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
@@ -1168,16 +1153,16 @@ function contextSummaryHtml(item, type){
   if(type === 'purchase'){
     const bits = [
       `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
-      `<span><small>Date d'achat</small><strong>${item.date ? dateFR(item.date) : '—'}</strong></span>`,
-      `<span><small>Source</small><strong>${item.source || '—'}</strong></span>`
+      `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
+      `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
     return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
   }
   if(type === 'arrival'){
     const bits = [
-      `<span><small>Livraison</small><strong>${item.date ? dateFR(item.date) : '—'}</strong></span>`,
+      `<span><small>Livraison</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
       `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
-      `<span><small>Source</small><strong>${item.source || '—'}</strong></span>`
+      `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
     return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'arrivage" aria-label="Modifier l'arrivage">${contextEditIcon()}</button>`;
   }
@@ -1185,7 +1170,7 @@ function contextSummaryHtml(item, type){
   const dateLabel = parsed && parsed.label ? parsed.label : '—';
   const linkLabel = item.lien ? 'Lien renseigné' : 'Aucun lien';
   return `<div class="context-summary-values">
-    <span><small>Sortie</small><strong>${dateLabel}</strong></span>
+    <span><small>Sortie</small><strong>${escapeHTML(dateLabel)}</strong></span>
     <span><small>Lien</small><strong>${linkLabel}</strong></span>
   </div><button type="button" class="context-edit-btn" title="Modifier la wishlist" aria-label="Modifier la wishlist">${contextEditIcon()}</button>`;
 }
@@ -1273,13 +1258,7 @@ function closeModal(){
 }
 
 function updateImagePreview(){
-  const url = document.getElementById('f-image').value.trim();
-  const preview = document.getElementById('image-preview');
-  if(url){
-    preview.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span>Image introuvable</span>'">`;
-  } else {
-    preview.innerHTML = `<span>Aperçu de l'image</span>`;
-  }
+  updateImagePreviewFor('f-image', 'image-preview');
 }
 
 function saveModal(){
@@ -1328,14 +1307,14 @@ function deleteGame(){
   if(!editingId) return;
   const g = GAMES.find(x => x.id === editingId);
   if(!g) return;
-  confirmAction(`Supprimer « ${g.nom} » de la ludothèque ?`, () => {
+  confirmAction(`Supprimer « ${escapeHTML(g.nom)} » de la ludothèque ?`, () => {
     const idx = GAMES.indexOf(g);
     GAMES = GAMES.filter(x => x.id !== editingId);
     saveGames();
     closeModal();
     buildPlatformList();
     render();
-    showToast(`« ${g.nom} » supprimé`, 'Annuler', () => {
+    showToast(`« ${escapeHTML(g.nom)} » supprimé`, 'Annuler', () => {
       GAMES.splice(Math.min(idx, GAMES.length), 0, g);
       saveGames();
       buildPlatformList();
@@ -1366,17 +1345,17 @@ function renderHomeStats(){
 
   const barsEl = document.getElementById('home-platform-bars');
   if(!barsEl) return;
-  const counts = {};
+  const counts = Object.create(null);
   GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme] || 0) + 1; });
   const rows = Object.entries(counts).sort((a,b) => b[1] - a[1]);
   barsEl.innerHTML = rows.map(([platform, count]) => {
     const logo = getPlatformLogo(platform);
     const color = getPlatformColor(platform);
     const icon = logo
-      ? `<img class="home-plat-icon" src="${logo}" alt="">`
+      ? `<img class="home-plat-icon" src="${escapeHTML(safeURL(logo, true))}" alt="">`
       : `<span class="home-plat-icon-fallback" style="background:${color};"></span>`;
     return `<div class="home-platform-bar-row" style="--home-platform-color:${color}">
-      <div class="plat-bar-label">${icon}<span class="plat-name">${platform}</span><span class="count">${count}</span></div>
+      <div class="plat-bar-label">${icon}<span class="plat-name">${escapeHTML(platform)}</span><span class="count">${count}</span></div>
     </div>`;
   }).join('');
 }
@@ -1393,12 +1372,10 @@ function boardThumb(item){
   const logo = getPlatformLogo(item.plateforme);
   const color = getPlatformColor(item.plateforme);
   const fallback = logo
-    ? `<img src="${logo}" alt="" style="width:44px;height:44px;object-fit:contain;border-radius:8px;">`
-    : `<span style="color:${color};font-weight:700;">${initials}</span>`;
-  if(item.image){
-    return `<div class="board-thumb" data-fallback="${logo ? 'logo' : 'initials'}"><img src="${item.image}" alt="" onerror='this.parentElement.innerHTML=${JSON.stringify(fallback)}'></div>`;
-  }
-  return `<div class="board-thumb">${fallback}</div>`;
+    ? `<img src="${escapeHTML(logo)}" alt="" style="width:44px;height:44px;object-fit:contain;border-radius:8px;">`
+    : `<span style="color:${color};font-weight:700;">${escapeHTML(initials)}</span>`;
+  const image = safeURL(item.image, true);
+  return `<div class="board-thumb"><span class="board-image-fallback${image ? ' hidden' : ''}">${fallback}</span>${image ? `<img data-board-art src="${escapeHTML(image)}" alt="">` : ''}</div>`;
 }
 
 function calendarDayHtml(date, opts = {}){
@@ -1413,13 +1390,13 @@ function calendarDayHtml(date, opts = {}){
   }
   const parsed = parseWishlistDate(raw);
   const label = parsed.label || '—';
-  return `<div class="calendar-day calendar-day-loose"><strong>${label}</strong></div>`;
+  return `<div class="calendar-day calendar-day-loose"><strong>${escapeHTML(label)}</strong></div>`;
 }
 
 function calendarGroupHtml(label, year, color, count, loose = false){
   return `<div class="calendar-group-head${loose ? ' calendar-group-head-loose' : ''}"${color ? ` style="--calendar-accent:${color}"` : ''}>
     <div class="calendar-group-title">
-      <strong>${label}</strong>
+      <strong>${escapeHTML(label)}</strong>
       ${year ? `<span>${year}</span>` : ''}
     </div>
   </div>`;
@@ -1429,22 +1406,22 @@ function arrivalRowHtml(item){
   const color = getPlatformColor(item.plateforme);
   const logo = getPlatformLogo(item.plateforme);
   const platIconHtml = logo
-    ? `<img class="mini-logo-sm" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\'></span>'">`
+    ? `<img class="mini-logo-sm" src="${escapeHTML(safeURL(logo, true))}" alt="">`
     : `<span class="dot"></span>`;
   const monthColor = item.date ? MONTH_COLORS[monthIndexOf(item.date)] : null;
   const purchaseBits = [];
-  if(item.source) purchaseBits.push(`<span class="arrival-source" title="${item.source}">${item.source}</span>`);
+  if(item.source) purchaseBits.push(`<span class="arrival-source" title="${escapeHTML(item.source)}">${escapeHTML(item.source)}</span>`);
   if(item.prix != null) purchaseBits.push(`<span class="arrival-price">${euros(item.prix)}</span>`);
   const purchaseHtml = purchaseBits.length
     ? `<div class="arrival-purchase">${purchaseBits.join('<span class="arrival-meta-sep">·</span>')}</div>`
     : '';
   return `
-    <div class="board-row" data-id="${item.id}" draggable="true" style="--spine:${color}">
+    <div class="board-row" data-id="${escapeHTML(item.id)}" draggable="true" style="--spine:${color}">
       ${calendarDayHtml(item.date)}
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${item.nom}</span></div>
-        <div class="board-plat">${platIconHtml}${item.plateforme}</div>
+        <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
+        <div class="board-plat">${platIconHtml}${escapeHTML(item.plateforme)}</div>
       </div>
       ${purchaseHtml}
       <div class="arrival-actions">
@@ -1668,26 +1645,26 @@ function renderWishlist(){
     const color = getPlatformColor(item.plateforme);
     const logo = getPlatformLogo(item.plateforme);
     const platIconHtml = logo
-      ? `<img class="mini-logo-sm" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\'></span>'">`
+      ? `<img class="mini-logo-sm" src="${escapeHTML(safeURL(logo, true))}" alt="">`
       : `<span class="dot"></span>`;
     const row = document.createElement('div');
     row.className = 'board-row' + (released ? ' wishlist-row-released' : '');
     row.style.setProperty('--spine', color);
     row.draggable = true;
     row.title = 'Glisse ce jeu vers les Arrivages pour le basculer';
-    const linkHtml = item.lien
-      ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
+    const linkHtml = safeURL(item.lien)
+      ? `<a class="board-link" href="${escapeHTML(safeURL(item.lien))}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(item.lien)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : '';
     const dateHtml = released ? '' : calendarDayHtml(item.date);
     const releasedDateHtml = released
-      ? `<time class="wishlist-release-date" datetime="${parseWishlistDate(item.date).key}" title="Date de sortie">${parseWishlistDate(item.date).label}</time>`
+      ? `<time class="wishlist-release-date" datetime="${escapeHTML(parseWishlistDate(item.date).key)}" title="Date de sortie">${escapeHTML(parseWishlistDate(item.date).label)}</time>`
       : '';
     row.innerHTML = `
       ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
-        <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${item.nom}</span></div>
-        <div class="board-plat">${platIconHtml}<span>${item.plateforme}</span>${releasedDateHtml}</div>
+        <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
+        <div class="board-plat">${platIconHtml}<span>${escapeHTML(item.plateforme)}</span>${releasedDateHtml}</div>
       </div>
       ${linkHtml}
     `;
@@ -1873,13 +1850,13 @@ function deleteArrival(){
   if(!editingArrivalId) return;
   const item = ARRIVALS.find(x => x.id === editingArrivalId);
   if(!item) return;
-  confirmAction(`Supprimer l'arrivage « ${item.nom} » ?`, () => {
+  confirmAction(`Supprimer l'arrivage « ${escapeHTML(item.nom)} » ?`, () => {
     const idx = ARRIVALS.indexOf(item);
     ARRIVALS = ARRIVALS.filter(x => x.id !== editingArrivalId);
     saveArrivals();
     closeArrivalModal();
     renderArrivals();
-    showToast(`« ${item.nom} » supprimé`, 'Annuler', () => {
+    showToast(`« ${escapeHTML(item.nom)} » supprimé`, 'Annuler', () => {
       ARRIVALS.splice(Math.min(idx, ARRIVALS.length), 0, item);
       saveArrivals();
       renderArrivals();
@@ -2002,13 +1979,13 @@ function deleteWishlist(){
   if(!editingWishlistId) return;
   const item = WISHLIST.find(x => x.id === editingWishlistId);
   if(!item) return;
-  confirmAction(`Retirer « ${item.nom} » de la wishlist ?`, () => {
+  confirmAction(`Retirer « ${escapeHTML(item.nom)} » de la wishlist ?`, () => {
     const idx = WISHLIST.indexOf(item);
     WISHLIST = WISHLIST.filter(x => x.id !== editingWishlistId);
     saveWishlist();
     closeWishlistModal();
     renderWishlist();
-    showToast(`« ${item.nom} » retiré de la wishlist`, 'Annuler', () => {
+    showToast(`« ${escapeHTML(item.nom)} » retiré de la wishlist`, 'Annuler', () => {
       WISHLIST.splice(Math.min(idx, WISHLIST.length), 0, item);
       saveWishlist();
       renderWishlist();
@@ -2067,13 +2044,15 @@ function moveArrivalToWishlist(id){
 }
 
 function updateImagePreviewFor(inputId, previewId){
-  const url = document.getElementById(inputId).value.trim();
+  const url = safeURL(document.getElementById(inputId).value.trim(), true);
   const preview = document.getElementById(previewId);
+  preview.replaceChildren();
   if(url){
-    preview.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span>Image introuvable</span>'">`;
-  } else {
-    preview.innerHTML = `<span>Aperçu de l'image</span>`;
-  }
+    const image = document.createElement('img');
+    image.src = url;
+    image.addEventListener('error', () => { preview.textContent = 'Image introuvable'; });
+    preview.appendChild(image);
+  }else preview.textContent = "Aperçu de l'image";
 }
 
 document.getElementById('add-arrival-btn').addEventListener('click', () => openArrivalModal(null));
@@ -2116,8 +2095,8 @@ function closePlatformModal(){
 }
 
 function buildPlatformRows(){
-  const counts = {};
-  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
+  const counts = Object.create(null);
+  [GAMES, ARRIVALS, WISHLIST].forEach(items => items.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; }));
   allPlatformNames().forEach(p => { if(!(p in counts)) counts[p] = 0; });
   const platforms = getOrderedPlatformNames();
 
@@ -2137,17 +2116,17 @@ function buildPlatformRows(){
     row.innerHTML = `
       <div class="platform-row-main">
         <div class="row-order-btns" aria-label="Ordre de la plateforme">
-          <button type="button" class="order-btn" data-dir="-1" title="Monter" aria-label="Monter ${p}"${idx === 0 ? ' disabled' : ''}>▲</button>
-          <button type="button" class="order-btn" data-dir="1" title="Descendre" aria-label="Descendre ${p}"${idx === platforms.length - 1 ? ' disabled' : ''}>▼</button>
+          <button type="button" class="order-btn" data-dir="-1" title="Monter" aria-label="Monter ${escapeHTML(p)}"${idx === 0 ? ' disabled' : ''}>▲</button>
+          <button type="button" class="order-btn" data-dir="1" title="Descendre" aria-label="Descendre ${escapeHTML(p)}"${idx === platforms.length - 1 ? ' disabled' : ''}>▼</button>
         </div>
         <div class="swatch-preview" data-role="swatch">
-          ${logo ? `<img src="${logo}" alt="" onerror="this.remove();this.parentElement.textContent='${initials}';this.parentElement.style.background='${color}'">` : initials}
+          ${logo ? `<img src="${escapeHTML(safeURL(logo, true))}" alt="">` : escapeHTML(initials)}
         </div>
         <div class="platform-row-info">
-          <strong class="platform-row-name">${p}</strong>
+          <strong class="platform-row-name">${escapeHTML(p)}</strong>
           <span class="row-count">${count} jeu${count > 1 ? 'x' : ''}</span>
         </div>
-        <button type="button" class="platform-edit-btn" aria-label="Modifier ${p}" title="Modifier">
+        <button type="button" class="platform-edit-btn" aria-label="Modifier ${escapeHTML(p)}" title="Modifier">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
         </button>
       </div>
@@ -2155,7 +2134,7 @@ function buildPlatformRows(){
         <div class="platform-editor-topline">
           <label class="platform-editor-field platform-editor-name">
             <span>Nom</span>
-            <input type="text" data-role="name" value="${p}">
+            <input type="text" data-role="name" value="${escapeHTML(p)}">
           </label>
           <label class="platform-editor-field platform-editor-color">
             <span>Couleur</span>
@@ -2164,7 +2143,7 @@ function buildPlatformRows(){
         </div>
         <label class="platform-editor-field">
           <span>Logo <small>URL facultative</small></span>
-          <input type="text" data-role="logo" placeholder="https://…" value="${logo || ''}">
+          <input type="text" data-role="logo" placeholder="https://…" value="${escapeHTML(safeURL(logo, true))}">
         </label>
         <div class="platform-editor-actions">
           ${count === 0 ? `<button type="button" class="platform-delete-btn">Supprimer</button>` : `<span class="platform-delete-hint">${count} jeu${count > 1 ? 'x' : ''} associé${count > 1 ? 's' : ''}</span>`}
@@ -2211,7 +2190,7 @@ function buildPlatformRows(){
     });
 
     const refreshDraftPreview = () => {
-      const url = logoInput.value.trim();
+      const url = safeURL(logoInput.value.trim(), true);
       const draftName = nameInput.value.trim() || p;
       swatch.innerHTML = '';
       if(url){
@@ -2258,6 +2237,8 @@ function buildPlatformRows(){
       savePlatformMeta();
       buildPlatformList();
       render();
+      renderArrivals();
+      renderWishlist();
       buildPlatformRows();
       showToast(`« ${finalName} » mise à jour`);
     });
@@ -2533,15 +2514,19 @@ document.querySelectorAll('.home-boards-switch-btn').forEach(btn => {
   });
 });
 
-async function initApp(){
+async function initApp(isCurrent = () => true){
   loadProfile();
   renderProfileAvatar();
   loadPlatformMeta();
   loadPlatformOrder();
   await loadGames();
+  if(!isCurrent()) return;
   await loadArrivals();
+  if(!isCurrent()) return;
   await loadWishlist();
+  if(!isCurrent()) return;
   migrateGameTypes();
+  try { const mode = accountStorage.getItem(PLATFORM_SORT_MODE_KEY); platformSortMode = mode === 'custom' ? 'custom' : 'count'; }catch(e){}
   seedPcPlatformOnce();
   iconSelectify('f-plateforme', getPlatformOptionIconHtml);
   iconSelectify('a-plateforme', getPlatformOptionIconHtml);
@@ -2605,3 +2590,27 @@ if(IS_PREVIEW_MODE){
       }
     });
 }
+
+
+// Image errors never evaluate code assembled from user data.
+document.addEventListener('error', event => {
+  const image = event.target;
+  if(!(image instanceof HTMLImageElement)) return;
+  const parent = image.parentElement;
+  if(!parent) return;
+  if(image.hasAttribute('data-board-art')){
+    image.remove();
+    parent.querySelector('.board-image-fallback')?.classList.remove('hidden');
+  }else if(parent.classList.contains('card-banner')){
+    image.remove();
+    parent.classList.add('placeholder');
+    parent.querySelector('.card-fallback')?.classList.remove('hidden');
+  }else if(parent.classList.contains('identity-thumb') || parent.classList.contains('swatch-preview')){
+    image.remove();
+    parent.textContent = '—';
+  }else if(!parent.classList.contains('image-preview')){
+    const dot = document.createElement('span');
+    dot.className = image.classList.contains('icon-select-icon') ? 'icon-select-dot' : 'dot';
+    image.replaceWith(dot);
+  }
+}, true);

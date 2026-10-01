@@ -462,12 +462,13 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="app.js?v=profile-v3"></script>
+<script src="jtd-data.js?v=data-v1"></script>
+<script src="app.js?v=data-v1"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');
     firebaseScript.type = 'module';
-    firebaseScript.src = 'firebase.js?v=profile-v3';
+    firebaseScript.src = 'firebase.js?v=data-v1';
     document.body.appendChild(firebaseScript);
   }
 </script>
