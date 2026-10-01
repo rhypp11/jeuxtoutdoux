@@ -18,7 +18,14 @@ const PREVIEW_SEED = {
     {id:'test-elsewhere',nom:'Terminé ailleurs — Test',plateforme:'PlayStation 5',prix:24.99,format:'Physique',collector:true,type:null,status:'termine_ailleurs',date:'2025-12-01',source:'Test',image:null}
   ],
   arrivals:[{id:'test-arrival',nom:'Arrivage — Test',plateforme:'Switch 2',prix:49.99,date:'2026-11-20',source:'Test',image:null}],
-  wishlist:[{id:'test-wish',nom:'Wishlist — Test',plateforme:'PC',prix:null,date:'2027',source:'Test',image:null}]
+  wishlist:[
+    {id:'test-wish',nom:'Wishlist — Test 2027',plateforme:'PC',prix:null,date:'2027',source:'Test',image:null},
+    {id:'test-wish-nov-12',nom:'Avant dans l’alphabet — Test du 12',plateforme:'Switch 2',date:'2026-11-12',image:null},
+    {id:'test-wish-nov-5',nom:'Plus tard dans l’alphabet — Test du 5',plateforme:'Switch 2',date:'2026-11-05',image:null},
+    {id:'test-wish-year',nom:'Wishlist — Test 2026',plateforme:'PC',date:'2026',image:null},
+    {id:'test-wish-tbd',nom:'Wishlist — Test TBD',plateforme:'PC',date:'TBD',image:null},
+    {id:'test-wish-released',nom:'Déjà sorti — Test',plateforme:'Switch 2',date:'2026-09-17',image:null}
+  ]
 };
 const SEED_GAMES = [];
 const STORAGE_KEY = 'ludotheque:games-v2';
@@ -1561,7 +1568,7 @@ function wireWishlistDropZone(){
 
 function parseWishlistDate(str){
   const s = (str || '').trim();
-  if(!s) return { priority:2, key:'zzz', label:'—' };
+  if(!s) return { priority:4, key:'zzz', label:'—' };
 
   // Date ISO : AAAA-MM-JJ
   let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
@@ -1633,6 +1640,14 @@ function wishlistIsReleased(str){
   return false;
 }
 
+function comparePendingWishlistItems(a, b){
+  const ga = wishlistGroupInfo(a.date), gb = wishlistGroupInfo(b.date);
+  if(ga.order !== gb.order) return ga.order - gb.order;
+  if(ga.key !== gb.key) return ga.key.localeCompare(gb.key);
+  const da = parseWishlistDate(a.date), db = parseWishlistDate(b.date);
+  return da.priority - db.priority || da.key.localeCompare(db.key) || (a.nom || '').localeCompare(b.nom || '');
+}
+
 function renderWishlist(){
   const container = document.getElementById('wishlist-rows');
   if(!container) return;
@@ -1656,20 +1671,23 @@ function renderWishlist(){
       ? `<img class="mini-logo-sm" src="${logo}" alt="" onerror="this.outerHTML='<span class=\\'dot\\'></span>'">`
       : `<span class="dot"></span>`;
     const row = document.createElement('div');
-    row.className = 'board-row';
+    row.className = 'board-row' + (released ? ' wishlist-row-released' : '');
     row.style.setProperty('--spine', color);
     row.draggable = true;
     row.title = 'Glisse ce jeu vers les Arrivages pour le basculer';
     const linkHtml = item.lien
       ? `<a class="board-link" href="${item.lien}" target="_blank" rel="noopener noreferrer" title="${item.lien}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : '';
-    const dateHtml = calendarDayHtml(item.date, {released});
+    const dateHtml = released ? '' : calendarDayHtml(item.date);
+    const releasedDateHtml = released
+      ? `<time class="wishlist-release-date" datetime="${parseWishlistDate(item.date).key}" title="Date de sortie">${parseWishlistDate(item.date).label}</time>`
+      : '';
     row.innerHTML = `
       ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${item.nom}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${item.nom}</span></div>
-        <div class="board-plat">${platIconHtml}${item.plateforme}</div>
+        <div class="board-plat">${platIconHtml}<span>${item.plateforme}</span>${releasedDateHtml}</div>
       </div>
       ${linkHtml}
     `;
@@ -1693,12 +1711,7 @@ function renderWishlist(){
   const pending = WISHLIST.filter(w => !wishlistIsReleased(w.date));
   const released = WISHLIST.filter(w => wishlistIsReleased(w.date));
 
-  const sortedPending = [...pending].sort((a,b) => {
-    const ga = wishlistGroupInfo(a.date), gb = wishlistGroupInfo(b.date);
-    if(ga.order !== gb.order) return ga.order - gb.order;
-    if(ga.key !== gb.key) return ga.key.localeCompare(gb.key);
-    return (a.nom||'').localeCompare(b.nom||'');
-  });
+  const sortedPending = [...pending].sort(comparePendingWishlistItems);
   const sortedReleased = [...released].sort((a,b) => parseWishlistDate(b.date).key.localeCompare(parseWishlistDate(a.date).key));
 
   const pendingGroups = [];
@@ -2592,4 +2605,3 @@ if(IS_PREVIEW_MODE){
       }
     });
 }
-
