@@ -1,0 +1,38 @@
+name: Collection mobile and desktop QA
+
+on:
+  push:
+    branches: [codex/finalisation-restauration]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collection-flows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax
+        run: |
+          node --check app.js
+          node --check firebase.js
+          node --check tests/collection-flows.cjs
+      - name: Prepare isolated browser tests
+        run: npm install --prefix "$RUNNER_TEMP/jtd-qa-deps" --no-package-lock playwright@1.56.1
+      - name: Test collection flows offline
+        env:
+          NODE_PATH: ${{ runner.temp }}/jtd-qa-deps/node_modules
+          CHROME_PATH: /usr/bin/google-chrome
+          JTD_QA_OUTPUT: ${{ runner.temp }}/jtd-qa-results
+        run: node tests/collection-flows.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: collection-qa-results
+          path: ${{ runner.temp }}/jtd-qa-results

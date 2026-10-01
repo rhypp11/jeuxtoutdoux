@@ -1,5 +1,7 @@
 const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true;
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
+// Les essais survivent au rechargement du même onglet, dans un stockage séparé.
+const appStorage = IS_PREVIEW_MODE ? sessionStorage : localStorage;
 if(IS_PREVIEW_MODE){
   document.documentElement.dataset.environment = 'sandbox';
   window.addEventListener('DOMContentLoaded', () => {
@@ -54,9 +56,9 @@ let PROFILE_AVATAR = null;
 let SHARE_TOKEN = null;
 
 function loadProfile(){
-  if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; return; }
+  if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; }
   try{
-    const raw = localStorage.getItem(PROFILE_KEY);
+    const raw = appStorage.getItem(PROFILE_KEY);
     if(raw){
       const p = JSON.parse(raw);
       PROFILE_NAME = p.name || '';
@@ -65,8 +67,7 @@ function loadProfile(){
   }catch(e){ /* ignore */ }
 }
 function saveProfile(){
-  if(IS_PREVIEW_MODE) return;
-  try{ localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: PROFILE_NAME, avatar: PROFILE_AVATAR })); }catch(e){ /* ignore */ }
+  try{ appStorage.setItem(PROFILE_KEY, JSON.stringify({ name: PROFILE_NAME, avatar: PROFILE_AVATAR })); }catch(e){ /* ignore */ }
 }
 function profileInitials(){
   const trimmed = PROFILE_NAME.trim();
@@ -127,9 +128,8 @@ const PLATFORM_META_KEY = 'ludotheque:platform-meta-v1';
 let platformMeta = {}; // { [nom]: { color, logo } }
 
 function loadPlatformMeta(){
-  if(IS_PREVIEW_MODE){ platformMeta = {}; return; }
   try{
-    const raw = localStorage.getItem(PLATFORM_META_KEY);
+    const raw = appStorage.getItem(PLATFORM_META_KEY);
     platformMeta = raw ? JSON.parse(raw) : {};
   }catch(e){
     platformMeta = {};
@@ -137,9 +137,8 @@ function loadPlatformMeta(){
 }
 
 function savePlatformMeta(){
-  if(IS_PREVIEW_MODE) return;
   try{
-    localStorage.setItem(PLATFORM_META_KEY, JSON.stringify(platformMeta));
+    appStorage.setItem(PLATFORM_META_KEY, JSON.stringify(platformMeta));
   }catch(e){
     console.error('Erreur de sauvegarde des plateformes', e);
   }
@@ -218,9 +217,8 @@ const PLATFORM_ORDER_KEY = 'ludotheque:platform-order-v1';
 let platformOrder = [];
 
 function loadPlatformOrder(){
-  if(IS_PREVIEW_MODE){ platformOrder = []; return; }
   try{
-    const raw = localStorage.getItem(PLATFORM_ORDER_KEY);
+    const raw = appStorage.getItem(PLATFORM_ORDER_KEY);
     platformOrder = raw ? JSON.parse(raw) : [];
   }catch(e){
     platformOrder = [];
@@ -228,9 +226,8 @@ function loadPlatformOrder(){
 }
 
 function savePlatformOrder(){
-  if(IS_PREVIEW_MODE) return;
   try{
-    localStorage.setItem(PLATFORM_ORDER_KEY, JSON.stringify(platformOrder));
+    appStorage.setItem(PLATFORM_ORDER_KEY, JSON.stringify(platformOrder));
   }catch(e){
     console.error('Erreur de sauvegarde de l\'ordre des plateformes', e);
   }
@@ -257,13 +254,13 @@ function movePlatformOrder(name, direction){
 const PLATFORM_SORT_MODE_KEY = 'ludotheque:platform-sort-mode-v1';
 let platformSortMode = 'count'; // 'count' | 'custom'
 try{
-  const storedMode = IS_PREVIEW_MODE ? null : localStorage.getItem(PLATFORM_SORT_MODE_KEY);
+  const storedMode = appStorage.getItem(PLATFORM_SORT_MODE_KEY);
   if(storedMode === 'count' || storedMode === 'custom') platformSortMode = storedMode;
 }catch(e){ /* ignore */ }
 
 function togglePlatformSortMode(){
   platformSortMode = platformSortMode === 'count' ? 'custom' : 'count';
-  try{ localStorage.setItem(PLATFORM_SORT_MODE_KEY, platformSortMode); }catch(e){ /* ignore */ }
+  try{ appStorage.setItem(PLATFORM_SORT_MODE_KEY, platformSortMode); }catch(e){ /* ignore */ }
   buildPlatformList();
 }
 
@@ -362,6 +359,7 @@ function showToast(message, actionLabel, onAction, duration){
 
 function confirmAction(message, onConfirm, opts){
   const overlay = document.getElementById('confirm-modal-overlay');
+  const previousFocus = document.activeElement;
   document.getElementById('confirm-modal-title').textContent = (opts && opts.title) || 'Confirmer la suppression';
   document.getElementById('confirm-modal-message').textContent = message;
   const confirmBtn = document.getElementById('confirm-modal-confirm-btn');
@@ -372,12 +370,28 @@ function confirmAction(message, onConfirm, opts){
     overlay.classList.add('hidden');
     confirmBtn.removeEventListener('click', onConfirmClick);
     cancelBtn.removeEventListener('click', onCancelClick);
+    document.removeEventListener('keydown', onKeyDown, true);
+    if(opts && opts.onClose) opts.onClose();
+    if(previousFocus && previousFocus.getClientRects().length) previousFocus.focus();
+    else document.getElementById('profile-menu-btn').focus();
   };
   const onConfirmClick = () => { cleanup(); onConfirm(); };
   const onCancelClick = () => { cleanup(); };
   const cancelBtn = document.getElementById('confirm-modal-cancel-btn');
+  const onKeyDown = (event) => {
+    if(event.key === 'Escape'){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      cleanup();
+    } else if(event.key === 'Tab'){
+      event.preventDefault();
+      (document.activeElement === cancelBtn ? confirmBtn : cancelBtn).focus();
+    }
+  };
   confirmBtn.addEventListener('click', onConfirmClick);
   cancelBtn.addEventListener('click', onCancelClick);
+  document.addEventListener('keydown', onKeyDown, true);
+  cancelBtn.focus();
 }
 
 function euros(n){
@@ -399,16 +413,15 @@ function parsePriceInput(s){
 }
 
 async function loadGames(){
-  if(IS_PREVIEW_MODE){ GAMES = PREVIEW_SEED.games.map(g => ({...g})); return; }
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = appStorage.getItem(STORAGE_KEY);
     if(raw){
       GAMES = JSON.parse(raw);
       return;
     }
   }catch(e){ console.error('Lecture locale impossible', e); }
   // Premier lancement (ou stockage local vide) : on part des données du CSV
-  GAMES = SEED_GAMES.map(g => ({...g, image: null, status:null}));
+  GAMES = IS_PREVIEW_MODE ? PREVIEW_SEED.games.map(g => ({...g})) : SEED_GAMES.map(g => ({...g, image: null, status:null}));
   await saveGames();
 }
 
@@ -433,9 +446,8 @@ function migrateGameTypes(){
 }
 
 async function saveGames(){
-  if(IS_PREVIEW_MODE) return;
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(GAMES));
+    appStorage.setItem(STORAGE_KEY, JSON.stringify(GAMES));
   }catch(e){
     console.error('Erreur de sauvegarde locale', e);
   }
@@ -443,10 +455,9 @@ async function saveGames(){
 
 
 async function loadArrivals(){
-  if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
   try{
-    const raw = localStorage.getItem(ARRIVALS_KEY);
-    ARRIVALS = raw ? JSON.parse(raw) : [];
+    const raw = appStorage.getItem(ARRIVALS_KEY);
+    ARRIVALS = raw ? JSON.parse(raw) : (IS_PREVIEW_MODE ? PREVIEW_SEED.arrivals.map(g => ({...g})) : []);
   }catch(e){
     console.error('Lecture des arrivages impossible', e);
     ARRIVALS = [];
@@ -454,19 +465,17 @@ async function loadArrivals(){
 }
 
 function saveArrivals(){
-  if(IS_PREVIEW_MODE) return;
   try{
-    localStorage.setItem(ARRIVALS_KEY, JSON.stringify(ARRIVALS));
+    appStorage.setItem(ARRIVALS_KEY, JSON.stringify(ARRIVALS));
   }catch(e){
     console.error('Erreur de sauvegarde des arrivages', e);
   }
 }
 
 async function loadWishlist(){
-  if(IS_PREVIEW_MODE){ WISHLIST = PREVIEW_SEED.wishlist.map(g => ({...g})); return; }
   try{
-    const raw = localStorage.getItem(WISHLIST_KEY);
-    WISHLIST = raw ? JSON.parse(raw) : [];
+    const raw = appStorage.getItem(WISHLIST_KEY);
+    WISHLIST = raw ? JSON.parse(raw) : (IS_PREVIEW_MODE ? PREVIEW_SEED.wishlist.map(g => ({...g})) : []);
   }catch(e){
     console.error('Lecture de la wishlist impossible', e);
     WISHLIST = [];
@@ -474,9 +483,8 @@ async function loadWishlist(){
 }
 
 function saveWishlist(){
-  if(IS_PREVIEW_MODE) return;
   try{
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(WISHLIST));
+    appStorage.setItem(WISHLIST_KEY, JSON.stringify(WISHLIST));
   }catch(e){
     console.error('Erreur de sauvegarde de la wishlist', e);
   }
@@ -489,7 +497,7 @@ const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
 function updateBackupNote(){
   const el = document.getElementById('backup-note');
   if(!el) return;
-  const raw = localStorage.getItem(LAST_BACKUP_KEY) || localStorage.getItem(LEGACY_LAST_EXPORT_KEY);
+  const raw = appStorage.getItem(LAST_BACKUP_KEY) || appStorage.getItem(LEGACY_LAST_EXPORT_KEY);
   if(!raw){
     el.textContent = 'Aucune sauvegarde locale';
     return;
@@ -525,12 +533,13 @@ function downloadBackup(suffix){
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  // Laisse au navigateur mobile le temps de démarrer le téléchargement.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function backupData(){
   downloadBackup('sauvegarde');
-  try{ localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){ /* ignore */ }
+  try{ appStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){ /* ignore */ }
   updateBackupNote();
   showToast('Sauvegarde téléchargée.');
 }
@@ -546,19 +555,35 @@ function cleanBackupData(parsed){
     data = parsed;
   }
   if(!data || !Array.isArray(data.games)) throw new Error('Format de sauvegarde invalide');
-  const validGame = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
-  const validBoardItem = (g) => g && typeof g === 'object' && typeof g.nom === 'string' && typeof g.plateforme === 'string';
-  const arrivals = Array.isArray(data.arrivals) ? data.arrivals : [];
-  const wishlist = Array.isArray(data.wishlist) ? data.wishlist : [];
-  if(!data.games.every(validGame) || !arrivals.every(validBoardItem) || !wishlist.every(validBoardItem)){
+  const validItem = (g) => g && typeof g === 'object' && !Array.isArray(g) &&
+    typeof g.nom === 'string' && g.nom.trim() && typeof g.plateforme === 'string' && g.plateforme.trim() &&
+    ['date', 'source', 'image', 'lien', 'format', 'type', 'status'].every(key => g[key] == null || typeof g[key] === 'string') &&
+    (g.prix == null || (typeof g.prix === 'number' && Number.isFinite(g.prix)));
+  if(['arrivals', 'wishlist', 'platformOrder'].some(key => data[key] != null && !Array.isArray(data[key]))){
     throw new Error('Contenu de sauvegarde invalide');
   }
+  const arrivals = Array.isArray(data.arrivals) ? data.arrivals : [];
+  const wishlist = Array.isArray(data.wishlist) ? data.wishlist : [];
+  if(!data.games.every(validItem) || !arrivals.every(validItem) || !wishlist.every(validItem) ||
+     (data.platformOrder || []).some(name => typeof name !== 'string')){
+    throw new Error('Contenu de sauvegarde invalide');
+  }
+  // Les anciens exports peuvent ne pas avoir d'identifiants ou en avoir en double.
+  const withIds = (items, prefix) => {
+    const seen = new Set();
+    return items.map(item => {
+      let id = typeof item.id === 'string' && item.id ? item.id : null;
+      if(!id || seen.has(id)) id = prefix + '-' + crypto.randomUUID();
+      seen.add(id);
+      return {...item, id};
+    });
+  };
 
   const profile = data.profile && typeof data.profile === 'object' ? data.profile : null;
   return {
-    games: data.games,
-    arrivals,
-    wishlist,
+    games: withIds(data.games, 'game'),
+    arrivals: withIds(arrivals, 'arr'),
+    wishlist: withIds(wishlist, 'wish'),
     platformMeta: data.platformMeta && typeof data.platformMeta === 'object' && !Array.isArray(data.platformMeta) ? data.platformMeta : {},
     platformOrder: Array.isArray(data.platformOrder) ? data.platformOrder : [],
     profileName: profile && typeof profile.name === 'string'
@@ -578,6 +603,15 @@ function applyRestoredData(data){
   platformOrder = data.platformOrder;
   PROFILE_NAME = data.profileName;
   PROFILE_AVATAR = data.profileAvatar;
+  // Un filtre de l'ancienne collection ne doit pas masquer les jeux restaurés.
+  state.platform = null;
+  state.type = null;
+  state.collector = false;
+  state.japanese = false;
+  state.status = null;
+  state.search = '';
+  document.getElementById('search-input').value = '';
+  closeMobileDrawers();
 
   migrateGameTypes();
   saveGames();
@@ -597,7 +631,10 @@ function applyRestoredData(data){
   renderProfileAvatar();
 }
 
+let restorePending = false;
 function restoreBackup(file){
+  if(restorePending) return;
+  restorePending = true;
   const reader = new FileReader();
   reader.onload = (e) => {
     try{
@@ -613,12 +650,17 @@ function restoreBackup(file){
           applyRestoredData(data);
           showToast('Sauvegarde restaurée.');
         },
-        { title:'Restaurer la sauvegarde ?', confirmLabel:'Restaurer' }
+        { title:'Restaurer la sauvegarde ?', confirmLabel:'Restaurer', onClose:() => { restorePending = false; } }
       );
     }catch(err){
+      restorePending = false;
       console.error('Restauration impossible', err);
       showToast("Ce fichier n'est pas une sauvegarde Jeux Tout Doux valide.");
     }
+  };
+  reader.onerror = () => {
+    restorePending = false;
+    showToast('Impossible de lire ce fichier. Réessaie depuis le menu du profil.');
   };
   reader.readAsText(file);
 }
@@ -941,6 +983,7 @@ function renderResultsBar(count){
 
 function render(){
   const games = sortGames(filteredGames());
+  renderHomeStats();
   renderPlatformBanner(games);
   renderResultsBar(games.length);
 
@@ -957,7 +1000,6 @@ function render(){
   }
 
   games.forEach(g => grid.appendChild(renderCard(g)));
-  renderHomeStats();
 }
 
 /* ---------- Modal ajout / édition ---------- */
@@ -1104,12 +1146,12 @@ function setSelectValueAndSync(selectId, value){
 
 function getLastUsed(key, fallback){
   try {
-    const v = localStorage.getItem('jtd-last-'+key);
+    const v = appStorage.getItem('jtd-last-'+key);
     return (v !== null && v !== '') ? v : fallback;
   } catch(e){ return fallback; }
 }
 function setLastUsed(key, value){
-  try { localStorage.setItem('jtd-last-'+key, value); } catch(e){}
+  try { appStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
 function identitySummaryHtml(item){
@@ -1787,6 +1829,7 @@ document.querySelectorAll('.date-mode').forEach(group => {
 
 function openArrivalModal(id){
   editingArrivalId = id || null;
+  document.getElementById('a-to-collection-btn').classList.toggle('hidden', !editingArrivalId);
   convertingWishlistId = null; // ouverture normale (pas une bascule depuis la wishlist)
   populatePlatformSelect('a-plateforme');
   const title = document.getElementById('arrival-modal-title');
@@ -2028,6 +2071,8 @@ function moveWishlistToArrivals(id){
 
   document.getElementById('arrival-modal-title').textContent = 'Basculer vers les arrivages';
   document.getElementById('a-delete-btn').classList.add('hidden');
+  document.getElementById('a-to-collection-btn').classList.add('hidden');
+  document.getElementById('a-to-wishlist-btn').classList.add('hidden');
   document.getElementById('a-nom').value = item.nom || '';
   setSelectValueAndSync('a-plateforme', item.plateforme || '');
   document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
@@ -2086,6 +2131,12 @@ document.getElementById('a-to-wishlist-btn').addEventListener('click', () => {
   const id = editingArrivalId;
   closeArrivalModal();
   moveArrivalToWishlist(id);
+});
+document.getElementById('a-to-collection-btn').addEventListener('click', () => {
+  if(!editingArrivalId) return;
+  const id = editingArrivalId;
+  closeArrivalModal();
+  addArrivalToCollection(id);
 });
 /* Un clic en dehors de la fenêtre d'édition d'un arrivage ne la ferme plus (évite les pertes accidentelles) */
 
@@ -2338,12 +2389,18 @@ document.getElementById('platform-modal-overlay').addEventListener('click', (e) 
 document.getElementById('backup-btn').addEventListener('click', backupData);
 
 const restoreInput = document.getElementById('restore-input');
-restoreInput.addEventListener('click', () => {
-  // Permet de sélectionner à nouveau exactement le même fichier.
+document.getElementById('restore-trigger').addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  if(restorePending) return;
+  document.getElementById('profile-menu').classList.add('hidden');
+  // Un seul déclenchement explicite ; aucun label ne peut réactiver le sélecteur.
   restoreInput.value = '';
+  restoreInput.click();
 });
 restoreInput.addEventListener('change', (e) => {
   const file = e.target.files && e.target.files[0];
+  restoreInput.value = '';
   if(file) restoreBackup(file);
 });
 

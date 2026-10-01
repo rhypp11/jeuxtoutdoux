@@ -50,7 +50,7 @@
 <div class="toast-stack" id="toast-stack"></div>
 
 <div class="modal-overlay hidden" id="confirm-modal-overlay">
-  <div class="modal confirm-modal">
+  <div class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
     <h2 id="confirm-modal-title">Confirmer</h2>
     <p id="confirm-modal-message" class="confirm-modal-message"></p>
     <div class="modal-actions">
@@ -104,10 +104,10 @@
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Sauvegarder</span></span>
             <span class="profile-menu-sub" id="backup-note"></span>
           </button>
-          <label class="profile-menu-item" id="restore-trigger" for="restore-input">
+          <button type="button" class="profile-menu-item" id="restore-trigger">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer</span></span>
             <span class="profile-menu-sub">Depuis une sauvegarde Jeux Tout Doux</span>
-          </label>
+          </button>
           <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="share-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4"></path><path d="m8.6 13.5 6.8 4"></path></svg><span id="share-label">Partager ma collection</span></span>
@@ -236,6 +236,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
+      <button type="button" class="btn btn-ghost hidden" id="a-to-collection-btn" title="Ajouter à la collection">Vers Collection</button>
       <button class="btn btn-ghost hidden" id="a-to-wishlist-btn" title="Basculer cet élément vers la wishlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers Wishlist</span></button>
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="a-cancel-btn">Annuler</button>
@@ -458,7 +459,8 @@
 </div>
 
 <script>
-  window.JTD_PREVIEW_MODE =
+  window.JTD_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true ||
+    ['localhost', '127.0.0.1', 'terminal.local'].includes(location.hostname) ||
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
@@ -473,4 +475,3 @@
 </script>
 </body>
 </html>
-
