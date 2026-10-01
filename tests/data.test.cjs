@@ -88,6 +88,13 @@ test('existing empty cloud collection stays authoritative despite stale scoped g
   assert.equal(ctx.GAMES.length,0);assert.equal(ctx.WISHLIST.length,1);assert.equal(writes.length,0);
   assert.equal(storage.getItem('games'),'[]');
 });
+test('a full local cache does not prevent reading valid cloud data', async () => {
+  const {ctx,writes}=await cloudHarness();ctx.console={error(){}};
+  ctx.getDoc=async()=>({exists:()=>true,data:()=>({games:[game({nom:'Cloud-game'})]})});
+  ctx.persistAppData=()=>{throw new Error('quota');};
+  await ctx.authCallback({uid:'A'});
+  assert.equal(ctx.GAMES[0].nom,'Cloud-game');assert.equal(writes.length,0);
+});
 test('new account does not import another account or unscoped legacy data', async () => {
   const {ctx,writes,storage}=await cloudHarness();storage.setAccount('A');storage.setItem('games',JSON.stringify([game()]));
   await ctx.authCallback({uid:'A'});await ctx.authCallback(null);await ctx.authCallback({uid:'B'});

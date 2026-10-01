@@ -276,7 +276,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
         const cloudData = snap.data();
         const normalized = JTDData.normalizeData(cloudData);
         // Cache only validated data; errors must not trigger a cloud replacement.
-        persistAppData(normalized);
+        try{
+          persistAppData(normalized);
+        }catch(cacheError){
+          console.error('Cache local indisponible', cacheError);
+          showToast('Données cloud chargées. Le stockage local est indisponible sur cet appareil.');
+        }
         applyCloudPayload(cloudData);
       }else{
         // Only scoped data loaded for this UID may initialize its new document.
