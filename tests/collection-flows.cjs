@@ -171,6 +171,8 @@ const results = [];
       await openRestore(backup);
       await page.locator('#confirm-modal-overlay').waitFor({ state: 'visible' });
       await layout('Confirmation restauration');
+      assert.equal(await page.locator('#toast-stack').evaluate(el => getComputedStyle(el).visibility), 'hidden');
+      assert.equal(await page.locator('#sandbox-environment-badge').evaluate(el => getComputedStyle(el).visibility), 'hidden');
       await page.screenshot({ path: path.join(output, device.name + '-restore.png') });
       await click('#confirm-modal-cancel-btn');
       assert.deepEqual(await snapshot(), before);

@@ -5195,3 +5195,8 @@
   background:#bc002d;
 }
 .identity-collector-control + .identity-collector-control{margin-top:6px;}
+/* Une notification ou le repère de test ne doit pas recouvrir les actions d'une fenêtre. */
+body:has(.modal-overlay:not(.hidden)) #toast-stack,
+body:has(.modal-overlay:not(.hidden)) #sandbox-environment-badge{
+  visibility:hidden;
+}
