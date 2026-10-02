@@ -5680,6 +5680,21 @@ input[type="date"] {
   border-left: 0;
 }
 
+@media (max-width:640px) {
+  .card-title-collector svg {
+    width: 13px;
+    height: 13px;
+  }
+  .card-source {
+    display: inline;
+    max-width: 64px;
+  }
+  .card-price {
+    margin-left: 6px;
+    padding-left: 6px;
+  }
+}
+
 @media (max-width:820px) {
   #page-collection .card-name {
     align-items: flex-start;
