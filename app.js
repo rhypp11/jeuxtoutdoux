@@ -32,7 +32,10 @@ const {escapeHTML, safeURL} = window.JTDData;
 const accountStorage = JTDData.createStorage(localStorage);
 window.JTDStorage = accountStorage;
 function writeStoredValue(key, value){
-  if(IS_PREVIEW_MODE) return true;
+  if(IS_PREVIEW_MODE){
+    try { savePreviewData(); return true; }
+    catch(error){ console.error('Sauvegarde sandbox impossible', error); showToast('Sauvegarde locale impossible. Télécharge une sauvegarde pour conserver tes changements.'); return false; }
+  }
   try{
     accountStorage.setItem(key, value);
     if(window.JTDDataChanged) window.JTDDataChanged();
@@ -42,6 +45,23 @@ function writeStoredValue(key, value){
     showToast('Sauvegarde locale impossible. Télécharge une sauvegarde pour conserver tes changements.');
     return false;
   }
+}
+// A single sandbox-only snapshot keeps transfers atomic and survives refreshes.
+// It never reads account keys or contacts Firebase.
+const PREVIEW_STORAGE_KEY = 'jtd:sandbox:data-v1';
+let previewData;
+function loadPreviewData(){
+  if(previewData) return previewData;
+  try {
+    const raw = localStorage.getItem(PREVIEW_STORAGE_KEY);
+    if(raw) return previewData = JTDData.normalizeData(JSON.parse(raw));
+  } catch(error){ console.error('Lecture sandbox impossible', error); }
+  return previewData = JTDData.normalizeData({...PREVIEW_SEED, profileName:'Mode test'});
+}
+function savePreviewData(overrides = {}){
+  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
+  localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(data));
+  previewData = data;
 }
 function restoredStorageEntries(data){
   return [
@@ -63,7 +83,7 @@ function replaceAppData(data){
   PROFILE_AVATAR = data.profileAvatar;
 }
 window.replaceAppData = replaceAppData;
-window.persistAppData = data => accountStorage.atomicWrite(restoredStorageEntries(data));
+window.persistAppData = data => IS_PREVIEW_MODE ? savePreviewData(data) : accountStorage.atomicWrite(restoredStorageEntries(data));
 
 const STORAGE_KEY = 'ludotheque:games-v2';
 const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
@@ -78,7 +98,7 @@ let PROFILE_AVATAR = null;
 let SHARE_TOKEN = null;
 
 function loadProfile(){
-  if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; return; }
+  if(IS_PREVIEW_MODE){ const data = loadPreviewData(); PROFILE_NAME = data.profileName; PROFILE_AVATAR = data.profileAvatar; return; }
   try{
     const raw = accountStorage.getItem(PROFILE_KEY);
     if(raw){
@@ -150,7 +170,7 @@ const PLATFORM_META_KEY = 'ludotheque:platform-meta-v1';
 let platformMeta = Object.create(null); // { [nom]: { color, logo } }
 
 function loadPlatformMeta(){
-  if(IS_PREVIEW_MODE){ platformMeta = {}; return; }
+  if(IS_PREVIEW_MODE){ platformMeta = loadPreviewData().platformMeta; return; }
   try{
     const raw = accountStorage.getItem(PLATFORM_META_KEY);
     platformMeta = raw ? JSON.parse(raw) : {};
@@ -225,7 +245,7 @@ const PLATFORM_ORDER_KEY = 'ludotheque:platform-order-v1';
 let platformOrder = [];
 
 function loadPlatformOrder(){
-  if(IS_PREVIEW_MODE){ platformOrder = []; return; }
+  if(IS_PREVIEW_MODE){ platformOrder = loadPreviewData().platformOrder; return; }
   try{
     const raw = accountStorage.getItem(PLATFORM_ORDER_KEY);
     platformOrder = raw ? JSON.parse(raw) : [];
@@ -399,7 +419,7 @@ function parsePriceInput(s){
 }
 
 async function loadGames(){
-  if(IS_PREVIEW_MODE){ GAMES = PREVIEW_SEED.games.map(g => ({...g})); return; }
+  if(IS_PREVIEW_MODE){ GAMES = loadPreviewData().games.map(g => ({...g})); return; }
   try{
     const raw = accountStorage.getItem(STORAGE_KEY);
     if(raw){
@@ -438,7 +458,7 @@ function saveGames(){
 
 
 async function loadArrivals(){
-  if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
+  if(IS_PREVIEW_MODE){ ARRIVALS = loadPreviewData().arrivals.map(g => ({...g})); return; }
   try{
     const raw = accountStorage.getItem(ARRIVALS_KEY);
     ARRIVALS = raw ? JSON.parse(raw) : [];
@@ -453,7 +473,7 @@ function saveArrivals(){
 }
 
 async function loadWishlist(){
-  if(IS_PREVIEW_MODE){ WISHLIST = PREVIEW_SEED.wishlist.map(g => ({...g})); return; }
+  if(IS_PREVIEW_MODE){ WISHLIST = loadPreviewData().wishlist.map(g => ({...g})); return; }
   try{
     const raw = accountStorage.getItem(WISHLIST_KEY);
     WISHLIST = raw ? JSON.parse(raw) : [];
@@ -524,7 +544,8 @@ function cleanBackupData(parsed){
   return JTDData.parseBackup(parsed, {profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR});
 }
 function applyRestoredData(data){
-  if(!IS_PREVIEW_MODE) accountStorage.atomicWrite(restoredStorageEntries(data));
+  if(IS_PREVIEW_MODE) savePreviewData(data);
+  else accountStorage.atomicWrite(restoredStorageEntries(data));
   replaceAppData(data);
   state.platform = null;
   buildPlatformList();
@@ -1184,7 +1205,8 @@ function commitBoardTransfer(from, to, id, draft){
   try {
     const moved = JTDData.transferItem(lists[from], lists[to], id, draft);
     // Both local lists succeed before either list is replaced in memory.
-    if(!IS_PREVIEW_MODE) accountStorage.atomicWrite([
+    if(IS_PREVIEW_MODE) savePreviewData({...lists, [from]:moved.source, [to]:moved.target});
+    else accountStorage.atomicWrite([
       [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)]
     ]);
     lists[from] = moved.source; lists[to] = moved.target;
@@ -1197,13 +1219,6 @@ function commitBoardTransfer(from, to, id, draft){
     return null;
   }
 }
-function workflowActionHtml(item, action, label){
-  const icon = action === 'to-collection'
-    ? '<path d="m5 12 4 4L19 6"></path>'
-    : '<path d="M3 7h18v13H3z"></path><path d="M7 7V4h10v3M9 11h6"></path>';
-  return `<div class="board-item-actions"><button type="button" class="board-workflow-action" data-action="${action}" aria-label="${label} : ${escapeHTML(item.nom)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg><span>${label}</span></button></div>`;
-}
-
 function openModal(id){
   editingId = id || null;
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
@@ -1424,7 +1439,6 @@ function arrivalRowHtml(item){
       <div class="board-info">
         <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
         <div class="board-plat">${platIconHtml}${escapeHTML(item.plateforme)}</div>
-        ${workflowActionHtml(item, 'to-collection', 'Reçu')}
       </div>
       ${purchaseHtml}
     </div>`;
@@ -1476,14 +1490,7 @@ function renderArrivals(){
 
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
-    row.addEventListener('click', (e) => {
-      if(e.target.closest('[data-action="to-collection"]')) return;
-      openArrivalModal(id);
-    });
-    row.querySelector('[data-action="to-collection"]').onclick = (e) => {
-      e.stopPropagation();
-      addArrivalToCollection(id);
-    };
+    row.addEventListener('click', () => openArrivalModal(id));
     row.addEventListener('dragstart', () => {
       homeDragArrivalId = id;
       row.classList.add('dragging');
@@ -1634,15 +1641,13 @@ function renderWishlist(){
       <div class="board-info">
         <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
         <div class="board-plat">${platIconHtml}<span>${escapeHTML(item.plateforme)}</span>${releasedDateHtml}</div>
-        ${workflowActionHtml(item, 'to-arrivals', 'Commandé')}
       </div>
       ${linkHtml}
     `;
     row.addEventListener('click', (e) => {
-      if(e.target.closest('.board-link, .board-workflow-action')) return;
+      if(e.target.closest('.board-link')) return;
       openWishlistModal(item.id);
     });
-    row.querySelector('[data-action="to-arrivals"]').addEventListener('click', () => moveWishlistToArrivals(item.id));
     row.addEventListener('dragstart', () => {
       homeDragWishlistId = item.id;
       row.classList.add('dragging');
@@ -1742,20 +1747,20 @@ function openArrivalModal(id){
   document.getElementById('a-save-btn').textContent = 'Enregistrer';
   const title = document.getElementById('arrival-modal-title');
   const deleteBtn = document.getElementById('a-delete-btn');
-  const toWishlistBtn = document.getElementById('a-to-wishlist-btn');
+  const receivedBtn = document.getElementById('a-received-btn');
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
     title.textContent = 'Modifier cet arrivage';
     deleteBtn.classList.remove('hidden');
-    toWishlistBtn.classList.remove('hidden');
+    receivedBtn.classList.remove('hidden');
     document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
     document.getElementById('a-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
     document.getElementById('a-source').value = item.source || '';
   } else {
     title.textContent = 'Ajouter un arrivage';
     deleteBtn.classList.add('hidden');
-    toWishlistBtn.classList.add('hidden');
+    receivedBtn.classList.add('hidden');
     document.getElementById('a-date').value = '';
     document.getElementById('a-prix').value = '';
     document.getElementById('a-source').value = '';
@@ -1854,19 +1859,19 @@ function openWishlistModal(id){
   document.getElementById('w-save-btn').textContent = 'Enregistrer';
   const title = document.getElementById('wishlist-modal-title');
   const deleteBtn = document.getElementById('w-delete-btn');
-  const toArrivalBtn = document.getElementById('w-to-arrival-btn');
+  const orderBtn = document.getElementById('w-order-btn');
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
     title.textContent = 'Modifier cet élément';
     deleteBtn.classList.remove('hidden');
-    toArrivalBtn.classList.remove('hidden');
+    orderBtn.classList.remove('hidden');
     setFlexibleDate('w', item.date);
     document.getElementById('w-lien').value = item.lien || '';
   } else {
     title.textContent = 'Ajouter à la wishlist';
     deleteBtn.classList.add('hidden');
-    toArrivalBtn.classList.add('hidden');
+    orderBtn.classList.add('hidden');
     setFlexibleDate('w', '');
     document.getElementById('w-lien').value = '';
   }
@@ -1937,7 +1942,7 @@ function moveWishlistToArrivals(id){
 
   document.getElementById('arrival-modal-title').textContent = 'Confirmer la commande';
   document.getElementById('a-delete-btn').classList.add('hidden');
-  document.getElementById('a-to-wishlist-btn').classList.add('hidden');
+  document.getElementById('a-received-btn').classList.add('hidden');
   document.getElementById('a-save-btn').textContent = 'Confirmer';
   const parsed = parseWishlistDate(item.date);
   document.getElementById('a-date').value = parsed.priority === 0 && !wishlistIsReleased(item.date) ? parsed.key : '';
@@ -1958,7 +1963,7 @@ function moveArrivalToWishlist(id){
 
   document.getElementById('wishlist-modal-title').textContent = 'Basculer vers la wishlist';
   document.getElementById('w-delete-btn').classList.add('hidden');
-  document.getElementById('w-to-arrival-btn').classList.add('hidden');
+  document.getElementById('w-order-btn').classList.add('hidden');
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
   setIdentityEditor('w', item, true);
@@ -1983,11 +1988,11 @@ document.getElementById('a-cancel-btn').addEventListener('click', closeArrivalMo
 document.getElementById('a-save-btn').addEventListener('click', saveArrivalModal);
 document.getElementById('a-delete-btn').addEventListener('click', deleteArrival);
 document.getElementById('a-image').addEventListener('input', () => updateImagePreviewFor('a-image','a-image-preview'));
-document.getElementById('a-to-wishlist-btn').addEventListener('click', () => {
+document.getElementById('a-received-btn').addEventListener('click', () => {
   if(!editingArrivalId) return;
   const id = editingArrivalId;
   closeArrivalModal();
-  moveArrivalToWishlist(id);
+  addArrivalToCollection(id);
 });
 /* Un clic en dehors de la fenêtre d'édition d'un arrivage ne la ferme plus (évite les pertes accidentelles) */
 
@@ -1995,7 +2000,7 @@ document.getElementById('add-wishlist-btn').addEventListener('click', () => open
 document.getElementById('w-cancel-btn').addEventListener('click', closeWishlistModal);
 document.getElementById('w-save-btn').addEventListener('click', saveWishlistModal);
 document.getElementById('w-delete-btn').addEventListener('click', deleteWishlist);
-document.getElementById('w-to-arrival-btn').addEventListener('click', () => {
+document.getElementById('w-order-btn').addEventListener('click', () => {
   if(!editingWishlistId) return;
   const id = editingWishlistId;
   closeWishlistModal();

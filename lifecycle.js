@@ -1,6 +1,6 @@
 /* Vérifie les fichiers de cette origine à la reprise, sans charger Firebase. */
 (() => {
-  const resources = ['index.html', 'app.js', 'styles.css', 'theme.js', 'jtd-data.js', 'firebase.js', 'lifecycle.js', 'workflow.css'];
+  const resources = ['index.html', 'app.js', 'styles.css', 'theme.js', 'jtd-data.js', 'firebase.js', 'lifecycle.js'];
   const baseline = new Map();
   let checking = false, lastCheck = 0, updateAvailable = false;
   async function check(force = false) {

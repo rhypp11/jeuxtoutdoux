@@ -8,15 +8,14 @@
 <link rel="apple-touch-icon" href="logo-icon-apple.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#F5F0E7">
-<script src="theme.js?v=workflow-cleanup-1"></script>
+<script src="theme.js?v=workflow-cleanup-2"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JTD">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=workflow-cleanup-1">
-<link rel="stylesheet" href="workflow.css?v=workflow-cleanup-1">
+<link rel="stylesheet" href="styles.css?v=workflow-cleanup-2">
 </head>
 <body>
 
@@ -242,7 +241,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
-      <button class="btn btn-ghost hidden" id="a-to-wishlist-btn" title="Basculer cet élément vers la wishlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers Wishlist</span></button>
+      <button class="btn btn-ghost hidden" id="a-received-btn" title="Confirmer la réception de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Reçu</span></button>
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="a-cancel-btn">Annuler</button>
       <button class="btn btn-primary" id="a-save-btn">Enregistrer</button>
@@ -306,7 +305,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger hidden" id="w-delete-btn">Supprimer</button>
-      <button class="btn btn-ghost hidden" id="w-to-arrival-btn" title="Basculer cet élément vers les arrivages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers Arrivages</span></button>
+      <button class="btn btn-ghost hidden" id="w-order-btn" title="Confirmer la commande de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Commandé</span></button>
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="w-cancel-btn">Annuler</button>
       <button class="btn btn-primary" id="w-save-btn">Enregistrer</button>
@@ -468,14 +467,14 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="jtd-data.js?v=workflow-cleanup-1"></script>
-<script src="app.js?v=workflow-cleanup-1"></script>
-<script src="lifecycle.js?v=workflow-cleanup-1"></script>
+<script src="jtd-data.js?v=workflow-cleanup-2"></script>
+<script src="app.js?v=workflow-cleanup-2"></script>
+<script src="lifecycle.js?v=workflow-cleanup-2"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');
     firebaseScript.type = 'module';
-    firebaseScript.src = 'firebase.js?v=workflow-cleanup-1';
+    firebaseScript.src = 'firebase.js?v=workflow-cleanup-2';
     document.body.appendChild(firebaseScript);
   }
 </script>
