@@ -1,0 +1,76 @@
+const {chromium} = require('playwright');
+const assert = require('node:assert/strict');
+const {createSandboxServer,sandboxContext} = require('./sandbox.cjs');
+const server = createSandboxServer();
+(async()=>{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const browser = await chromium.launch({headless:true,...(process.env.JTD_CHROME ? {executablePath:process.env.JTD_CHROME} : {}),args:['--no-sandbox']});
+  try{
+    for(const width of [320,390,1440]) for(const theme of ['light','dark']){
+      const context = await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
+      const page = await context.newPage(), errors=[], requests=[];
+      page.on('pageerror',e=>errors.push(e.message));
+      page.on('request',r=>{if(/firebasejs|firestore.googleapis|identitytoolkit|securetoken/.test(r.url())) requests.push(r.url());});
+      await page.goto('http://127.0.0.1:'+server.address().port);
+      await page.locator('#app-shell').waitFor({state:'visible'});
+      await page.locator('[data-page="collection"]').click();
+      const original = await page.evaluate(()=>GAMES.find(g=>g.id==='test-fe'));
+      await page.locator('.card').filter({hasText:'Fire Emblem'}).click();
+      await page.locator('#f-sell-btn').click();
+      await page.locator('#sale-modal-overlay').waitFor({state:'visible'});
+      assert.equal(await page.locator('#cemetery-list .sale-game.card .card-banner').count(),3);
+      const colors = await page.locator('#sale-channel option').first().evaluate(el => {
+        const style = getComputedStyle(el);
+        return {foreground:style.color, background:style.backgroundColor};
+      });
+      assert.notEqual(colors.foreground,colors.background);
+      assert.equal(await page.locator('#global-filter-toggle').isVisible(),false);
+      assert.equal(await page.locator('#sale-identity .game-identity-summary .identity-thumb').count(),1);
+      assert.match(await page.locator('#sale-identity').textContent(),/Fire Emblem/);
+      await page.screenshot({path:'/tmp/jtd-cemetery-edit-'+width+'-'+theme+'.png',fullPage:true});
+      assert.equal(await page.evaluate(()=>GAMES.some(g=>g.id==='test-fe')),false);
+      await page.locator('#sale-channel').selectOption('online');
+      await page.locator('#sale-venue').fill('Vinted');
+      await page.locator('#sale-estimate').fill('35,50');
+      await page.locator('#sale-save').click();
+      await page.reload(); await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.locator('#page-cemetery').isVisible(),true);
+      assert.equal(await page.evaluate(()=>CEMETERY.find(g=>g.id==='test-fe').estimatedPrice),35.5);
+      await page.locator('.sale-game').filter({hasText:'Fire Emblem'}).click();
+      await page.locator('#sale-rollback').click();
+      assert.deepEqual(await page.evaluate(()=>GAMES.find(g=>g.id==='test-fe')),original);
+      await page.locator('.sale-game').filter({hasText:'Kena'}).click();
+      await page.locator('#sale-complete').click();
+      assert.match(await page.locator('#sale-error').textContent(),/prix réel/);
+      await page.locator('#sale-price').fill('-1');
+      await page.locator('#sale-complete').click();
+      assert.equal(await page.evaluate(()=>CEMETERY.find(g=>g.id==='sale-pending-1').saleStatus),'pending');
+      await page.locator('#sale-price').fill('27,50');
+      await page.locator('#sale-lot-options input[value="sale-pending-2"]').check();
+      await page.locator('#sale-complete').click();
+      assert.equal(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).count(),1);
+      const lot = await page.evaluate(()=>CEMETERY.filter(g=>g.salePrice===27.5));
+      assert.equal(lot.length,2);assert.equal(lot[0].saleId,lot[1].saleId);
+      assert.match(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).textContent(),/Vendu.*le lot/);
+      assert.match(await page.locator('.sale-game').filter({hasText:'Kena'}).textContent(),/Acheté/);
+      await page.screenshot({path:'/tmp/jtd-cemetery-'+width+'-'+theme+'.png',fullPage:true});
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+      await page.locator('[data-sale-view="sold"]').click();
+      assert.equal(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).count(),1);
+      await page.locator('.sale-game').filter({hasText:'Kena'}).click();
+      await page.locator('#sale-price').fill('30');
+      await page.locator('#sale-save').click();
+      assert.equal(await page.evaluate(()=>CEMETERY.filter(g=>g.salePrice===30).length),2);
+      await page.locator('.sale-game').filter({hasText:'Kena'}).click();
+      await page.locator('#sale-rollback').click();await page.locator('#confirm-modal-confirm-btn').click();
+      assert.equal(await page.evaluate(()=>CEMETERY.filter(g=>g.saleStatus==='pending').length),2);
+      const backup = await page.evaluate(()=>cleanBackupData(buildBackupPayload()));
+      assert.equal(backup.cemetery.length,5);
+      await page.evaluate(data=>applyRestoredData(data),backup);
+      assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
+      console.log('PASS cemetery '+width+'px '+theme+': transfer, restore, estimate, invalid price, lot, correction, cancellation, backup, refresh, isolation');
+      await context.close();
+    }
+  }finally{await browser.close();server.close();}
+})().catch(error=>{console.error(error);server.close();process.exitCode=1;});

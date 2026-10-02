@@ -44,6 +44,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       games: GAMES,
       arrivals: ARRIVALS,
       wishlist: WISHLIST,
+      cemetery: CEMETERY,
       platformMeta: platformMeta,
       platformOrder: platformOrder,
       profileName: PROFILE_NAME,
@@ -408,6 +409,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     replaceAppData(emptyData());
     SHARE_TOKEN = null;
     closeModal();
+    window.closeSaleModal?.();
     closeArrivalModal();
     closeWishlistModal();
     closePlatformModal();
@@ -448,6 +450,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }
   });
   }
+
 
 
 

@@ -1,0 +1,53 @@
+.cemetery-main { max-width:1050px; margin:0 auto; padding:32px 28px 70px; }
+.cemetery-heading h2 { font-size:32px; margin:8px 0; }
+.cemetery-heading p,.cemetery-note { color:var(--muted); line-height:1.6; }
+.cemetery-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:28px 0 14px; }
+.cemetery-tabs { display:flex; padding:4px; gap:4px; border:1px solid var(--hairline); border-radius:14px; background:var(--surface); }
+.cemetery-tabs .btn { background:transparent; color:var(--muted); }
+.cemetery-tabs .btn.active { background:var(--text); color:var(--surface); }
+.cemetery-toolbar input,.cemetery-toolbar select { min-width:0; padding:12px 14px; background:var(--surface); color:var(--text); border:1px solid var(--hairline); border-radius:12px; font:inherit; }
+.cemetery-toolbar input { flex:1; }
+.sale-group { overflow:hidden; background:var(--surface); border:1px solid var(--hairline); border-radius:18px; margin-bottom:18px; }
+.sale-group-heading { padding:18px 20px; border-bottom:1px solid var(--hairline); background:color-mix(in srgb,var(--status-multi) 7%,var(--surface)); }
+.sale-heading-main { display:flex; align-items:baseline; flex-wrap:wrap; gap:10px; }
+.sale-state-label { color:var(--status-multi); font-size:13px; font-weight:700; }
+.sale-amount { color:var(--text); font-size:24px; line-height:1.25; font-weight:800; font-variant-numeric:tabular-nums; }
+.sale-lot-label { color:var(--muted); font-size:13px; }
+.sale-venue { color:var(--muted); font-size:13px; margin-top:7px; }
+.sale-cards.grid { display:flex; flex-direction:column; gap:0; padding:0; margin:0; }
+.sale-game.card { display:grid; grid-template-columns:128px minmax(0,1fr); width:100%; min-width:0; border-radius:0; box-shadow:none; background:transparent; }
+.sale-game.card + .sale-game.card { border-top:1px solid var(--hairline); }
+.sale-game.card:hover { transform:none; background:var(--surface-raised); box-shadow:none; }
+.sale-game.card .card-banner { width:128px !important; height:100% !important; min-height:92px; aspect-ratio:auto !important; border-radius:0; }
+.sale-game.card .card-banner img { object-fit:contain; }
+.sale-game.card .card-body { min-width:0; padding:14px 18px; }
+.sale-game.card .card-name { white-space:normal; }
+.sale-game.card .card-name-text { white-space:normal; overflow:visible; text-overflow:clip; }
+.sale-game.card .card-acquisition { justify-content:flex-start; gap:12px; flex-wrap:wrap; }
+.sale-game.card .card-purchase { margin-left:0; }
+.sale-game.card .card-price { color:var(--muted); font-size:12px; font-weight:400; }
+.sale-game .card-status-badge { cursor:inherit; }
+.sale-game:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+#page-cemetery select, #sale-modal-overlay select { background-color:var(--surface); color:var(--text); color-scheme:inherit; }
+#page-cemetery select option, #sale-modal-overlay select option { background-color:var(--surface); color:var(--text); }
+#global-filter-toggle.hidden { display:none !important; }
+.cemetery-empty { padding:45px 20px; border:1px dashed var(--hairline); border-radius:18px; text-align:center; color:var(--muted); }
+#sale-identity { margin-bottom:20px; }
+#sale-identity .game-identity-summary { grid-template-columns:auto minmax(0,1fr); }
+.sale-acquisition { color:var(--muted); font-size:12px; line-height:1.6; margin:8px 0 16px; }
+.sale-lot-option { display:flex; align-items:center; gap:10px; padding:10px 0; cursor:pointer; font-size:14px; }
+.sale-lot-option input { width:18px; height:18px; flex-shrink:0; }
+#sale-lot-options { max-height:180px; overflow:auto; }
+.sale-error { color:var(--text); font-weight:600; }
+#sale-modal-overlay .modal-actions { flex-wrap:wrap; }
+@media(max-width:600px) {
+  .cemetery-main { padding:22px 16px 70px; }
+  .cemetery-heading h2 { font-size:28px; }
+  .cemetery-toolbar input { flex-basis:100%; order:2; }
+  .cemetery-toolbar select { flex:1; }
+  .sale-group-heading { padding:14px 16px; }
+  .sale-amount { font-size:22px; }
+  .sale-game.card { grid-template-columns:90px minmax(0,1fr); }
+  .sale-game.card .card-banner { width:90px !important; min-height:86px; }
+  .sale-game.card .card-body { padding:12px; }
+}
