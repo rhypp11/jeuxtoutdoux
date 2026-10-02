@@ -146,7 +146,7 @@ test('a failed restore does not replace memory or request cloud sync', () => {
 });
 test('renaming updates all three lists and preserves flags and purchases', () => {
   const source=fs.readFileSync(require.resolve('../app.js'),'utf8');
-  const fn=source.slice(source.indexOf('function renamePlatform('),source.indexOf('function updatePlatformColor('));
+  const fn=source.slice(source.indexOf('function renamePlatform('),source.indexOf('/* ---------- Ordre personnalisé des plateformes ---------- */'));
   const ctx={GAMES:[game({japanese:true,prix:20})],ARRIVALS:[game({collector:true})],WISHLIST:[game()],platformMeta:{PC:{color:'#123456'}},platformOrder:['PC'],state:{platform:'PC'},getPlatformColor:()=> '#123456'};
   for(const name of ['savePlatformOrder','saveGames','saveArrivals','saveWishlist','savePlatformMeta','renderArrivals','renderWishlist'])ctx[name]=()=>{};
   vm.createContext(ctx);vm.runInContext(fn,ctx);assert.equal(ctx.renamePlatform('PC','Ordinateur'),true);
@@ -171,4 +171,30 @@ test('reload flushes the latest pending save, and a failed save prevents reload'
   assert.equal(writes.at(-1).data.games[0].nom,'Latest change');
   ctx.setDoc=async()=>{throw new Error('offline');};
   assert.equal(await ctx.window.JTDPrepareReload(),false);
+});
+
+test('transfers preserve identity, never mutate input lists and refuse repeated confirmation', () => {
+  const original=game({collector:true,japanese:true,image:'https://example.com/art.png'});
+  const source=[original], target=[];
+  const moved=D.transferItem(source,target,original.id,{...original,prix:49.9,source:'Fnac'});
+  assert.equal(source.length,1);assert.equal(target.length,0);
+  assert.equal(moved.source.length,0);assert.equal(moved.target[0].id,original.id);
+  assert.equal(moved.target[0].collector,true);assert.equal(moved.target[0].japanese,true);
+  assert.throws(()=>D.transferItem(moved.source,moved.target,original.id,original),/introuvable/);
+  assert.throws(()=>D.transferItem(source,[original],original.id,original),/déjà transféré/);
+});
+test('a transfer quota failure leaves both lists and memory unchanged', () => {
+  const raw=memory(), storage=D.createStorage(raw);storage.setAccount('A');
+  const item=game();storage.setItem('arrivals',JSON.stringify([item]));storage.setItem('games','[]');
+  const originalSet=raw.setItem;
+  raw.setItem=(key,value)=>{if(key.endsWith(':games')&&value!=='[]')throw Error('quota');originalSet(key,value);};
+  let changes=0;
+  const ctx={JTDData:D,accountStorage:storage,IS_PREVIEW_MODE:false,GAMES:[],ARRIVALS:[item],WISHLIST:[],STORAGE_KEY:'games',ARRIVALS_KEY:'arrivals',WISHLIST_KEY:'wishlist',window:{JTDDataChanged(){changes++;}},showToast(){},console:{error(){}}};
+  vm.createContext(ctx);
+  const app=fs.readFileSync(require.resolve('../app.js'),'utf8');
+  const start=app.indexOf('function commitBoardTransfer('), end=app.indexOf('\nfunction ',start+10);
+  vm.runInContext(app.slice(start,end),ctx);
+  assert.equal(ctx.commitBoardTransfer('arrivals','games',item.id,{...item,status:'a_jouer'}),null);
+  assert.equal(ctx.ARRIVALS.length,1);assert.equal(ctx.GAMES.length,0);assert.equal(changes,0);
+  assert.equal(storage.getItem('arrivals'),JSON.stringify([item]));assert.equal(storage.getItem('games'),'[]');
 });

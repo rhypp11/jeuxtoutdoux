@@ -87,6 +87,11 @@
     }else data = parsed;
     return normalizeData(data, defaults);
   }
+  function transferItem(source, target, id, draft){
+    if(!source.some(item => item.id === id)) throw new Error('Élément introuvable');
+    if(target.some(item => item.id === id)) throw new Error('Élément déjà transféré');
+    return {source:source.filter(item => item.id !== id), target:[...target, {...draft, id}]};
+  }
   function createStorage(storage){
     let uid = null;
     const keyFor = key => {
@@ -129,7 +134,7 @@
       isCurrent(session){ return !!session.uid && session.uid === uid && session.generation === generation; }
     };
   }
-  const api = {escapeHTML, safeURL, normalizeData, parseBackup, createStorage, createSession};
+  const api = {escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

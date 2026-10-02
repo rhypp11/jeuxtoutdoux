@@ -1,0 +1,34 @@
+/* Actions de commande et de réception, sans colonne retirée au titre. */
+.board-item-actions {
+  display: flex;
+  margin-top: 3px;
+}
+.board-workflow-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: fit-content;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid rgba(var(--board-rgb), .32);
+  border-radius: 9px;
+  background: rgba(var(--board-rgb), .1);
+  color: var(--board-color);
+  font: 700 11px/1.2 'DM Sans', system-ui, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.board-workflow-action svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.board-workflow-action:hover {
+  background: rgba(var(--board-rgb), .2);
+  border-color: var(--board-color);
+}
+.board-workflow-action:focus-visible {
+  outline: 2px solid var(--board-color);
+  outline-offset: 2px;
+}

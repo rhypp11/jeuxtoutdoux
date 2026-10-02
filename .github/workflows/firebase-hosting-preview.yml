@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Validate JavaScript syntax
         run: |
@@ -34,12 +36,22 @@ jobs:
           trap 'kill "$SERVER_PID"' EXIT
           NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" node tests/theme-smoke.cjs
 
+      - name: Check order and receipt flows
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/workflow.cjs
+
+      - name: Compare cleaned CSS with the base branch
+        run: |
+          git show '${{ github.event.pull_request.base.sha }}:styles.css' > "$RUNNER_TEMP/jtd-baseline.css"
+          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" JTD_BASELINE_CSS="$RUNNER_TEMP/jtd-baseline.css" node tests/css-regression.cjs
+
       - name: Save theme screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jtd-theme-screenshots
-          path: /tmp/jtd-*.png
+          path: |
+            /tmp/jtd-*.png
+            /tmp/jtd-css-differences-*.json
           retention-days: 7
 
       - name: Test sandbox data flows on mobile and desktop
@@ -109,5 +121,6 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.url }}
         run: echo "Sandbox preview (7 days) — $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+
 
 

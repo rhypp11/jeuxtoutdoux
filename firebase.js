@@ -26,7 +26,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   // pour qu'aucune sauvegarde locale déclenchée pendant l'init ne parte écraser
   // le document Firestore avant qu'on ait pu lire les vraies données du compte.
   let suppressSync = true;
-  let appInitialized = false;
   const sessions = JTDData.createSession();
   let syncQueue = Promise.resolve();
   const sessionIsCurrent = session => sessions.isCurrent(session);
@@ -391,7 +390,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     document.getElementById('profile-menu-divider').classList.add('hidden');
     document.getElementById('cloud-sync-status').classList.add('hidden');
     await initApp();
-    appInitialized = true;
     hideAuthLoading();
     hideLoginGate();
   } else {
@@ -431,7 +429,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
         hideAuthLoading();
         if(loaded){
           initializeNavigation();
-          appInitialized = true;
           hideLoginGate();
           if(accountStorage.consumeLegacyNotice(STORAGE_KEY)){
             showToast('Anciennes données locales conservées. Le compte utilise sa sauvegarde cloud ou son stockage dédié.');
@@ -451,5 +448,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }
   });
   }
+
 
 
