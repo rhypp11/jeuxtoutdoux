@@ -52,7 +52,7 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.locator('#sort-select').inputValue(),'date-desc');
       assert.equal(await page.evaluate(()=>state.platform),'Switch 2');
       assert.equal(await page.evaluate(()=>state.status),'a_jouer');
-      assert.equal(await page.locator('.card').count(),1);
+      assert.equal(await page.locator('#page-collection .card').count(),1);
       await page.locator('.nav-tab[data-page="home"]').click();
       await page.goBack();await page.waitForFunction(()=>!document.getElementById('page-collection').classList.contains('hidden'));
       assert.equal(page.url(),collectionURL);
@@ -94,12 +94,12 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.games[0].nom),payload.data.games[0].nom);
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.wishlist[0].lien),null);
       await page.locator('.nav-tab[data-page="collection"]').click();
-      assert.equal(await page.locator('.card-name-text').innerText(),payload.data.games[0].nom);
-      assert.equal(await page.locator('.card-source').innerText(),payload.data.games[0].source);
-      assert.equal(await page.locator('.card img[onerror]').count(),0);
-      assert.equal(await page.locator('.card-name-text img').count(),0);
-      await page.locator('.card-status-badge').click();
-      await page.locator('.card-status-option[data-status="termine"]').click();
+      assert.equal(await page.locator('#page-collection .card-name-text').innerText(),payload.data.games[0].nom);
+      assert.equal(await page.locator('#page-collection .card-source').innerText(),payload.data.games[0].source);
+      assert.equal(await page.locator('#page-collection .card img[onerror]').count(),0);
+      assert.equal(await page.locator('#page-collection .card-name-text img').count(),0);
+      await page.locator('#page-collection .card-status-badge').click();
+      await page.locator('#page-collection .card-status-option[data-status="termine"]').click();
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.games[0].status),'termine');
       await restore(page,{games:[]},false);
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.games.length),1);
@@ -108,7 +108,7 @@ async function restore(page, value, confirm=true){
       assert.equal(pickers,3);
       await page.evaluate(()=>{renamePlatform('PC','Ordinateur "test"');buildPlatformList();render();});
       assert.ok(await page.evaluate(()=>[GAMES,ARRIVALS,WISHLIST].every(list=>list.every(item=>item.plateforme==='Ordinateur "test"'))));
-      await page.locator('.card').click();
+      await page.locator('#page-collection .card').click();
       await page.locator('#cancel-btn').click();
       // Historical digital entries must also open without the removed capability helper.
       await page.evaluate(()=>{
