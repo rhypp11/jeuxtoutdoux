@@ -926,6 +926,7 @@ function renderResultsBar(count){
 }
 
 function render(){
+  persistNavigation();
   const games = sortGames(filteredGames());
   renderPlatformBanner(games);
   renderResultsBar(games.length);
@@ -2419,19 +2420,100 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   render();
 });
 
-const PAGE_TITLES = {
-  home: 'Accueil',
-  'collection-Physique': 'Collection physique'
-};
-function goToPage(page, format){
+const NAVIGATION_KEY = 'navigation-v1';
+let navigationReady = false;
+let restoringNavigation = false;
+let navigationPage = 'home';
+let navigationBoard = 'wishlist';
+let firstNavigation = true;
+
+function navigationSnapshot(){
+  return {page:navigationPage, board:navigationBoard, ...state};
+}
+function navigationHash(view){
+  const params = new URLSearchParams();
+  if(view.format) params.set('format', view.format);
+  for(const key of ['platform','type','status','search']) if(view[key]) params.set(key, view[key]);
+  for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
+  if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
+  if(view.board === 'arrivals') params.set('board', 'arrivals');
+  return '#' + view.page + (params.size ? '?' + params.toString() : '');
+}
+function navigationFromHash(){
+  const match = location.hash.match(/^#(home|collection)(?:\?(.*))?$/);
+  if(!match) return null;
+  const params = new URLSearchParams(match[2]);
+  return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
+}
+function saveNavigationView(view){
+  try {
+    if(IS_PREVIEW_MODE) sessionStorage.setItem('jtd:sandbox-navigation', JSON.stringify(view));
+    else accountStorage.setItem(NAVIGATION_KEY, JSON.stringify(view));
+  } catch { /* La navigation reste utilisable sans stockage. */ }
+}
+function persistNavigation(push = false){
+  if(!navigationReady || restoringNavigation) return;
+  const view = navigationSnapshot();
+  const hash = navigationHash(view);
+  const entry = {jtdNavigation:true, generation:window.JTDAccountGeneration || 0};
+  if(location.hash !== hash) history[push ? 'pushState' : 'replaceState'](entry, '', location.pathname + location.search + hash);
+  else history.replaceState(entry, '', location.href);
+  saveNavigationView(view);
+}
+function setHomeBoard(board){
+  navigationBoard = board === 'arrivals' ? 'arrivals' : 'wishlist';
+  document.querySelectorAll('.home-boards-switch-btn').forEach(button => button.classList.toggle('active', button.dataset.target === navigationBoard));
+  const boards = document.getElementById('home-boards');
+  boards.classList.remove('show-wishlist', 'show-arrivals');
+  boards.classList.add('show-' + navigationBoard);
+}
+function applyNavigation(view = {}){
+  restoringNavigation = true;
+  navigationPage = view.page === 'collection' ? 'collection' : 'home';
+  const format = ['Physique','Numérique'].includes(view.format) ? view.format : (navigationPage === 'collection' ? 'Physique' : null);
+  state = {
+    format,
+    platform:allPlatformNames().includes(view.platform) ? view.platform : null,
+    type:['Jeu simple','DLC extension','Mise à niveau','Complete Edition'].includes(view.type) ? view.type : null,
+    collector:view.collector === true, japanese:view.japanese === true,
+    status:STATUS_OPTIONS.some(s => s.key === view.status) || view.status === '__none__' ? view.status : null,
+    search:typeof view.search === 'string' ? view.search.slice(0,200) : '',
+    sort:['name-asc','name-desc','price-desc','price-asc','date-desc','date-asc'].includes(view.sort) ? view.sort : 'name-asc'
+  };
+  document.getElementById('search-input').value = state.search;
+  document.getElementById('sort-select').value = state.sort;
+  setHomeBoard(view.board);
+  goToPage(navigationPage, state.format, false);
+  restoringNavigation = false;
+  persistNavigation();
+}
+function initializeNavigation(){
+  let saved = null;
+  try { saved = JSON.parse(IS_PREVIEW_MODE ? sessionStorage.getItem('jtd:sandbox-navigation') : accountStorage.getItem(NAVIGATION_KEY)); } catch {}
+  const view = (firstNavigation && navigationFromHash()) || saved || {};
+  firstNavigation = false;
+  navigationReady = true;
+  applyNavigation(view && typeof view === 'object' ? view : {});
+}
+function resetNavigationSession(){
+  if(navigationReady) {
+    navigationReady = false;
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+}
+function goToPage(page, format, push = true){
+  const wasRestoring = restoringNavigation;
+  // Save the old entry before creating the next one, including current filters.
+  persistNavigation();
+  navigationPage = page === 'collection' ? 'collection' : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
-    b.classList.toggle('active', b.dataset.page === page);
+    b.classList.toggle('active', b.dataset.page === navigationPage && (navigationPage !== 'collection' || (b.dataset.format || 'Physique') === (format || 'Physique')));
   });
-  const titleKey = page === 'collection' ? `collection-${format || 'Physique'}` : page;
-  document.title = `JTD | ${PAGE_TITLES[titleKey] || 'Accueil'}`;
-  document.getElementById('page-home').classList.toggle('hidden', page !== 'home');
-  document.getElementById('page-collection').classList.toggle('hidden', page !== 'collection');
-  if(page === 'collection'){
+  document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection ' + ((format || 'Physique') === 'Numérique' ? 'numérique' : 'physique') : 'Accueil');
+  document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
+  document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
+  restoringNavigation = true;
+  if(navigationPage === 'collection'){
     const fmt = format || 'Physique';
     if(state.format !== fmt){
       state.format = fmt;
@@ -2447,9 +2529,19 @@ function goToPage(page, format){
     buildStatusToggles();
     render();
   }
+  // applyNavigation owns its own final persistence.
+  restoringNavigation = wasRestoring;
   closeMobileDrawers();
+  if(push) persistNavigation(true);
 }
-
+window.addEventListener('popstate', event => {
+  if(!navigationReady) return;
+  if(event.state?.generation !== undefined && event.state.generation !== (window.JTDAccountGeneration || 0)) applyNavigation({});
+  else applyNavigation(navigationFromHash() || {});
+});
+window.addEventListener('hashchange', () => {
+  if(navigationReady) applyNavigation(navigationFromHash() || {});
+});
 document.querySelectorAll('.nav-tab').forEach(btn => {
   btn.addEventListener('click', () => {
     goToPage(btn.dataset.page, btn.dataset.format);
@@ -2506,11 +2598,8 @@ document.addEventListener('keydown', (e) => {
 /* ---------- Sélecteur mobile Wishlist / Arrivages ---------- */
 document.querySelectorAll('.home-boards-switch-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.home-boards-switch-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const homeBoards = document.getElementById('home-boards');
-    homeBoards.classList.remove('show-wishlist', 'show-arrivals');
-    homeBoards.classList.add('show-' + btn.dataset.target);
+    setHomeBoard(btn.dataset.target);
+    persistNavigation(true);
   });
 });
 
@@ -2567,6 +2656,7 @@ if(IS_PREVIEW_MODE){
 
   initApp()
     .then(() => {
+      initializeNavigation();
       const loading = document.getElementById('auth-loading');
       const login = document.getElementById('login-gate');
       const shell = document.getElementById('app-shell');

@@ -70,7 +70,7 @@ async function cloudHarness(){
     initializeApp:()=>({}),getAuth:()=>({}),getFirestore:()=>({}),doc:(_db,collection,id)=>({collection,id}),
     getDoc:async()=>({exists:()=>false}),setDoc:async(ref,data)=>writes.push({ref,data}),deleteDoc:async()=>{},
     onAuthStateChanged:(_auth,callback)=>{ctx.authCallback=callback;},signInWithEmailAndPassword(){},createUserWithEmailAndPassword(){},signOut(){},
-    showToast(){},migrateGameTypes(){},buildPlatformList(){},buildFormatToggles(){},buildTypeToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
+    initializeNavigation(){},resetNavigationSession(){},showToast(){},migrateGameTypes(){},buildPlatformList(){},buildFormatToggles(){},buildTypeToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
   };
   ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
   ctx.persistAppData = data => storage.atomicWrite([['games',JSON.stringify(data.games)]]);
@@ -152,4 +152,23 @@ test('renaming updates all three lists and preserves flags and purchases', () =>
   vm.createContext(ctx);vm.runInContext(fn,ctx);assert.equal(ctx.renamePlatform('PC','Ordinateur'),true);
   for(const items of [ctx.GAMES,ctx.ARRIVALS,ctx.WISHLIST])assert.equal(items[0].plateforme,'Ordinateur');
   assert.equal(ctx.GAMES[0].prix,20);assert.equal(ctx.GAMES[0].japanese,true);assert.equal(ctx.ARRIVALS[0].collector,true);
+});
+test('legacy notice is shown once per account and never removes old data', () => {
+  const raw = memory(), storage = D.createStorage(raw);
+  raw.setItem('games','old-data');storage.setAccount('A');
+  assert.equal(storage.consumeLegacyNotice('games'),true);
+  assert.equal(storage.consumeLegacyNotice('games'),false);
+  storage.setAccount('B');assert.equal(storage.consumeLegacyNotice('games'),true);
+  storage.setAccount('A');assert.equal(storage.consumeLegacyNotice('games'),false);
+  assert.equal(raw.getItem('games'),'old-data');
+  raw.getItem = () => {throw new Error('unavailable');};
+  assert.equal(storage.consumeLegacyNotice('games'),false);
+});
+test('reload flushes the latest pending save, and a failed save prevents reload', async () => {
+  const {ctx,writes}=await cloudHarness();await ctx.authCallback({uid:'A'});
+  ctx.GAMES=[game({nom:'Latest change'})];ctx.window.JTDDataChanged();
+  assert.equal(await ctx.window.JTDPrepareReload(),true);
+  assert.equal(writes.at(-1).data.games[0].nom,'Latest change');
+  ctx.setDoc=async()=>{throw new Error('offline');};
+  assert.equal(await ctx.window.JTDPrepareReload(),false);
 });
