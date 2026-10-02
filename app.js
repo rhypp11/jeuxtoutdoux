@@ -32,7 +32,10 @@ const {escapeHTML, safeURL} = window.JTDData;
 const accountStorage = JTDData.createStorage(localStorage);
 window.JTDStorage = accountStorage;
 function writeStoredValue(key, value){
-  if(IS_PREVIEW_MODE) return true;
+  if(IS_PREVIEW_MODE){
+    try { savePreviewData(); return true; }
+    catch(error){ console.error('Sauvegarde sandbox impossible', error); showToast('Sauvegarde locale impossible. Télécharge une sauvegarde pour conserver tes changements.'); return false; }
+  }
   try{
     accountStorage.setItem(key, value);
     if(window.JTDDataChanged) window.JTDDataChanged();
@@ -42,6 +45,23 @@ function writeStoredValue(key, value){
     showToast('Sauvegarde locale impossible. Télécharge une sauvegarde pour conserver tes changements.');
     return false;
   }
+}
+// A single sandbox-only snapshot keeps transfers atomic and survives refreshes.
+// It never reads account keys or contacts Firebase.
+const PREVIEW_STORAGE_KEY = 'jtd:sandbox:data-v1';
+let previewData;
+function loadPreviewData(){
+  if(previewData) return previewData;
+  try {
+    const raw = localStorage.getItem(PREVIEW_STORAGE_KEY);
+    if(raw) return previewData = JTDData.normalizeData(JSON.parse(raw));
+  } catch(error){ console.error('Lecture sandbox impossible', error); }
+  return previewData = JTDData.normalizeData({...PREVIEW_SEED, profileName:'Mode test'});
+}
+function savePreviewData(overrides = {}){
+  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
+  localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(data));
+  previewData = data;
 }
 function restoredStorageEntries(data){
   return [
@@ -63,27 +83,14 @@ function replaceAppData(data){
   PROFILE_AVATAR = data.profileAvatar;
 }
 window.replaceAppData = replaceAppData;
-window.persistAppData = data => accountStorage.atomicWrite(restoredStorageEntries(data));
+window.persistAppData = data => IS_PREVIEW_MODE ? savePreviewData(data) : accountStorage.atomicWrite(restoredStorageEntries(data));
 
 const STORAGE_KEY = 'ludotheque:games-v2';
 const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
 const WISHLIST_KEY = 'ludotheque:wishlist-v1';
 const MONTH_NAMES_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const MONTH_COLORS = ['#4F7CD9','#7C6AD9','#A15FBF','#C4508C','#D96A6A','#DD7F35','#D9A441','#B5C93C','#6FAE79','#4FC7B5','#4FA8D9','#6B8FD9'];
-function monthIndexOf(iso){
-  if(!iso) return 0;
-  const m = parseInt(String(iso).slice(5,7),10);
-  return Number.isFinite(m) && m >= 1 && m <= 12 ? m - 1 : 0;
-}
-function dateD(iso){
-  if(!iso) return '—';
-  const d = parseInt(iso.split('-')[2], 10);
-  return d ? String(d) : '—';
-}
 const PROFILE_KEY = 'ludotheque:profile-v1';
-
-// Données Progression historiques : conservées uniquement pour compatibilité des sauvegardes/cloud.
-function nameKeyOf(nom, plateforme){ return (nom||'').trim().toLowerCase() + '|' + (plateforme||'').trim().toLowerCase(); }
 
 
 let PROFILE_NAME = '';
@@ -91,7 +98,7 @@ let PROFILE_AVATAR = null;
 let SHARE_TOKEN = null;
 
 function loadProfile(){
-  if(IS_PREVIEW_MODE){ PROFILE_NAME = 'Mode test'; PROFILE_AVATAR = null; return; }
+  if(IS_PREVIEW_MODE){ const data = loadPreviewData(); PROFILE_NAME = data.profileName; PROFILE_AVATAR = data.profileAvatar; return; }
   try{
     const raw = accountStorage.getItem(PROFILE_KEY);
     if(raw){
@@ -163,7 +170,7 @@ const PLATFORM_META_KEY = 'ludotheque:platform-meta-v1';
 let platformMeta = Object.create(null); // { [nom]: { color, logo } }
 
 function loadPlatformMeta(){
-  if(IS_PREVIEW_MODE){ platformMeta = {}; return; }
+  if(IS_PREVIEW_MODE){ platformMeta = loadPreviewData().platformMeta; return; }
   try{
     const raw = accountStorage.getItem(PLATFORM_META_KEY);
     platformMeta = raw ? JSON.parse(raw) : {};
@@ -193,7 +200,7 @@ function getPlatformLogo(name){
 }
 
 function ensurePlatformMeta(name){
-  if(!Object.hasOwn(platformMeta, name)) platformMeta[name] = { color: getPlatformColor(name), logo: null, digital: false };
+  if(!Object.hasOwn(platformMeta, name)) platformMeta[name] = { color: getPlatformColor(name), logo: null };
   return platformMeta[name];
 }
 
@@ -202,7 +209,6 @@ function seedPcPlatformOnce(){
     let changed = false;
     if(!platformMeta['PC']){
       ensurePlatformMeta('PC').color = '#4F7CD9';
-      platformMeta['PC'].digital = true;
       changed = true;
     }
     if(!platformMeta['Nintendo Game Boy Advance']){
@@ -233,27 +239,13 @@ function renamePlatform(oldName, newName){
   return true;
 }
 
-function updatePlatformColor(name, color){
-  ensurePlatformMeta(name).color = color;
-  savePlatformMeta();
-  buildPlatformList();
-  render();
-}
-
-function updatePlatformLogo(name, url){
-  ensurePlatformMeta(name).logo = url || null;
-  savePlatformMeta();
-  buildPlatformList();
-  render();
-}
-
 
 /* ---------- Ordre personnalisé des plateformes ---------- */
 const PLATFORM_ORDER_KEY = 'ludotheque:platform-order-v1';
 let platformOrder = [];
 
 function loadPlatformOrder(){
-  if(IS_PREVIEW_MODE){ platformOrder = []; return; }
+  if(IS_PREVIEW_MODE){ platformOrder = loadPreviewData().platformOrder; return; }
   try{
     const raw = accountStorage.getItem(PLATFORM_ORDER_KEY);
     platformOrder = raw ? JSON.parse(raw) : [];
@@ -310,7 +302,6 @@ function updateSortButtonUI(){
 }
 
 const ICON_STATUS_TODO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"></circle><line x1="12" y1="9" x2="12" y2="15"></line><rect x="6" y="15" width="12" height="5" rx="1.5"></rect></svg>`;
-const ICON_STATUS_PROGRESS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"></polygon></svg>`;
 const ICON_STATUS_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3c2.5 0 4 3 6 3s3.5-3 6-3c1.66 0 3 1.34 3 3s-1.34 3-3 3c-2.5 0-4-3-6-3s-3.5 3-6 3z"></path></svg>`;
 const ICON_TYPE_COMPILATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`;
@@ -323,12 +314,6 @@ const TYPE_META = {
   'Mise à niveau': { icon: ICON_TYPE_UPGRADE, label:'Mise à niveau' },
   'Complete Edition': { icon: ICON_TYPE_COMPILATION, label:'Complete Edition' }
 };
-
-
-const ICON_BOOKS_VERTICAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>`;
-const ICON_STAR = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
-const ICON_GAMEPAD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.207 2 16a2 2 0 0 0 2 2c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 8.828 15h6.344a2 2 0 0 1 1.414.586L18 17c.5.5 1 1 2 1a2 2 0 0 0 2-2c0-1.793-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5Z"></path></svg>`;
-const ICON_FLAME = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`;
 
 
 const STATUS_OPTIONS = [
@@ -434,7 +419,7 @@ function parsePriceInput(s){
 }
 
 async function loadGames(){
-  if(IS_PREVIEW_MODE){ GAMES = PREVIEW_SEED.games.map(g => ({...g})); return; }
+  if(IS_PREVIEW_MODE){ GAMES = loadPreviewData().games.map(g => ({...g})); return; }
   try{
     const raw = accountStorage.getItem(STORAGE_KEY);
     if(raw){
@@ -473,7 +458,7 @@ function saveGames(){
 
 
 async function loadArrivals(){
-  if(IS_PREVIEW_MODE){ ARRIVALS = PREVIEW_SEED.arrivals.map(g => ({...g})); return; }
+  if(IS_PREVIEW_MODE){ ARRIVALS = loadPreviewData().arrivals.map(g => ({...g})); return; }
   try{
     const raw = accountStorage.getItem(ARRIVALS_KEY);
     ARRIVALS = raw ? JSON.parse(raw) : [];
@@ -488,7 +473,7 @@ function saveArrivals(){
 }
 
 async function loadWishlist(){
-  if(IS_PREVIEW_MODE){ WISHLIST = PREVIEW_SEED.wishlist.map(g => ({...g})); return; }
+  if(IS_PREVIEW_MODE){ WISHLIST = loadPreviewData().wishlist.map(g => ({...g})); return; }
   try{
     const raw = accountStorage.getItem(WISHLIST_KEY);
     WISHLIST = raw ? JSON.parse(raw) : [];
@@ -559,7 +544,8 @@ function cleanBackupData(parsed){
   return JTDData.parseBackup(parsed, {profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR});
 }
 function applyRestoredData(data){
-  if(!IS_PREVIEW_MODE) accountStorage.atomicWrite(restoredStorageEntries(data));
+  if(IS_PREVIEW_MODE) savePreviewData(data);
+  else accountStorage.atomicWrite(restoredStorageEntries(data));
   replaceAppData(data);
   state.platform = null;
   buildPlatformList();
@@ -1195,6 +1181,44 @@ function setContextEditor(prefix, item, type, compact){
   }
 }
 
+function fillIdentityFields(prefix, item = {}){
+  populatePlatformSelect(prefix+'-plateforme');
+  document.getElementById(prefix+'-nom').value = item.nom || '';
+  setSelectValueAndSync(prefix+'-plateforme', item.plateforme || '');
+  document.getElementById(prefix+'-collector').checked = !!item.collector;
+  document.getElementById(prefix+'-japanese').checked = !!item.japanese;
+  document.getElementById(prefix+'-image').value = item.image || '';
+  updateImagePreviewFor(prefix+'-image', prefix === 'f' ? 'image-preview' : prefix+'-image-preview');
+}
+function readIdentityFields(prefix){
+  return {
+    nom:document.getElementById(prefix+'-nom').value.trim(),
+    plateforme:document.getElementById(prefix+'-plateforme').value.trim(),
+    collector:document.getElementById(prefix+'-collector').checked,
+    japanese:document.getElementById(prefix+'-japanese').checked,
+    image:safeURL(document.getElementById(prefix+'-image').value.trim(), true) || null
+  };
+}
+function commitBoardTransfer(from, to, id, draft){
+  const lists = {games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST};
+  const keys = {games:STORAGE_KEY, arrivals:ARRIVALS_KEY, wishlist:WISHLIST_KEY};
+  try {
+    const moved = JTDData.transferItem(lists[from], lists[to], id, draft);
+    // Both local lists succeed before either list is replaced in memory.
+    if(IS_PREVIEW_MODE) savePreviewData({...lists, [from]:moved.source, [to]:moved.target});
+    else accountStorage.atomicWrite([
+      [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)]
+    ]);
+    lists[from] = moved.source; lists[to] = moved.target;
+    GAMES = lists.games; ARRIVALS = lists.arrivals; WISHLIST = lists.wishlist;
+    if(window.JTDDataChanged) window.JTDDataChanged();
+    return moved.target.at(-1);
+  } catch(error) {
+    console.error('Transfert impossible', error);
+    showToast('Transfert impossible. Tes listes sont conservées ; réessaie après avoir téléchargé une sauvegarde.');
+    return null;
+  }
+}
 function openModal(id){
   editingId = id || null;
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
@@ -1253,6 +1277,7 @@ function openModal(id){
 }
 
 function closeModal(){
+  document.getElementById('save-btn').textContent = 'Enregistrer';
   document.getElementById('modal-overlay').classList.add('hidden');
   editingId = null;
   convertingArrivalId = null; // annuler = l'arrivage reste où il était
@@ -1263,45 +1288,41 @@ function updateImagePreview(){
 }
 
 function saveModal(){
-  const nom = document.getElementById('f-nom').value.trim();
+  const {nom, plateforme, collector, japanese, image} = readIdentityFields('f');
   if(!nom){
     document.getElementById('f-nom').focus();
     return;
   }
-  const plateforme = document.getElementById('f-plateforme').value;
+  if(!plateforme){ document.getElementById('f-plateforme').focus(); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
   const format = document.getElementById('f-format').value;
-  const collector = document.getElementById('f-collector').checked;
-  const japanese = document.getElementById('f-japanese').checked;
   const type = format === 'Numérique' ? document.getElementById('f-type').value : null;
-  const image = document.getElementById('f-image').value.trim() || null;
 
-  if(editingId){
-    const g = GAMES.find(x => x.id === editingId);
-    Object.assign(g, { nom, plateforme, prix, date, source, format, collector, japanese, type, image });
-  } else {
-    GAMES.push({
-      id: 'custom-' + Date.now(),
-      nom, plateforme, prix, date, source, format, collector, japanese, type, image,
-      status:null
-    });
-  }
+  const fields = {nom, plateforme, prix, date, source, format, collector, japanese, type, image};
+  const received = convertingArrivalId
+    ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, status:'a_jouer'})
+    : null;
+  if(convertingArrivalId && !received) return;
+  if(!convertingArrivalId){
+    if(editingId) Object.assign(GAMES.find(x => x.id === editingId), fields);
+    else GAMES.push({id:crypto.randomUUID(), ...fields, status:null});
+    saveGames();
+  } else renderArrivals();
 
-  if(convertingArrivalId){
-    ARRIVALS = ARRIVALS.filter(x => x.id !== convertingArrivalId);
-    saveArrivals();
-    convertingArrivalId = null;
-    renderArrivals();
-  }
-
-  saveGames();
   setLastUsed('platform', plateforme);
   setLastUsed('format', format);
   closeModal();
   buildPlatformList();
   render();
+  if(received) showToast(`« ${received.nom} » ajouté à la collection.`, 'Voir', () => {
+    goToPage('collection', received.format);
+    state.platform = received.plateforme;
+    state.search = ''; document.getElementById('search-input').value = '';
+    state.status = null; state.collector = false; state.japanese = false; state.type = null;
+    buildPlatformList(); buildFormatToggles(); buildTypeToggles(); buildStatusToggles(); render();
+  });
 }
 
 function deleteGame(){
@@ -1363,10 +1384,6 @@ function renderHomeStats(){
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
 
-const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
-const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
-const ICON_COLLECTION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>`;
-
 
 function boardThumb(item){
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
@@ -1394,7 +1411,7 @@ function calendarDayHtml(date, opts = {}){
   return `<div class="calendar-day calendar-day-loose"><strong>${escapeHTML(label)}</strong></div>`;
 }
 
-function calendarGroupHtml(label, year, color, count, loose = false){
+function calendarGroupHtml(label, year, color, loose = false){
   return `<div class="calendar-group-head${loose ? ' calendar-group-head-loose' : ''}"${color ? ` style="--calendar-accent:${color}"` : ''}>
     <div class="calendar-group-title">
       <strong>${escapeHTML(label)}</strong>
@@ -1409,7 +1426,6 @@ function arrivalRowHtml(item){
   const platIconHtml = logo
     ? `<img class="mini-logo-sm" src="${escapeHTML(safeURL(logo, true))}" alt="">`
     : `<span class="dot"></span>`;
-  const monthColor = item.date ? MONTH_COLORS[monthIndexOf(item.date)] : null;
   const purchaseBits = [];
   if(item.source) purchaseBits.push(`<span class="arrival-source" title="${escapeHTML(item.source)}">${escapeHTML(item.source)}</span>`);
   if(item.prix != null) purchaseBits.push(`<span class="arrival-price">${euros(item.prix)}</span>`);
@@ -1425,9 +1441,6 @@ function arrivalRowHtml(item){
         <div class="board-plat">${platIconHtml}${escapeHTML(item.plateforme)}</div>
       </div>
       ${purchaseHtml}
-      <div class="arrival-actions">
-        <button class="icon-btn add-to-collection-btn" data-action="to-collection" title="Ajouter à la collection" aria-label="Ajouter à la collection">${ICON_COLLECTION}</button>
-      </div>
     </div>`;
 }
 
@@ -1435,15 +1448,6 @@ function renderArrivals(){
   const container = document.getElementById('arrivals-rows');
   if(!container) return;
   container.innerHTML = "";
-
-  const countEl = document.getElementById('arrivals-count');
-  if(countEl) countEl.textContent = ARRIVALS.length;
-
-  const totalEl = document.getElementById('arrivals-total');
-  if(totalEl){
-    const total = ARRIVALS.reduce((sum,a) => sum + (a.prix || 0), 0);
-    totalEl.textContent = total > 0 ? `≈ ${total.toLocaleString('fr-FR',{maximumFractionDigits:0})} € estimés` : '';
-  }
 
   renderHomeStats();
   wireArrivalsDropZone();
@@ -1479,21 +1483,14 @@ function renderArrivals(){
 
   container.innerHTML = groups.map(g => `
     <section class="calendar-group${g.loose ? ' calendar-group-loose' : ''}">
-      ${calendarGroupHtml(g.label, g.year, g.color, g.items.length, g.loose)}
+      ${calendarGroupHtml(g.label, g.year, g.color, g.loose)}
       <div class="calendar-items">${g.items.map(arrivalRowHtml).join('')}</div>
     </section>
   `).join('');
 
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
-    row.addEventListener('click', (e) => {
-      if(e.target.closest('[data-action="to-collection"]')) return;
-      openArrivalModal(id);
-    });
-    row.querySelector('[data-action="to-collection"]').onclick = (e) => {
-      e.stopPropagation();
-      addArrivalToCollection(id);
-    };
+    row.addEventListener('click', () => openArrivalModal(id));
     row.addEventListener('dragstart', () => {
       homeDragArrivalId = id;
       row.classList.add('dragging');
@@ -1574,26 +1571,6 @@ function parseWishlistDate(str){
   return { priority:3, key:s.toLowerCase(), label:s };
 }
 
-function wishlistMonthColor(str){
-  const parsed = parseWishlistDate(str);
-  if(parsed.priority === 0){
-    const m = parseInt(parsed.key.split('-')[1], 10);
-    return (m >= 1 && m <= 12) ? MONTH_COLORS[m-1] : null;
-  }
-  if(parsed.priority === 1){
-    const m = parseInt(parsed.key.split('-')[0], 10);
-    return (m >= 1 && m <= 12) ? MONTH_COLORS[m-1] : null;
-  }
-  return null;
-}
-
-function wishlistDayLabel(str){
-  const parsed = parseWishlistDate(str);
-  if(parsed.priority === 0) return String(parseInt(parsed.key.split('-')[2], 10));
-  if(parsed.priority === 1) return String(parseInt(parsed.key.split('-')[1], 10));
-  return parsed.label;
-}
-
 function wishlistGroupInfo(str){
   const parsed = parseWishlistDate(str);
   if(parsed.priority === 0){
@@ -1631,9 +1608,6 @@ function renderWishlist(){
   if(!container) return;
   container.innerHTML = "";
 
-  const countEl = document.getElementById('wishlist-count');
-  if(countEl) countEl.textContent = WISHLIST.length;
-
   renderHomeStats();
   wireWishlistDropZone();
 
@@ -1650,6 +1624,7 @@ function renderWishlist(){
       : `<span class="dot"></span>`;
     const row = document.createElement('div');
     row.className = 'board-row' + (released ? ' wishlist-row-released' : '');
+    row.dataset.id = item.id;
     row.style.setProperty('--spine', color);
     row.draggable = true;
     row.title = 'Glisse ce jeu vers les Arrivages pour le basculer';
@@ -1711,7 +1686,7 @@ function renderWishlist(){
     const section = document.createElement('section');
     section.className = 'calendar-group' + (group.loose ? ' calendar-group-loose' : '');
     const label = group.label.replace(/\s+\d{4}$/, '');
-    section.innerHTML = calendarGroupHtml(label, group.year, group.color, group.items.length, !!group.loose) + '<div class="calendar-items"></div>';
+    section.innerHTML = calendarGroupHtml(label, group.year, group.color, !!group.loose) + '<div class="calendar-items"></div>';
     const itemsEl = section.querySelector('.calendar-items');
     group.items.forEach(item => itemsEl.appendChild(makeWishlistRow(item, false)));
     container.appendChild(section);
@@ -1720,7 +1695,7 @@ function renderWishlist(){
   if(sortedReleased.length){
     const section = document.createElement('section');
     section.className = 'calendar-group calendar-group-released';
-    section.innerHTML = calendarGroupHtml('Déjà sorti', '', null, sortedReleased.length, true) + '<div class="calendar-items"></div>';
+    section.innerHTML = calendarGroupHtml('Déjà sorti', '', null, true) + '<div class="calendar-items"></div>';
     const itemsEl = section.querySelector('.calendar-items');
     sortedReleased.forEach(item => itemsEl.appendChild(makeWishlistRow(item, true)));
     container.appendChild(section);
@@ -1766,39 +1741,30 @@ document.querySelectorAll('.date-mode').forEach(group => {
 function openArrivalModal(id){
   editingArrivalId = id || null;
   convertingWishlistId = null; // ouverture normale (pas une bascule depuis la wishlist)
-  populatePlatformSelect('a-plateforme');
+  const identityItem = editingArrivalId ? ARRIVALS.find(x => x.id === editingArrivalId) : null;
+  if(editingArrivalId && !identityItem) return;
+  fillIdentityFields('a', identityItem || {});
+  document.getElementById('a-save-btn').textContent = 'Enregistrer';
   const title = document.getElementById('arrival-modal-title');
   const deleteBtn = document.getElementById('a-delete-btn');
-  const toWishlistBtn = document.getElementById('a-to-wishlist-btn');
+  const receivedBtn = document.getElementById('a-received-btn');
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
     title.textContent = 'Modifier cet arrivage';
     deleteBtn.classList.remove('hidden');
-    toWishlistBtn.classList.remove('hidden');
-    document.getElementById('a-nom').value = item.nom || '';
-    setSelectValueAndSync('a-plateforme', item.plateforme || '');
+    receivedBtn.classList.remove('hidden');
     document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
     document.getElementById('a-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
     document.getElementById('a-source').value = item.source || '';
-    document.getElementById('a-collector').checked = !!item.collector;
-  document.getElementById('a-japanese').checked = !!item.japanese;
-    document.getElementById('a-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter un arrivage';
     deleteBtn.classList.add('hidden');
-    toWishlistBtn.classList.add('hidden');
-    document.getElementById('a-nom').value = '';
-    document.getElementById('a-plateforme').value = '';
+    receivedBtn.classList.add('hidden');
     document.getElementById('a-date').value = '';
     document.getElementById('a-prix').value = '';
     document.getElementById('a-source').value = '';
-    document.getElementById('a-collector').checked = false;
-  document.getElementById('a-japanese').checked = false;
-    document.getElementById('a-image').value = '';
   }
-  updateImagePreviewFor('a-image', 'a-image-preview');
-  const identityItem = editingArrivalId ? ARRIVALS.find(x => x.id === editingArrivalId) : null;
   setIdentityEditor('a', identityItem, !!editingArrivalId);
   setContextEditor('a', identityItem, 'arrival', !!editingArrivalId);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
@@ -1806,45 +1772,38 @@ function openArrivalModal(id){
 }
 
 function closeArrivalModal(){
+  document.getElementById('a-save-btn').textContent = 'Enregistrer';
   document.getElementById('arrival-modal-overlay').classList.add('hidden');
   editingArrivalId = null;
   convertingWishlistId = null; // annuler = l'item reste dans la wishlist
 }
 
 function saveArrivalModal(){
-  const nom = document.getElementById('a-nom').value.trim();
-  const plateforme = document.getElementById('a-plateforme').value.trim();
+  const {nom, plateforme, collector, japanese, image} = readIdentityFields('a');
   if(!nom){ document.getElementById('a-nom').focus(); return; }
   if(!plateforme){ document.getElementById('a-plateforme').focus(); return; }
 
   const date = document.getElementById('a-date').value || null;
-  if(!date){ document.getElementById('a-date').focus(); return; }
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
-  const collector = document.getElementById('a-collector').checked;
-  const japanese = document.getElementById('a-japanese').checked;
-  const image = document.getElementById('a-image').value.trim() || null;
 
-  if(editingArrivalId){
-    const item = ARRIVALS.find(x => x.id === editingArrivalId);
-    Object.assign(item, { nom, plateforme, date, prix, source, collector, japanese, image });
-  } else {
-    ARRIVALS.push({ id: 'arr-' + Date.now(), nom, plateforme, date, prix, source, collector, japanese, image });
-  }
-
-  if(convertingWishlistId){
-    WISHLIST = WISHLIST.filter(x => x.id !== convertingWishlistId);
-    saveWishlist();
-    convertingWishlistId = null;
+  const fields = {nom, plateforme, date, prix, source, collector, japanese, image};
+  const ordered = !!convertingWishlistId;
+  if(ordered){
+    if(!commitBoardTransfer('wishlist', 'arrivals', convertingWishlistId, fields)) return;
     renderWishlist();
+  } else {
+    if(editingArrivalId) Object.assign(ARRIVALS.find(x => x.id === editingArrivalId), fields);
+    else ARRIVALS.push({id:crypto.randomUUID(), ...fields});
+    saveArrivals();
   }
 
   ensurePlatformMeta(plateforme);
   savePlatformMeta();
-  saveArrivals();
   closeArrivalModal();
   buildPlatformList();
   renderArrivals();
+  if(ordered){ setHomeBoard('arrivals'); persistNavigation(true); showToast(`« ${nom} » ajouté aux arrivages.`); }
 }
 
 function deleteArrival(){
@@ -1871,25 +1830,21 @@ function addArrivalToCollection(id){
 
   convertingArrivalId = id;
   editingId = null;
-  populatePlatformSelect('f-plateforme');
+  fillIdentityFields('f', item);
 
-  document.getElementById('modal-title').textContent = 'Ajouter à la collection';
+  document.getElementById('modal-title').textContent = 'Confirmer la réception';
   document.getElementById('delete-btn').classList.add('hidden');
-  document.getElementById('f-nom').value = item.nom || '';
-  setSelectValueAndSync('f-plateforme', item.plateforme || '');
   document.getElementById('f-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   document.getElementById('f-date').value = item.date || '';
   document.getElementById('f-source').value = item.source || '';
   setSelectValueAndSync('f-format', 'Physique');
   populateTypeSelect('f-type', 'Physique');
   setSelectValueAndSync('f-type', 'Jeu simple');
-  document.getElementById('f-collector').checked = !!item.collector;
-  document.getElementById('f-japanese').checked = !!item.japanese;
   toggleFormatDependentFields('Physique');
-  document.getElementById('f-image').value = item.image || '';
-  updateImagePreview();
   setIdentityEditor('f', item, true);
-  setContextEditor('f', item, 'purchase', false);
+  setContextEditor('f', item, 'purchase', true);
+  document.getElementById('f-quick-hide-fields').classList.remove('hidden');
+  document.getElementById('save-btn').textContent = 'Confirmer';
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
@@ -1898,37 +1853,28 @@ function addArrivalToCollection(id){
 function openWishlistModal(id){
   editingWishlistId = id || null;
   convertingArrivalToWishlistId = null; // ouverture normale (pas une bascule depuis les arrivages)
-  populatePlatformSelect('w-plateforme');
+  const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
+  if(editingWishlistId && !identityItem) return;
+  fillIdentityFields('w', identityItem || {});
+  document.getElementById('w-save-btn').textContent = 'Enregistrer';
   const title = document.getElementById('wishlist-modal-title');
   const deleteBtn = document.getElementById('w-delete-btn');
-  const toArrivalBtn = document.getElementById('w-to-arrival-btn');
+  const orderBtn = document.getElementById('w-order-btn');
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
     title.textContent = 'Modifier cet élément';
     deleteBtn.classList.remove('hidden');
-    toArrivalBtn.classList.remove('hidden');
-    document.getElementById('w-nom').value = item.nom || '';
-    setSelectValueAndSync('w-plateforme', item.plateforme || '');
+    orderBtn.classList.remove('hidden');
     setFlexibleDate('w', item.date);
     document.getElementById('w-lien').value = item.lien || '';
-    document.getElementById('w-collector').checked = !!item.collector;
-  document.getElementById('w-japanese').checked = !!item.japanese;
-    document.getElementById('w-image').value = item.image || '';
   } else {
     title.textContent = 'Ajouter à la wishlist';
     deleteBtn.classList.add('hidden');
-    toArrivalBtn.classList.add('hidden');
-    document.getElementById('w-nom').value = '';
-    document.getElementById('w-plateforme').value = '';
+    orderBtn.classList.add('hidden');
     setFlexibleDate('w', '');
     document.getElementById('w-lien').value = '';
-    document.getElementById('w-collector').checked = false;
-  document.getElementById('w-japanese').checked = false;
-    document.getElementById('w-image').value = '';
   }
-  updateImagePreviewFor('w-image', 'w-image-preview');
-  const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
   setIdentityEditor('w', identityItem, !!editingWishlistId);
   setContextEditor('w', identityItem, 'wishlist', !!editingWishlistId);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
@@ -1942,35 +1888,27 @@ function closeWishlistModal(){
 }
 
 function saveWishlistModal(){
-  const nom = document.getElementById('w-nom').value.trim();
-  const plateforme = document.getElementById('w-plateforme').value.trim();
+  const {nom, plateforme, collector, japanese, image} = readIdentityFields('w');
   if(!nom){ document.getElementById('w-nom').focus(); return; }
   if(!plateforme){ document.getElementById('w-plateforme').focus(); return; }
 
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
-  const collector = document.getElementById('w-collector').checked;
-  const japanese = document.getElementById('w-japanese').checked;
-  const image = document.getElementById('w-image').value.trim() || null;
 
-  if(editingWishlistId){
-    const item = WISHLIST.find(x => x.id === editingWishlistId);
-    Object.assign(item, { nom, plateforme, date, lien, collector, japanese, image });
-    delete item.prix;
-  } else {
-    WISHLIST.push({ id: 'wish-' + Date.now(), nom, plateforme, date, lien, collector, japanese, image });
-  }
-
+  const fields = {nom, plateforme, date, lien, collector, japanese, image};
   if(convertingArrivalToWishlistId){
-    ARRIVALS = ARRIVALS.filter(x => x.id !== convertingArrivalToWishlistId);
-    saveArrivals();
-    convertingArrivalToWishlistId = null;
+    if(!commitBoardTransfer('arrivals', 'wishlist', convertingArrivalToWishlistId, fields)) return;
     renderArrivals();
+  } else {
+    if(editingWishlistId){
+      const item = WISHLIST.find(x => x.id === editingWishlistId);
+      Object.assign(item, fields); delete item.prix;
+    } else WISHLIST.push({id:crypto.randomUUID(), ...fields});
+    saveWishlist();
   }
 
   ensurePlatformMeta(plateforme);
   savePlatformMeta();
-  saveWishlist();
   closeWishlistModal();
   buildPlatformList();
   renderWishlist();
@@ -1998,23 +1936,18 @@ function moveWishlistToArrivals(id){
   const item = WISHLIST.find(x => x.id === id);
   if(!item) return;
 
-  const isoDate = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : null;
-
   convertingWishlistId = id;
   editingArrivalId = null;
-  populatePlatformSelect('a-plateforme');
+  fillIdentityFields('a', item);
 
-  document.getElementById('arrival-modal-title').textContent = 'Basculer vers les arrivages';
+  document.getElementById('arrival-modal-title').textContent = 'Confirmer la commande';
   document.getElementById('a-delete-btn').classList.add('hidden');
-  document.getElementById('a-nom').value = item.nom || '';
-  setSelectValueAndSync('a-plateforme', item.plateforme || '');
-  document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
+  document.getElementById('a-received-btn').classList.add('hidden');
+  document.getElementById('a-save-btn').textContent = 'Confirmer';
+  const parsed = parseWishlistDate(item.date);
+  document.getElementById('a-date').value = parsed.priority === 0 && !wishlistIsReleased(item.date) ? parsed.key : '';
   document.getElementById('a-prix').value = '';
   document.getElementById('a-source').value = '';
-  document.getElementById('a-collector').checked = !!item.collector;
-  document.getElementById('a-japanese').checked = !!item.japanese;
-  document.getElementById('a-image').value = item.image || '';
-  updateImagePreviewFor('a-image', 'a-image-preview');
   setIdentityEditor('a', item, true);
   setContextEditor('a', item, 'arrival', false);
   document.getElementById('arrival-modal-overlay').classList.remove('hidden');
@@ -2026,19 +1959,13 @@ function moveArrivalToWishlist(id){
 
   convertingArrivalToWishlistId = id;
   editingWishlistId = null;
-  populatePlatformSelect('w-plateforme');
+  fillIdentityFields('w', item);
 
   document.getElementById('wishlist-modal-title').textContent = 'Basculer vers la wishlist';
   document.getElementById('w-delete-btn').classList.add('hidden');
-  document.getElementById('w-to-arrival-btn').classList.add('hidden');
-  document.getElementById('w-nom').value = item.nom || '';
-  setSelectValueAndSync('w-plateforme', item.plateforme || '');
+  document.getElementById('w-order-btn').classList.add('hidden');
   setFlexibleDate('w', item.date);
   document.getElementById('w-lien').value = '';
-  document.getElementById('w-collector').checked = !!item.collector;
-  document.getElementById('w-japanese').checked = !!item.japanese;
-  document.getElementById('w-image').value = item.image || '';
-  updateImagePreviewFor('w-image', 'w-image-preview');
   setIdentityEditor('w', item, true);
   setContextEditor('w', item, 'wishlist', false);
   document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
@@ -2061,11 +1988,11 @@ document.getElementById('a-cancel-btn').addEventListener('click', closeArrivalMo
 document.getElementById('a-save-btn').addEventListener('click', saveArrivalModal);
 document.getElementById('a-delete-btn').addEventListener('click', deleteArrival);
 document.getElementById('a-image').addEventListener('input', () => updateImagePreviewFor('a-image','a-image-preview'));
-document.getElementById('a-to-wishlist-btn').addEventListener('click', () => {
+document.getElementById('a-received-btn').addEventListener('click', () => {
   if(!editingArrivalId) return;
   const id = editingArrivalId;
   closeArrivalModal();
-  moveArrivalToWishlist(id);
+  addArrivalToCollection(id);
 });
 /* Un clic en dehors de la fenêtre d'édition d'un arrivage ne la ferme plus (évite les pertes accidentelles) */
 
@@ -2073,7 +2000,7 @@ document.getElementById('add-wishlist-btn').addEventListener('click', () => open
 document.getElementById('w-cancel-btn').addEventListener('click', closeWishlistModal);
 document.getElementById('w-save-btn').addEventListener('click', saveWishlistModal);
 document.getElementById('w-delete-btn').addEventListener('click', deleteWishlist);
-document.getElementById('w-to-arrival-btn').addEventListener('click', () => {
+document.getElementById('w-order-btn').addEventListener('click', () => {
   if(!editingWishlistId) return;
   const id = editingWishlistId;
   closeWishlistModal();

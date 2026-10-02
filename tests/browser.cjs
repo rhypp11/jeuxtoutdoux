@@ -1,22 +1,9 @@
 /* Run with Playwright and Chromium available; never logs in or accesses Firebase. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
-const http = require('node:http');
 const fs = require('node:fs');
-const path = require('node:path');
-const root = path.resolve(__dirname,'..');
-const types = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png'};
-const server = http.createServer((req,res)=>{
-  const pathname = new URL(req.url,'http://localhost').pathname;
-  const file = path.join(root,pathname === '/' ? 'index.html' : pathname);
-  if(!file.startsWith(root + path.sep)){res.writeHead(403).end();return;}
-  try{
-    let content = fs.readFileSync(file);
-    if(file.endsWith('index.html')) content = Buffer.from(content.toString().replace('window.JTD_PREVIEW_MODE =','window.JTD_PREVIEW_MODE = true ||'));
-    res.setHeader('Content-Type',types[path.extname(file)] || 'application/octet-stream');
-    res.end(content);
-  }catch(error){res.writeHead(404).end();}
-});
+const {createSandboxServer} = require('./sandbox.cjs');
+const server = createSandboxServer();
 const payload = {
   app:'Jeux Tout Doux',version:2,data:{
     games:[{id:'g',nom:'<img src=x onerror="window.INJECTED=1"> & "Persona"',plateforme:'PC',format:'Physique',collector:true,japanese:true,prix:20,date:'2026-10-01',source:'L\'enseigne <b>test</b>',image:'http://127.0.0.1:1/broken.png'}],
@@ -149,4 +136,5 @@ async function restore(page, value, confirm=true){
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+
 

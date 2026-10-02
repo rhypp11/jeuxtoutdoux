@@ -46,3 +46,4 @@
   document.addEventListener('visibilitychange', () => { if(!document.hidden) check(); });
   check(true);
 })();
+
