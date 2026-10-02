@@ -822,7 +822,7 @@ function renderPlatformBanner(games){
   `;
 }
 
-function renderCard(g){
+function renderCard(g, options = {}){
   const color = getPlatformColor(g.plateforme);
   const logo = getPlatformLogo(g.plateforme);
 
@@ -885,6 +885,11 @@ function renderCard(g){
     </div>
   `;
 
+  if(options.readOnly){
+    const control = card.querySelector('.card-status-control');
+    if(activeStatus) control.innerHTML = '<span class="card-status-badge" style="--status-color:' + statusColor + ';--status-fill:' + statusFill + ';">' + statusIcon + '<span class="card-status-label">' + escapeHTML(activeStatus.label) + '</span></span>';
+    else control.remove();
+  } else {
   const badge = card.querySelector('.card-status-badge');
   const menu = card.querySelector('.card-status-menu');
   badge.addEventListener('click', (e) => {
@@ -899,7 +904,17 @@ function renderCard(g){
       setStatus(g.id, btn.dataset.status);
     });
   });
-  card.addEventListener('click', () => openModal(g.id));
+  }
+  const onOpen = options.onOpen || (() => openModal(g.id));
+  card.addEventListener('click', onOpen);
+  if(options.onOpen){
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', 'Modifier la vente de ' + g.nom);
+    card.addEventListener('keydown', event => {
+      if(event.key === 'Enter' || event.key === ' '){ event.preventDefault(); onOpen(); }
+    });
+  }
   return card;
 }
 

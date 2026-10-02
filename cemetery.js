@@ -29,6 +29,7 @@ function renderCemetery(){
   saleEl('cemetery-note').textContent = saleView === 'pending'
     ? 'Sortis de la collection, encore chez toi. Clique sur un jeu pour préparer sa vente.'
     : 'Dans l’ordre des ventes. Le montant d’un lot est affiché une seule fois.';
+  container.classList.toggle('pending-sales', saleView === 'pending');
   container.replaceChildren();
   if(!groups.length){ container.innerHTML = '<div class="cemetery-empty">Aucun jeu ici pour le moment.</div>'; return; }
   for(const group of groups){
@@ -38,16 +39,14 @@ function renderCemetery(){
     const venue = [item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : '', item.saleVenue].filter(Boolean).join(' · ') || 'Lieu de vente à définir';
     const amount = saleView === 'sold' ? item.salePrice : item.estimatedPrice;
     block.innerHTML = '<div class="sale-group-heading"><span>' + (group.length > 1 ? 'Lot de ' + group.length + ' jeux · ' : '') + escapeHTML(venue) + '</span><strong>' + (amount != null ? euros(amount) + (saleView === 'pending' ? ' estimés' : '') : 'Estimation à définir') + '</strong></div>';
+    const cards = document.createElement('div');
+    cards.className = 'grid sale-cards';
     for(const g of group){
-      const row = document.createElement('button');
-      row.type = 'button'; row.className = 'sale-game';
-      const purchase = [g.date ? dateFR(g.date) : '', g.source, g.prix != null ? euros(g.prix) : ''].filter(Boolean).join(' · ');
-      const status = STATUS_OPTIONS.find(s => s.key === g.status)?.label;
-      const image = safeURL(g.image, true);
-      row.innerHTML = '<span class="sale-image">' + (image ? '<img src="' + escapeHTML(image) + '" alt="">' : escapeHTML(g.plateforme.slice(0,2))) + '</span><span class="sale-game-info"><strong>' + (g.collector ? '★ ' : '') + escapeHTML(g.nom) + '</strong><span>' + escapeHTML(g.plateforme) + (g.japanese ? ' · Japonais' : '') + (status ? ' · ' + escapeHTML(status) : '') + '</span><small>' + escapeHTML(purchase) + '</small></span>';
-      row.addEventListener('click', () => openSaleModal(g.id));
-      block.appendChild(row);
+      const card = renderCard(g, {readOnly:true, onOpen:() => openSaleModal(g.id)});
+      card.classList.add('sale-game');
+      cards.appendChild(card);
     }
+    block.appendChild(cards);
     container.appendChild(block);
   }
 }

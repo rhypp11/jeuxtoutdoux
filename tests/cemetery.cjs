@@ -18,6 +18,13 @@ const server = createSandboxServer();
       await page.locator('.card').filter({hasText:'Fire Emblem'}).click();
       await page.locator('#f-sell-btn').click();
       await page.locator('#sale-modal-overlay').waitFor({state:'visible'});
+      assert.equal(await page.locator('#cemetery-list .sale-game.card .card-banner').count(),3);
+      const colors = await page.locator('#sale-channel option').first().evaluate(el => {
+        const style = getComputedStyle(el);
+        return {foreground:style.color, background:style.backgroundColor};
+      });
+      assert.notEqual(colors.foreground,colors.background);
+      assert.equal(await page.locator('#global-filter-toggle').isVisible(),false);
       assert.equal(await page.evaluate(()=>GAMES.some(g=>g.id==='test-fe')),false);
       await page.locator('#sale-channel').selectOption('online');
       await page.locator('#sale-venue').fill('Vinted');
