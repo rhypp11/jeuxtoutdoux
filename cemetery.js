@@ -38,12 +38,15 @@ function renderCemetery(){
     block.className = 'sale-group';
     const venue = [item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : '', item.saleVenue].filter(Boolean).join(' · ') || 'Lieu de vente à définir';
     const amount = saleView === 'sold' ? item.salePrice : item.estimatedPrice;
-    block.innerHTML = '<div class="sale-group-heading"><span>' + (group.length > 1 ? 'Lot de ' + group.length + ' jeux · ' : '') + escapeHTML(venue) + '</span><strong>' + (amount != null ? euros(amount) + (saleView === 'pending' ? ' estimés' : '') : 'Estimation à définir') + '</strong></div>';
+    const lot = group.length > 1;
+    block.innerHTML = '<div class="sale-group-heading"><div class="sale-heading-main"><span class="sale-state-label">' + (saleView === 'sold' ? 'Vendu' : 'Estimation') + '</span><strong class="sale-amount">' + (amount != null ? euros(amount) : 'À définir') + '</strong>' + (lot ? '<span class="sale-lot-label">le lot · ' + group.length + ' jeux</span>' : '') + '</div><div class="sale-venue">' + escapeHTML(venue) + '</div></div>';
     const cards = document.createElement('div');
     cards.className = 'grid sale-cards';
     for(const g of group){
       const card = renderCard(g, {readOnly:true, onOpen:() => openSaleModal(g.id)});
       card.classList.add('sale-game');
+      const purchasePrice = card.querySelector('.card-price');
+      if(purchasePrice) purchasePrice.textContent = 'Acheté ' + euros(g.prix);
       cards.appendChild(card);
     }
     block.appendChild(cards);
@@ -57,7 +60,19 @@ function openSaleModal(id){
   saleEditingId = id;
   const sold = item.saleStatus === 'sold', group = saleGroup(item);
   saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Modifier cette vente en lot' : 'Modifier cette vente') : 'Préparer la vente';
-  saleEl('sale-identity').textContent = group.map(g => g.nom + ' · ' + g.plateforme).join(' / ');
+  const identity = saleEl('sale-identity');
+  identity.replaceChildren();
+  for(const game of group){
+    const summary = document.createElement('div');
+    summary.className = 'game-identity-summary';
+    summary.innerHTML = identitySummaryHtml(game);
+    summary.querySelector('.identity-edit-btn')?.remove();
+    identity.appendChild(summary);
+    const acquisition = document.createElement('p');
+    acquisition.className = 'sale-acquisition';
+    acquisition.textContent = [game.prix != null ? 'Acheté ' + euros(game.prix) : '', game.date ? dateFR(game.date) : '', game.source].filter(Boolean).join(' · ');
+    if(acquisition.textContent) identity.appendChild(acquisition);
+  }
   saleEl('sale-channel').value = item.saleChannel || '';
   saleEl('sale-venue').value = item.saleVenue || '';
   saleEl('sale-estimate').value = item.estimatedPrice ?? '';
