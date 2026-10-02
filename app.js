@@ -27,6 +27,13 @@ const PREVIEW_SEED = {
     {id:'test-wish-released',nom:'Déjà sorti — Test',plateforme:'Switch 2',date:'2026-09-17',image:null}
   ]
 };
+PREVIEW_SEED.cemetery = [
+  {id:'sale-pending-1',nom:'Kena: Bridge of Spirits — Test',plateforme:'PlayStation 5',format:'Physique',prix:35,date:'2025-06-15',source:'Fnac',status:'termine',saleStatus:'pending',saleVenue:'Vinted',saleChannel:'online',estimatedPrice:20},
+  {id:'sale-pending-2',nom:'Rayman Legends — Test',plateforme:'PlayStation 4',format:'Physique',prix:15,source:'Micromania',status:'termine',saleStatus:'pending'},
+  {id:'sale-sold-1',nom:'Deathloop — Test',plateforme:'PlayStation 5',format:'Physique',prix:30,source:'Fnac',saleStatus:'sold',saleId:'test-sale-1',saleOrder:1,salePrice:18,saleVenue:'Vinted',saleChannel:'online'},
+  {id:'sale-lot-1',nom:'Hidden Agenda — Test',plateforme:'PlayStation 4',format:'Physique',prix:10,saleStatus:'sold',saleId:'test-sale-lot',saleOrder:2,salePrice:25,saleVenue:'Micromania',saleChannel:'store'},
+  {id:'sale-lot-2',nom:'Detroit: Become Human — Test',plateforme:'PlayStation 4',format:'Physique',prix:20,saleStatus:'sold',saleId:'test-sale-lot',saleOrder:2,salePrice:25,saleVenue:'Micromania',saleChannel:'store'}
+];
 const SEED_GAMES = [];
 const {escapeHTML, safeURL} = window.JTDData;
 const accountStorage = JTDData.createStorage(localStorage);
@@ -48,7 +55,7 @@ function writeStoredValue(key, value){
 }
 // A single sandbox-only snapshot keeps transfers atomic and survives refreshes.
 // It never reads account keys or contacts Firebase.
-const PREVIEW_STORAGE_KEY = 'jtd:sandbox:data-v1';
+const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1';
 let previewData;
 function loadPreviewData(){
   if(previewData) return previewData;
@@ -59,7 +66,7 @@ function loadPreviewData(){
   return previewData = JTDData.normalizeData({...PREVIEW_SEED, profileName:'Mode test'});
 }
 function savePreviewData(overrides = {}){
-  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
+  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
   localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(data));
   previewData = data;
 }
@@ -68,6 +75,7 @@ function restoredStorageEntries(data){
     [STORAGE_KEY, JSON.stringify(data.games)],
     [ARRIVALS_KEY, JSON.stringify(data.arrivals)],
     [WISHLIST_KEY, JSON.stringify(data.wishlist)],
+    [CEMETERY_KEY, JSON.stringify(data.cemetery || [])],
     [PLATFORM_META_KEY, JSON.stringify(data.platformMeta)],
     [PLATFORM_ORDER_KEY, JSON.stringify(data.platformOrder)],
     [PROFILE_KEY, JSON.stringify({name:data.profileName, avatar:data.profileAvatar})]
@@ -77,6 +85,8 @@ function replaceAppData(data){
   GAMES = data.games;
   ARRIVALS = data.arrivals;
   WISHLIST = data.wishlist;
+  CEMETERY = data.cemetery || [];
+  window.renderCemetery?.();
   platformMeta = data.platformMeta;
   platformOrder = data.platformOrder;
   PROFILE_NAME = data.profileName;
@@ -222,7 +232,7 @@ function seedPcPlatformOnce(){
 function renamePlatform(oldName, newName){
   newName = newName.trim();
   if(!newName || newName === oldName) return false;
-  [GAMES, ARRIVALS, WISHLIST].forEach(items => items.forEach(g => { if(g.plateforme === oldName) g.plateforme = newName; }));
+  [GAMES, ARRIVALS, WISHLIST, CEMETERY].forEach(items => items.forEach(g => { if(g.plateforme === oldName) g.plateforme = newName; }));
   const meta = platformMeta[oldName];
   delete platformMeta[oldName];
   platformMeta[newName] = meta || { color: getPlatformColor(oldName), logo: null };
@@ -233,7 +243,9 @@ function renamePlatform(oldName, newName){
   saveGames();
   saveArrivals();
   saveWishlist();
+  writeStoredValue(CEMETERY_KEY, JSON.stringify(CEMETERY));
   savePlatformMeta();
+  window.renderCemetery?.();
   renderArrivals();
   renderWishlist();
   return true;
@@ -326,6 +338,8 @@ const STATUS_OPTIONS = [
 let GAMES = [];
 let ARRIVALS = [];
 let WISHLIST = [];
+let CEMETERY = [];
+const CEMETERY_KEY = 'ludotheque:cemetery-v1';
 let editingId = null; // null = ajout, sinon id du jeu en édition
 let editingArrivalId = null;
 let editingWishlistId = null;
@@ -487,7 +501,7 @@ function saveWishlist(){
   return writeStoredValue(WISHLIST_KEY, JSON.stringify(WISHLIST));
 }
 
-const BACKUP_VERSION = 2;
+const BACKUP_VERSION = 3;
 const LAST_BACKUP_KEY = 'ludotheque:last-backup-v2';
 const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
 
@@ -512,6 +526,7 @@ function buildBackupPayload(){
       games: GAMES,
       arrivals: ARRIVALS,
       wishlist: WISHLIST,
+      cemetery: CEMETERY,
       platformMeta,
       platformOrder,
       profile: { name: PROFILE_NAME, avatar: PROFILE_AVATAR }
@@ -556,6 +571,7 @@ function applyRestoredData(data){
   renderArrivals();
   renderWishlist();
   renderProfileAvatar();
+  window.renderCemetery?.();
   if(window.JTDDataChanged) window.JTDDataChanged();
 }
 
@@ -569,7 +585,8 @@ function restoreBackup(file){
       const summary = [
         data.games.length + ' jeu(x)',
         data.wishlist.length + ' souhait(s)',
-        data.arrivals.length + ' arrivage(s)'
+        data.arrivals.length + ' arrivage(s)',
+        data.cemetery.length + ' entrée(s) au cimetière'
       ].join(' • ');
       confirmAction(
         'Cette restauration remplacera les données actuelles par : ' + summary + '.',
@@ -936,7 +953,7 @@ function render(){
 /* ---------- Modal ajout / édition ---------- */
 
 function allPlatformNames(){
-  const names = new Set(GAMES.map(g => g.plateforme));
+  const names = new Set([...GAMES,...ARRIVALS,...WISHLIST,...CEMETERY].map(g => g.plateforme));
   Object.keys(platformMeta).forEach(p => names.add(p));
   return [...names].sort();
 }
@@ -1200,8 +1217,8 @@ function readIdentityFields(prefix){
   };
 }
 function commitBoardTransfer(from, to, id, draft){
-  const lists = {games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST};
-  const keys = {games:STORAGE_KEY, arrivals:ARRIVALS_KEY, wishlist:WISHLIST_KEY};
+  const lists = {games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY};
+  const keys = {games:STORAGE_KEY, arrivals:ARRIVALS_KEY, wishlist:WISHLIST_KEY, cemetery:CEMETERY_KEY};
   try {
     const moved = JTDData.transferItem(lists[from], lists[to], id, draft);
     // Both local lists succeed before either list is replaced in memory.
@@ -1210,7 +1227,7 @@ function commitBoardTransfer(from, to, id, draft){
       [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)]
     ]);
     lists[from] = moved.source; lists[to] = moved.target;
-    GAMES = lists.games; ARRIVALS = lists.arrivals; WISHLIST = lists.wishlist;
+    GAMES = lists.games; ARRIVALS = lists.arrivals; WISHLIST = lists.wishlist; CEMETERY = lists.cemetery;
     if(window.JTDDataChanged) window.JTDDataChanged();
     return moved.target.at(-1);
   } catch(error) {
@@ -1220,6 +1237,7 @@ function commitBoardTransfer(from, to, id, draft){
   }
 }
 function openModal(id){
+  document.getElementById('f-sell-btn').classList.toggle('hidden', !id);
   editingId = id || null;
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
 
@@ -1277,6 +1295,7 @@ function openModal(id){
 }
 
 function closeModal(){
+  document.getElementById('f-sell-btn').classList.add('hidden');
   document.getElementById('save-btn').textContent = 'Enregistrer';
   document.getElementById('modal-overlay').classList.add('hidden');
   editingId = null;
@@ -2024,7 +2043,7 @@ function closePlatformModal(){
 
 function buildPlatformRows(){
   const counts = Object.create(null);
-  [GAMES, ARRIVALS, WISHLIST].forEach(items => items.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; }));
+  [GAMES, ARRIVALS, WISHLIST, CEMETERY].forEach(items => items.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; }));
   allPlatformNames().forEach(p => { if(!(p in counts)) counts[p] = 0; });
   const platforms = getOrderedPlatformNames();
 
@@ -2367,7 +2386,7 @@ function navigationHash(view){
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
 }
 function navigationFromHash(){
-  const match = location.hash.match(/^#(home|collection)(?:\?(.*))?$/);
+  const match = location.hash.match(/^#(home|collection|cemetery)(?:\?(.*))?$/);
   if(!match) return null;
   const params = new URLSearchParams(match[2]);
   return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
@@ -2396,7 +2415,7 @@ function setHomeBoard(board){
 }
 function applyNavigation(view = {}){
   restoringNavigation = true;
-  navigationPage = view.page === 'collection' ? 'collection' : 'home';
+  navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   const format = ['Physique','Numérique'].includes(view.format) ? view.format : (navigationPage === 'collection' ? 'Physique' : null);
   state = {
     format,
@@ -2432,11 +2451,14 @@ function goToPage(page, format, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
-  navigationPage = page === 'collection' ? 'collection' : 'home';
+  navigationPage = ['collection','cemetery'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
     b.classList.toggle('active', b.dataset.page === navigationPage && (navigationPage !== 'collection' || (b.dataset.format || 'Physique') === (format || 'Physique')));
   });
   document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection ' + ((format || 'Physique') === 'Numérique' ? 'numérique' : 'physique') : 'Accueil');
+  document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
+  document.getElementById('global-filter-toggle').classList.toggle('hidden', navigationPage === 'cemetery');
+  if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
@@ -2540,6 +2562,8 @@ async function initApp(isCurrent = () => true){
   await loadArrivals();
   if(!isCurrent()) return;
   await loadWishlist();
+  CEMETERY = IS_PREVIEW_MODE ? loadPreviewData().cemetery : JSON.parse(accountStorage.getItem(CEMETERY_KEY) || '[]');
+  window.renderCemetery?.();
   if(!isCurrent()) return;
   migrateGameTypes();
   try { const mode = accountStorage.getItem(PLATFORM_SORT_MODE_KEY); platformSortMode = mode === 'custom' ? 'custom' : 'count'; }catch(e){}
@@ -2631,3 +2655,4 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+

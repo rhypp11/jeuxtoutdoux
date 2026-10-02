@@ -1,0 +1,37 @@
+.cemetery-main { max-width:1050px; margin:0 auto; padding:32px 28px 70px; }
+.cemetery-heading h2 { font-size:32px; margin:8px 0; }
+.cemetery-heading p,.cemetery-note { color:var(--muted); line-height:1.6; }
+.cemetery-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:28px 0 14px; }
+.cemetery-tabs { display:flex; padding:4px; gap:4px; border:1px solid var(--hairline); border-radius:14px; background:var(--surface); }
+.cemetery-tabs .btn { background:transparent; color:var(--muted); }
+.cemetery-tabs .btn.active { background:var(--text); color:var(--surface); }
+.cemetery-toolbar input,.cemetery-toolbar select { min-width:0; padding:12px 14px; background:var(--surface); color:var(--text); border:1px solid var(--hairline); border-radius:12px; font:inherit; }
+.cemetery-toolbar input { flex:1; }
+.sale-group { overflow:hidden; background:var(--surface); border:1px solid var(--hairline); border-radius:18px; margin-bottom:18px; }
+.sale-group-heading { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:13px 18px; color:var(--muted); background:color-mix(in srgb,var(--text) 4%,var(--surface)); font-size:13px; }
+.sale-group-heading strong { color:var(--text); }
+.sale-game { width:100%; display:flex; align-items:center; gap:18px; text-align:left; padding:16px 18px; border:0; border-top:1px solid var(--hairline); background:transparent; color:var(--text); font:inherit; cursor:pointer; }
+.sale-game:hover,.sale-game:focus-visible { background:color-mix(in srgb,var(--text) 5%,var(--surface)); }
+.sale-image { display:flex; align-items:center; justify-content:center; flex:0 0 132px; aspect-ratio:16/9; border-radius:10px; overflow:hidden; background:color-mix(in srgb,var(--muted) 15%,var(--surface)); color:var(--muted); font-weight:800; }
+.sale-image img { width:100%; height:100%; object-fit:cover; }
+.sale-game-info { display:flex; flex-direction:column; min-width:0; gap:6px; }
+.sale-game-info strong { font-size:16px; overflow-wrap:anywhere; }
+.sale-game-info span,.sale-game-info small { color:var(--muted); }
+.sale-game-info small { font-size:12px; }
+.cemetery-empty { padding:45px 20px; border:1px dashed var(--hairline); border-radius:18px; text-align:center; color:var(--muted); }
+#sale-identity { color:var(--muted); line-height:1.6; margin-bottom:20px; overflow-wrap:anywhere; }
+.sale-lot-option { display:flex; align-items:center; gap:10px; padding:10px 0; cursor:pointer; font-size:14px; }
+.sale-lot-option input { width:18px; height:18px; flex-shrink:0; }
+#sale-lot-options { max-height:180px; overflow:auto; }
+.sale-error { color:var(--text); font-weight:600; }
+#sale-modal-overlay .modal-actions { flex-wrap:wrap; }
+@media(max-width:600px) {
+  .cemetery-main { padding:22px 16px 70px; }
+  .cemetery-heading h2 { font-size:28px; }
+  .cemetery-toolbar input { flex-basis:100%; order:2; }
+  .cemetery-toolbar select { flex:1; }
+  .sale-game { gap:12px; padding:13px 12px; }
+  .sale-image { flex-basis:90px; }
+  .sale-game-info strong { font-size:14px; }
+  .sale-game-info span { font-size:12px; }
+}

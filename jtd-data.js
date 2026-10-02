@@ -39,7 +39,7 @@
         }
         used.add(id);
         const item = {id, nom, plateforme};
-        for(const field of ['date','source','image','lien','format','type','status']){
+        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId']){
           if(value[field] !== undefined) item[field] = text(value[field], field);
         }
         for(const field of ['collector','japanese']){
@@ -48,6 +48,16 @@
         }
         if(value.prix != null && (typeof value.prix !== 'number' || !Number.isFinite(value.prix))) throw new Error('Prix invalide');
         if(value.prix !== undefined) item.prix = value.prix;
+        for(const field of ['estimatedPrice','salePrice','saleOrder']){
+          if(value[field] != null && (typeof value[field] !== 'number' || !Number.isFinite(value[field]) || value[field] < 0)) throw new Error('Vente invalide');
+          if(value[field] !== undefined) item[field] = value[field];
+        }
+        if(key === 'cemetery'){
+          item.saleStatus = item.saleStatus || 'pending';
+          if(!['pending','sold'].includes(item.saleStatus)) throw new Error('État de vente invalide');
+          if(item.saleChannel && !['online','store'].includes(item.saleChannel)) throw new Error('Canal de vente invalide');
+          if(item.saleStatus === 'sold' && item.salePrice == null) throw new Error('Prix de vente manquant');
+        }
         if(item.image) item.image = safeURL(item.image, true) || null;
         if(item.lien) item.lien = safeURL(item.lien) || null;
         if(key === 'games'){
@@ -62,7 +72,7 @@
         return item;
       });
     };
-    const games = list('games'), arrivals = list('arrivals'), wishlist = list('wishlist');
+    const games = list('games'), arrivals = list('arrivals'), wishlist = list('wishlist'), cemetery = list('cemetery');
     if(data.platformMeta !== undefined && !isRecord(data.platformMeta)) throw new Error('Métadonnées invalides');
     const platformMeta = Object.create(null);
     for(const [name, meta] of Object.entries(data.platformMeta || {})){
@@ -76,13 +86,13 @@
     const profile = data.profile || {};
     const profileName = text(profile.name ?? data.profileName ?? defaults.profileName ?? '', 'profil', false);
     const avatar = text(profile.avatar !== undefined ? profile.avatar : (data.profileAvatar !== undefined ? data.profileAvatar : defaults.profileAvatar), 'avatar');
-    return {games, arrivals, wishlist, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
+    return {games, arrivals, wishlist, cemetery, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
   function parseBackup(parsed, defaults){
     let data;
     if(Array.isArray(parsed)) data = {games:parsed};
     else if(isRecord(parsed) && parsed.app === 'Jeux Tout Doux'){
-      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 2) throw new Error('Version de sauvegarde incompatible');
+      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 3) throw new Error('Version de sauvegarde incompatible');
       data = parsed.data;
     }else data = parsed;
     return normalizeData(data, defaults);
@@ -138,3 +148,4 @@
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
