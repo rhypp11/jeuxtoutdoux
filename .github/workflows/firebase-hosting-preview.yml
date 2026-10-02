@@ -23,6 +23,7 @@ jobs:
           node --check app.js
           node --check firebase.js
           node --check theme.js
+          node --check lifecycle.js
           node --test tests/data.test.cjs
 
       - name: Check themes on desktop and mobile in local sandbox
@@ -108,4 +109,5 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.url }}
         run: echo "Sandbox preview (7 days) — $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+
 

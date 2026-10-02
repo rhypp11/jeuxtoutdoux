@@ -99,6 +99,14 @@
       setItem(key, value){ storage.setItem(keyFor(key), value); },
       // Old unscoped data stays untouched: it is never attributed to a new account.
       hasLegacy(key){ return storage.getItem(key) !== null; },
+      consumeLegacyNotice(key){
+        const marker = keyFor('legacy-notice-v1');
+        try {
+          if(storage.getItem(key) === null || storage.getItem(marker) === 'seen') return false;
+          storage.setItem(marker, 'seen');
+          return true;
+        } catch { return false; }
+      },
       atomicWrite(entries){
         const previous = entries.map(([key]) => [keyFor(key), storage.getItem(keyFor(key))]);
         try { for(const [key,value] of entries) storage.setItem(keyFor(key), value); }

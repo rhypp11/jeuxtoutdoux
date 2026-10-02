@@ -245,10 +245,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
         await publishSharedSnapshot(session, payload.shareToken, publicPayload);
       }
       if(sessionIsCurrent(session)) setSyncStatus('ok', 'Synchronisé avec le cloud');
+      return sessionIsCurrent(session);
     }catch(err){
       if(!sessionIsCurrent(session)) return;
       console.error('Erreur de synchronisation Firebase', err);
       setSyncStatus('error', 'Erreur de synchronisation : ' + err.message);
+      return false;
     }
   }
 
@@ -265,6 +267,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }, 900);
   }
   window.JTDDataChanged = scheduleCloudSync;
+  window.JTDPrepareReload = async () => {
+    if(!currentUser) return true;
+    if(suppressSync) return false;
+    const session = sessions.current();
+    cancelPendingSync();
+    return enqueueCloudOperation(() => doCloudSync(session, buildCloudPayload(), buildPublicSharePayload()));
+  };
 
   async function loadFromCloudOrSeed(session){
     const ref = doc(db, 'users', session.uid);
@@ -388,6 +397,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   } else {
   onAuthStateChanged(auth, async (user) => {
     const session = sessions.start(user && user.uid);
+    resetNavigationSession();
     window.JTDAccountGeneration = session.generation;
     window.cancelPendingConfirmation();
     state.platform = null;
@@ -420,9 +430,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
         if(!sessionIsCurrent(session)) return;
         hideAuthLoading();
         if(loaded){
+          initializeNavigation();
           appInitialized = true;
           hideLoginGate();
-          if(accountStorage.hasLegacy(STORAGE_KEY)){
+          if(accountStorage.consumeLegacyNotice(STORAGE_KEY)){
             showToast('Anciennes données locales conservées. Le compte utilise sa sauvegarde cloud ou son stockage dédié.');
           }
         }

@@ -42,17 +42,64 @@ async function restore(page, value, confirm=true){
     for(const {width,theme} of [{width:390,theme:'light'},{width:1440,theme:'light'},{width:390,theme:'dark'},{width:1440,theme:'dark'}]){
       const context = await browser.newContext({viewport:{width,height:900},colorScheme:theme,isMobile:width<500,hasTouch:width<500,serviceWorkers:'block'});
       const page = await context.newPage();
-      const errors=[],firebaseRequests=[];let pickers=0;
+      const errors=[],firebaseRequests=[];let pickers=0, headRequests=0, revision=1;
       page.on('pageerror',error=>errors.push(error.message));
       page.on('filechooser',()=>pickers++);
       await page.route('**/*',route=>{
         const target=route.request().url();
         if(/gstatic\.com\/firebase|firestore\.googleapis|identitytoolkit|securetoken/.test(target)){firebaseRequests.push(target);return route.abort();}
         if(/fonts\.googleapis|fonts\.gstatic/.test(target))return route.abort();
+        if(route.request().method() === 'HEAD'){headRequests++;return route.fulfill({status:200,headers:{ETag:'"release-'+revision+'"'},body:''});}
         return route.continue();
       });
       await page.goto(url);
       await page.locator('#app-shell').waitFor({state:'visible'});
+      // Navigation survives reload; Back/Forward restore the preceding view.
+      await page.locator('.nav-tab[data-page="collection"]').click();
+      await page.evaluate(() => {state.platform='Switch 2';state.status='a_jouer';buildPlatformList();buildStatusToggles();render();});
+      await page.locator('#search-input').fill('Fire');
+      await page.locator('#sort-select').selectOption('date-desc');
+      const collectionURL = page.url();
+      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.locator('#search-input').inputValue(),'Fire');
+      assert.equal(await page.locator('#sort-select').inputValue(),'date-desc');
+      assert.equal(await page.evaluate(()=>state.platform),'Switch 2');
+      assert.equal(await page.evaluate(()=>state.status),'a_jouer');
+      assert.equal(await page.locator('.card').count(),1);
+      await page.locator('.nav-tab[data-page="home"]').click();
+      await page.goBack();await page.waitForFunction(()=>!document.getElementById('page-collection').classList.contains('hidden'));
+      assert.equal(page.url(),collectionURL);
+      await page.goForward();await page.waitForFunction(()=>!document.getElementById('page-home').classList.contains('hidden'));
+      if(width<500){
+        await page.locator('[data-target="arrivals"]').click();
+        await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+        assert.ok(await page.locator('#home-boards').evaluate(el=>el.classList.contains('show-arrivals')));
+      }
+      // A root visit reopens the saved view; unknown platform/sort/status are discarded.
+      await page.goto(url);await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>navigationPage),'home');
+      await page.goto(url+'/#collection?platform=Unknown&sort=invalid&status=invalid');
+      await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.deepEqual(await page.evaluate(()=>({platform:state.platform,sort:state.sort,status:state.status})),{platform:null,sort:'name-asc',status:null});
+      // Wake-up checks detect changed files; an editor or failed save blocks refresh.
+      await page.waitForTimeout(150);
+      assert.ok(headRequests>=7);
+      revision++;
+      await page.evaluate(()=>dispatchEvent(new Event('online')));
+      await page.getByRole('button',{name:'Actualiser',exact:true}).waitFor();
+      await page.locator('#add-btn').click();
+      await page.getByRole('button',{name:'Actualiser',exact:true}).click();
+      assert.ok(await page.locator('#modal-overlay').isVisible());
+      await page.locator('#cancel-btn').click();
+      await page.evaluate(()=>{window.JTDPrepareReload=async()=>false;dispatchEvent(new Event('online'));});
+      await page.getByRole('button',{name:'Actualiser',exact:true}).click();
+      await page.getByText('La sauvegarde cloud n’a pas abouti.',{exact:false}).waitFor();
+      const navigation = page.waitForEvent('framenavigated');
+      await page.evaluate(()=>{window.JTDPrepareReload=async()=>true;dispatchEvent(new Event('online'));});
+      await page.getByRole('button',{name:'Actualiser',exact:true}).click();
+      await navigation;await page.locator('#app-shell').waitFor({state:'visible'});
+      await page.locator('#reset-btn').evaluate(el=>el.click());
+      console.log('PASS navigation '+width+'px '+theme+': reload, saved root, Back/Forward, board, invalid URL; update guards');
       await restore(page,payload);
       await page.waitForTimeout(200);
       assert.equal(pickers,1,'restore must not reopen the file picker');
@@ -102,3 +149,4 @@ async function restore(page, value, confirm=true){
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+
