@@ -17,6 +17,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=collection-mobile-1">
 <link rel="stylesheet" href="cemetery.css?v=cemetery-sale-3">
+<link rel="stylesheet" href="cemetery-import.css?v=cemetery-import-1">
 </head>
 <body>
 
@@ -115,6 +116,10 @@
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer</span></span>
             <span class="profile-menu-sub">Depuis une sauvegarde Jeux Tout Doux</span>
           </label>
+          <label class="profile-menu-item" id="cemetery-import-trigger" for="cemetery-import-input">
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg><span>Importer des ventes</span></span>
+            <span class="profile-menu-sub">Ajouter au cimetière depuis un CSV ou une sauvegarde</span>
+          </label>
           <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="share-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4"></path><path d="m8.6 13.5 6.8 4"></path></svg><span id="share-label">Partager ma collection</span></span>
@@ -131,6 +136,7 @@
         </div>
       </div>
       <input type="file" id="restore-input" accept="application/json,.json" style="display:none;">
+      <input type="file" id="cemetery-import-input" accept="application/json,.json,.csv,.tsv,text/csv,text/tab-separated-values" style="display:none;">
       <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
     </div>
   </div>
@@ -496,6 +502,21 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="cemetery-import-overlay" role="dialog" aria-modal="true" aria-labelledby="cemetery-import-title">
+  <div class="modal cemetery-import-modal">
+    <h2 id="cemetery-import-title">Importer au cimetière</h2>
+    <p id="cemetery-import-summary" class="cemetery-note"></p>
+    <p class="cemetery-import-help">Les lignes déjà présentes au cimetière seront ignorées. « Gain » correspond au prix encaissé ; « Valeur » reste une estimation.</p>
+    <div id="cemetery-import-list" class="cemetery-import-list"></div>
+    <p id="cemetery-import-error" class="cemetery-import-error" role="alert"></p>
+    <div class="modal-actions">
+      <div style="flex:1;"></div>
+      <button type="button" class="btn btn-ghost" id="cemetery-import-cancel">Annuler</button>
+      <button type="button" class="btn btn-primary" id="cemetery-import-apply">Ajouter au cimetière</button>
+    </div>
+  </div>
+</div>
+
 
 </div>
 
@@ -507,6 +528,7 @@
 <script src="jtd-data.js?v=cemetery-sale-3"></script>
 <script src="app.js?v=cemetery-sale-3"></script>
 <script src="cemetery.js?v=cemetery-sale-3"></script>
+<script src="cemetery-import.js?v=cemetery-import-1"></script>
 <script src="lifecycle.js?v=cemetery-sale-3"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
@@ -518,6 +540,5 @@
 </script>
 </body>
 </html>
-
 
 

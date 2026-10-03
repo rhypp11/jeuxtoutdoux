@@ -1,0 +1,16 @@
+.cemetery-import-modal { width:min(760px,calc(100vw - 32px)); max-height:min(84vh,800px); display:flex; flex-direction:column; }
+.cemetery-import-modal > h2 { margin-top:0; }
+.cemetery-import-help { color:var(--muted); line-height:1.5; margin:0 0 12px; }
+.cemetery-import-list { overflow:auto; min-height:0; border-top:1px solid var(--hairline); }
+.cemetery-import-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(250px,1fr); gap:18px; align-items:center; padding:12px 0; border-bottom:1px solid var(--hairline); }
+.cemetery-import-identity { display:flex; flex-direction:column; min-width:0; gap:4px; }
+.cemetery-import-identity strong { overflow-wrap:anywhere; }
+.cemetery-import-identity span,.cemetery-import-action label,.cemetery-import-status { color:var(--muted); font-size:13px; }
+.cemetery-import-action { display:flex; flex-direction:column; gap:5px; }
+.cemetery-import-action select { min-width:0; width:100%; padding:9px 10px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; }
+.cemetery-import-error { color:var(--danger,#c43d32); min-height:1em; }
+.cemetery-import-modal .modal-actions { flex-shrink:0; }
+@media(max-width:620px) {
+  .cemetery-import-modal { max-height:90vh; }
+  .cemetery-import-row { grid-template-columns:1fr; gap:8px; }
+}
