@@ -25,14 +25,18 @@ const server = createSandboxServer();
       'JEU;NOM;Date;Source;Prix;Canal;Valeur;Gain',
       'PS5;Vente importée;2026-09-01;Fnac;30;🛜;18,50;14,25',
       'Switch 2;Fire Emblem — Test;2026-09-02;Test;59,99;🏪;45;35',
+      'PC;Persona 5 Royal;2026-09-03;Test;59,99;;45;25',
+      'PS5;Terminé ailleurs — Test;2026-09-04;Test;24,99;;20;21',
       'PS4;Encore à vendre;2026-08-15;Micromania;12;🏪;10;',
       'PS5;Kena: Bridge of Spirits — Test;;;;;;'
     ].join('\n');
     await chooser.setFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
-    assert.match(await page.locator('#cemetery-import-summary').textContent(),/2 ajout\(s\) direct\(s\).*1 correspondance/);
+    assert.match(await page.locator('#cemetery-import-summary').textContent(),/2 ajout\(s\) direct\(s\).*3 correspondance/);
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),true,'collection matches require an explicit choice');
-    await page.locator('.cemetery-import-action select').selectOption('transfer');
+    await page.locator('.cemetery-import-action select').nth(0).selectOption('transfer');
+    await page.locator('.cemetery-import-action select').nth(1).selectOption('skip');
+    await page.locator('.cemetery-import-action select').nth(2).selectOption('keep');
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),false);
     await page.locator('#cemetery-import-apply').click();
     await page.locator('#cemetery-import-overlay').waitFor({state:'hidden'});
@@ -40,6 +44,8 @@ const server = createSandboxServer();
       games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY
     }));
     assert.equal(after.games.some(item=>item.id==='test-fe'),false,'transfer removes only the matched collection game');
+    assert.ok(after.games.some(item=>item.id==='test-p5r'),'skip leaves the collection untouched');
+    assert.ok(after.games.some(item=>item.id==='test-elsewhere'),'keep leaves the collection copy in place');
     assert.equal(after.games.length,before.games.length-1);
     assert.deepEqual(after.arrivals,before.arrivals);
     assert.deepEqual(after.wishlist,before.wishlist);
@@ -50,6 +56,9 @@ const server = createSandboxServer();
     assert.equal(pending.saleStatus,'pending');assert.equal(pending.salePrice,undefined);assert.equal(pending.estimatedPrice,10);
     const transferred=after.cemetery.find(item=>item.id==='test-fe');
     assert.equal(transferred.salePrice,35);assert.equal(transferred.prix,59.99);assert.equal(transferred.japanese,true);
+    const keptCopy=after.cemetery.find(item=>item.nom==='Terminé ailleurs — Test');
+    assert.ok(keptCopy && keptCopy.id!=='test-elsewhere','keep creates a separate cemetery entry');
+    assert.equal(keptCopy.salePrice,21);
     assert.equal(after.cemetery.filter(item=>item.nom==='Kena: Bridge of Spirits — Test').length,1,'an existing cemetery row is skipped');
     await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
     assert.equal(await page.evaluate(()=>CEMETERY.find(item=>item.nom==='Vente importée').salePrice),14.25,'import survives reload');
@@ -63,7 +72,8 @@ const server = createSandboxServer();
     const secondChooser=await secondChooserEvent;
     await secondChooser.setFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
-    assert.match(await page.locator('#cemetery-import-summary').textContent(),/0 ajout\(s\) direct\(s\).*0 correspondance/);
+    assert.match(await page.locator('#cemetery-import-summary').textContent(),/0 ajout\(s\) direct\(s\).*1 correspondance/);
+    await page.locator('.cemetery-import-action select').selectOption('skip');
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),true,'a repeated import cannot add duplicate rows');
     await page.locator('#cemetery-import-cancel').click();
     const lotBackup={app:'Jeux Tout Doux',version:3,data:{cemetery:[
