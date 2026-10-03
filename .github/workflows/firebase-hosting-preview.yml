@@ -27,6 +27,7 @@ jobs:
           node --check theme.js
           node --check lifecycle.js
           node --check cemetery.js
+          node --check cemetery-import.js
           node --test tests/data.test.cjs
 
       - name: Check themes on desktop and mobile in local sandbox
@@ -42,6 +43,9 @@ jobs:
 
       - name: Check cemetery flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/cemetery.cjs
+
+      - name: Check additive cemetery imports
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/cemetery-import.cjs
 
       - name: Check collection cards on mobile
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/collection-layout.cjs
@@ -128,6 +132,5 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.url }}
         run: echo "Sandbox preview (7 days) — $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
-
 
 
