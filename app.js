@@ -575,6 +575,25 @@ function applyRestoredData(data){
   if(window.JTDDataChanged) window.JTDDataChanged();
 }
 
+// Cemetery imports write only the boards they actually change.
+window.JTDApplyCemeteryImport = (games, cemetery) => {
+  if(IS_PREVIEW_MODE) savePreviewData({games, cemetery});
+  else accountStorage.atomicWrite([
+    [STORAGE_KEY, JSON.stringify(games)],
+    [CEMETERY_KEY, JSON.stringify(cemetery)]
+  ]);
+  GAMES = games;
+  CEMETERY = cemetery;
+  buildPlatformList();
+  render();
+  window.renderCemetery?.();
+  window.JTDDataChanged?.();
+};
+window.JTDGetCemeteryImportState = () => ({
+  games: GAMES.map(game => ({...game})),
+  cemetery: CEMETERY.map(game => ({...game}))
+});
+
 function restoreBackup(file){
   const accountGeneration = window.JTDAccountGeneration;
   const reader = new FileReader();
@@ -2670,4 +2689,3 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
-
