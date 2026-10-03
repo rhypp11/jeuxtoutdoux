@@ -88,6 +88,8 @@
     const gainCol = find(['gain','prix vente','prix reel','gain reel']);
     const imageCol = find(['image','url image','jaquette']);
     const saleVenueCol = find(['plateforme de vente','vendeur','site de vente']);
+    const lotCol = find(['lot','lot id','id lot','lot vente','groupe vente','sale id']);
+    const saleOrderCol = find(['ordre vente','sale order']);
     const entries = [];
     for(const cells of matrix.slice(1)){
       const get = index => index < 0 ? '' : (cells[index] ?? '').trim();
@@ -107,6 +109,8 @@
       if(channel.includes('online') || channel.includes('internet') || channel.includes('reseau') || get(channelCol).includes('🛜')) item.saleChannel = 'online';
       else if(channel.includes('boutique') || channel.includes('magasin') || channel.includes('store') || get(channelCol).includes('🏪')) item.saleChannel = 'store';
       const venue = get(saleVenueCol); if(venue) item.saleVenue = venue;
+      const lot = get(lotCol); if(lot) item.saleId = lot;
+      const order = get(saleOrderCol); if(order && Number.isFinite(Number(order))) item.saleOrder = Number(order);
       const image = get(imageCol); if(image && /^https?:\/\//i.test(image)) item.image = image;
       entries.push(item);
     }
