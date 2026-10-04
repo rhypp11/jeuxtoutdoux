@@ -10,13 +10,13 @@
     .toLocaleLowerCase('fr').replace(/[^a-z0-9]+/g,' ').trim();
   const keyOf = item => normalize(item.nom) + '|' + platformKey(item.plateforme);
   const platformAliases = new Map([
-    ['switch','Nintendo Switch'],['nintendo switch','Nintendo Switch'],['ns','Nintendo Switch'],['n switch','Nintendo Switch'],
+    ['switch','Nintendo Switch'],['nintendo switch','Nintendo Switch'],['ns','Nintendo Switch'],['n switch','Nintendo Switch'],['nsw','Nintendo Switch'],
     ['switch 2','Nintendo Switch 2'],['switch2','Nintendo Switch 2'],['nintendo switch 2','Nintendo Switch 2'],['ns2','Nintendo Switch 2'],
     ['3ds','Nintendo 3DS'],['nintendo 3ds','Nintendo 3DS'],['ds','Nintendo DS'],['nintendo ds','Nintendo DS'],
     ['wii u','Nintendo Wii U'],['wii','Nintendo Wii'],['gamecube','Nintendo Gamecube'],['game cube','Nintendo Gamecube'],
     ['ps5','PlayStation 5'],['playstation 5','PlayStation 5'],['ps4','PlayStation 4'],['playstation 4','PlayStation 4'],
     ['ps3','PlayStation 3'],['playstation 3','PlayStation 3'],['ps2','PlayStation 2'],['playstation 2','PlayStation 2'],
-    ['ps vita','PlayStation Vita'],['psvita','PlayStation Vita'],['vita','PlayStation Vita'],['psp','PlayStation Portable'],
+    ['ps vita','PlayStation Vita'],['psvita','PlayStation Vita'],['vita','PlayStation Vita'],['psv','PlayStation Vita'],['playstation vita','PlayStation Vita'],['psp','PlayStation Portable'],
     ['xbox one','Xbox One'],['xbox series x','Xbox Series X'],['pc','PC'],['steam','PC']
   ]);
   const platformName = value => {
@@ -26,11 +26,12 @@
   function platformKey(value){
     const key = normalize(value);
     if(['switch 2','switch2','nintendo switch 2','ns2'].includes(key)) return 'nintendo switch 2';
-    if(['switch','nintendo switch','ns','n switch'].includes(key)) return 'nintendo switch';
+    if(['switch','nintendo switch','ns','n switch','nsw'].includes(key)) return 'nintendo switch';
     if(['ps5','playstation 5'].includes(key)) return 'playstation 5';
     if(['ps4','playstation 4'].includes(key)) return 'playstation 4';
     if(['ps3','playstation 3'].includes(key)) return 'playstation 3';
     if(['ps2','playstation 2'].includes(key)) return 'playstation 2';
+    if(['ps vita','psvita','vita','psv','playstation vita'].includes(key)) return 'playstation vita';
     return key;
   }
   function parseMoney(value){
