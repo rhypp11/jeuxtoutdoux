@@ -252,6 +252,49 @@ function renamePlatform(oldName, newName){
 }
 
 
+function migrateImportedPlatformAliases(){
+  const aliases = new Map([['NSW','Nintendo Switch'],['PSV','PlayStation Vita']]);
+  let gamesChanged = false, arrivalsChanged = false, wishlistChanged = false, cemeteryChanged = false;
+  const remap = (items, markChanged) => items.forEach(game => {
+    const canonical = aliases.get(String(game.plateforme || '').trim().toUpperCase());
+    if(canonical && game.plateforme !== canonical){ game.plateforme = canonical; markChanged(); }
+  });
+  remap(GAMES, () => { gamesChanged = true; });
+  remap(ARRIVALS, () => { arrivalsChanged = true; });
+  remap(WISHLIST, () => { wishlistChanged = true; });
+  remap(CEMETERY, () => { cemeteryChanged = true; });
+
+  let metaChanged = false;
+  for(const [alias, canonical] of aliases){
+    if(Object.hasOwn(platformMeta, alias)){
+      if(!Object.hasOwn(platformMeta, canonical)) platformMeta[canonical] = platformMeta[alias];
+      delete platformMeta[alias];
+      metaChanged = true;
+    }
+  }
+  const previousOrder = JSON.stringify(platformOrder);
+  platformOrder = [...new Set(platformOrder.map(name => aliases.get(String(name).trim().toUpperCase()) || name))];
+  const orderChanged = previousOrder !== JSON.stringify(platformOrder);
+  const changed = gamesChanged || arrivalsChanged || wishlistChanged || cemeteryChanged || metaChanged || orderChanged;
+  if(!changed) return;
+
+  if(IS_PREVIEW_MODE){
+    savePreviewData();
+    return;
+  }
+  const writes = [];
+  if(gamesChanged) writes.push([STORAGE_KEY, JSON.stringify(GAMES)]);
+  if(arrivalsChanged) writes.push([ARRIVALS_KEY, JSON.stringify(ARRIVALS)]);
+  if(wishlistChanged) writes.push([WISHLIST_KEY, JSON.stringify(WISHLIST)]);
+  if(cemeteryChanged) writes.push([CEMETERY_KEY, JSON.stringify(CEMETERY)]);
+  if(metaChanged) writes.push([PLATFORM_META_KEY, JSON.stringify(platformMeta)]);
+  if(orderChanged) writes.push([PLATFORM_ORDER_KEY, JSON.stringify(platformOrder)]);
+  if(writes.length){
+    accountStorage.atomicWrite(writes);
+    window.JTDDataChanged?.();
+  }
+}
+
 /* ---------- Ordre personnalisé des plateformes ---------- */
 const PLATFORM_ORDER_KEY = 'ludotheque:platform-order-v1';
 let platformOrder = [];
@@ -2077,7 +2120,7 @@ function closePlatformModal(){
 
 function buildPlatformRows(){
   const counts = Object.create(null);
-  [GAMES, ARRIVALS, WISHLIST, CEMETERY].forEach(items => items.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; }));
+  [GAMES, ARRIVALS, WISHLIST, CEMETERY.filter(g => g.saleStatus !== 'sold')].forEach(items => items.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; }));
   allPlatformNames().forEach(p => { if(!(p in counts)) counts[p] = 0; });
   const platforms = getOrderedPlatformNames();
 
@@ -2597,6 +2640,7 @@ async function initApp(isCurrent = () => true){
   if(!isCurrent()) return;
   await loadWishlist();
   CEMETERY = IS_PREVIEW_MODE ? loadPreviewData().cemetery : JSON.parse(accountStorage.getItem(CEMETERY_KEY) || '[]');
+  migrateImportedPlatformAliases();
   window.renderCemetery?.();
   if(!isCurrent()) return;
   migrateGameTypes();
