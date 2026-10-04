@@ -6,9 +6,20 @@ function saleGroup(item){
   return item.saleStatus === 'sold' && item.saleId
     ? CEMETERY.filter(g => g.saleStatus === 'sold' && g.saleId === item.saleId) : [item];
 }
+function updateCemeteryStats(){
+  const pending = CEMETERY.filter(game => game.saleStatus === 'pending');
+  const sold = CEMETERY.filter(game => game.saleStatus === 'sold');
+  const sales = new Map();
+  for(const game of sold) sales.set(game.saleId || game.id, Number(game.salePrice) || 0);
+  saleEl('cemetery-stat-sales').textContent = euros([...sales.values()].reduce((sum, price) => sum + price, 0));
+  saleEl('cemetery-stat-estimated').textContent = euros(pending.reduce((sum, game) => sum + (Number(game.estimatedPrice) || 0), 0));
+  saleEl('cemetery-stat-sold-count').textContent = String(sold.length);
+  saleEl('cemetery-stat-pending-count').textContent = String(pending.length);
+}
 function renderCemetery(){
   const container = saleEl('cemetery-list');
   if(!container) return;
+  updateCemeteryStats();
   const platform = saleEl('cemetery-platform').value;
   const platforms = [...new Set(CEMETERY.map(g => g.plateforme))].sort();
   saleEl('cemetery-platform').innerHTML = '<option value="">Toutes les plateformes</option>' + platforms.map(p => '<option>' + escapeHTML(p) + '</option>').join('');
@@ -25,10 +36,7 @@ function renderCemetery(){
     const group = saleGroup(item);
     if(group.some(matches)) groups.push(group);
   }
-  if(saleView === 'sold') groups.sort((a,b) => (a[0].saleOrder || 0) - (b[0].saleOrder || 0));
-  saleEl('cemetery-note').textContent = saleView === 'pending'
-    ? 'Sortis de la collection, encore chez toi. Clique sur un jeu pour préparer sa vente.'
-    : 'Dans l’ordre des ventes. Le montant d’un lot est affiché une seule fois.';
+  if(saleView === 'sold') groups.sort((a,b) => (b[0].saleOrder || 0) - (a[0].saleOrder || 0));
   container.classList.toggle('pending-sales', saleView === 'pending');
   container.replaceChildren();
   if(!groups.length){ container.innerHTML = '<div class="cemetery-empty">Aucun jeu ici pour le moment.</div>'; return; }
@@ -54,25 +62,39 @@ function renderCemetery(){
   }
 }
 window.renderCemetery = renderCemetery;
-function openSaleModal(id){
-  const item = CEMETERY.find(g => g.id === id);
-  if(!item) return;
-  saleEditingId = id;
-  const sold = item.saleStatus === 'sold', group = saleGroup(item);
-  saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Modifier cette vente en lot' : 'Modifier cette vente') : 'Préparer la vente';
+function renderSaleIdentity(group){
   const identity = saleEl('sale-identity');
   identity.replaceChildren();
   for(const game of group){
     const summary = document.createElement('div');
     summary.className = 'game-identity-summary';
     summary.innerHTML = identitySummaryHtml(game);
-    summary.querySelector('.identity-edit-btn')?.remove();
+    summary.querySelector('.identity-edit-btn')?.addEventListener('click', event => {
+      event.stopPropagation();
+      openModal(game.id, 'cemetery');
+    });
     identity.appendChild(summary);
     const acquisition = document.createElement('p');
     acquisition.className = 'sale-acquisition';
     acquisition.textContent = [game.prix != null ? 'Acheté ' + euros(game.prix) : '', game.date ? dateFR(game.date) : '', game.source].filter(Boolean).join(' · ');
     if(acquisition.textContent) identity.appendChild(acquisition);
   }
+}
+window.updateCemeteryGame = (id, fields) => {
+  if(!CEMETERY.some(game => game.id === id)) return false;
+  const next = CEMETERY.map(game => game.id === id ? {...game, ...fields} : game);
+  if(!commitCemetery(next)) return false;
+  const active = CEMETERY.find(game => game.id === saleEditingId);
+  if(active) renderSaleIdentity(saleGroup(active));
+  return true;
+};
+function openSaleModal(id){
+  const item = CEMETERY.find(g => g.id === id);
+  if(!item) return;
+  saleEditingId = id;
+  const sold = item.saleStatus === 'sold', group = saleGroup(item);
+  saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Modifier cette vente en lot' : 'Modifier cette vente') : 'Préparer la vente';
+  renderSaleIdentity(group);
   saleEl('sale-channel').value = item.saleChannel || '';
   saleEl('sale-venue').value = item.saleVenue || '';
   saleEl('sale-estimate').value = item.estimatedPrice ?? '';
@@ -174,7 +196,9 @@ saleEl('sale-save').addEventListener('click', () => saveSale(false));
 saleEl('sale-complete').addEventListener('click', () => saveSale(true));
 saleEl('sale-cancel').addEventListener('click', closeSaleModal);
 saleEl('sale-modal-overlay').addEventListener('click', event => { if(event.target === saleEl('sale-modal-overlay')) closeSaleModal(); });
-document.addEventListener('keydown', event => { if(event.key === 'Escape') closeSaleModal(); });
+document.addEventListener('keydown', event => {
+  if(event.key === 'Escape' && saleEl('modal-overlay')?.classList.contains('hidden')) closeSaleModal();
+});
 saleEl('cemetery-search').addEventListener('input', renderCemetery);
 saleEl('cemetery-platform').addEventListener('change', renderCemetery);
 document.querySelectorAll('[data-sale-view]').forEach(button => button.addEventListener('click', () => setSaleView(button.dataset.saleView)));
