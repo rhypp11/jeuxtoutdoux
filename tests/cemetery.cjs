@@ -19,6 +19,7 @@ const server = createSandboxServer();
       await page.locator('#f-sell-btn').click();
       await page.locator('#sale-modal-overlay').waitFor({state:'visible'});
       assert.equal(await page.locator('#cemetery-list .sale-game.card .card-banner').count(),3);
+      assert.ok(await page.locator('#cemetery-list .sale-game.card').first().evaluate(el=>el.getBoundingClientRect().height)<=90,'cemetery game rows stay compact');
       const colors = await page.locator('#sale-channel option').first().evaluate(el => {
         const style = getComputedStyle(el);
         return {foreground:style.color, background:style.backgroundColor};
