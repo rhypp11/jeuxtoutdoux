@@ -310,7 +310,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       suppressSync = true;
       console.error('Erreur de chargement Firebase', err);
       setSyncStatus('error', 'Erreur de chargement : ' + err.message);
-      setLoginError('Chargement des données impossible. Recharge la page pour réessayer.');
+      const detail = err && err.code ? ` (${err.code})` : '';
+      setLoginError(`Chargement des données impossible${detail}. Clique sur « Se connecter » pour réessayer.`);
       return false;
     }
   }
@@ -345,10 +346,49 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const isSignup = document.getElementById('login-gate').dataset.mode === 'signup';
-    setLoginError('');
-    if(!email || !password){ setLoginError('Renseigne un email et un mot de passe.'); return; }
     const btn = document.getElementById('login-submit-btn');
+    const originalLabel = btn.textContent;
+    setLoginError('');
+
+    // Firebase may already have restored this account even though Firestore failed.
+    // Signing into the same UID again does not necessarily emit another auth event,
+    // so retry the data load directly instead.
+    const currentEmail = String(currentUser && currentUser.email || '').trim().toLowerCase();
+    const sameAuthenticatedAccount = currentUser
+      && !document.getElementById('login-gate').classList.contains('hidden')
+      && currentEmail
+      && email.toLowerCase() === currentEmail;
+    if(sameAuthenticatedAccount){
+      const session = sessions.current();
+      btn.disabled = true;
+      btn.textContent = 'Chargement…';
+      try{
+        await initApp(() => sessionIsCurrent(session));
+        if(!sessionIsCurrent(session)) return;
+        const loaded = await loadFromCloudOrSeed(session);
+        if(loaded && sessionIsCurrent(session)){
+          hideAuthLoading();
+          initializeNavigation();
+          hideLoginGate();
+          try{ window.JTDMigratePlatformAliases?.(); }
+          catch(error){ console.error('Migration des plateformes impossible', error); }
+        }
+      }catch(err){
+        if(sessionIsCurrent(session)){
+          const detail = err && err.code ? ` (${err.code})` : '';
+          setLoginError(`Chargement impossible${detail}. Clique sur « Se connecter » pour réessayer.`);
+          console.error('Nouvelle tentative de chargement impossible', err);
+        }
+      }finally{
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
+      return;
+    }
+
+    if(!email || !password){ setLoginError('Renseigne un email et un mot de passe.'); return; }
     btn.disabled = true;
+    btn.textContent = 'Connexion…';
     try{
       if(isSignup){
         await createUserWithEmailAndPassword(auth, email, password);
@@ -359,6 +399,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       setLoginError(translateAuthError(err.code));
     }finally{
       btn.disabled = false;
+      btn.textContent = originalLabel;
     }
   });
 
