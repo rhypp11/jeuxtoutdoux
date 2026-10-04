@@ -58,6 +58,11 @@ const server = createSandboxServer();
       await page.reload(); await page.locator('#app-shell').waitFor({state:'visible'});
       assert.equal(await page.locator('#page-cemetery').isVisible(),true);
       assert.equal(await page.evaluate(()=>CEMETERY.find(g=>g.id==='test-fe').estimatedPrice),35.5);
+      if(width>=821){
+        assert.ok(await page.locator('#cemetery-sidebar').evaluate(el=>Math.abs(el.getBoundingClientRect().left)<1&&getComputedStyle(el).borderRadius==='0px'),'desktop cemetery overview is a flush left sidebar');
+        const singleSale = page.locator('.sale-group').filter({has:page.locator('.sale-game:only-child')}).first();
+        assert.ok(await singleSale.evaluate(el=>el.querySelector('.sale-group-heading').getBoundingClientRect().height<=el.querySelector('.sale-game').getBoundingClientRect().height+1),'single-game sale metadata does not leave a blank area below the row');
+      }
       await page.locator('.sale-game').filter({hasText:'Fire Emblem'}).click();
       await page.locator('#sale-rollback').click();
       assert.deepEqual(await page.evaluate(()=>GAMES.find(g=>g.id==='test-fe')),original);
