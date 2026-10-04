@@ -428,11 +428,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
         if(!sessionIsCurrent(session)) return;
         const loaded = await loadFromCloudOrSeed(session);
         if(!sessionIsCurrent(session)) return;
-        window.JTDMigratePlatformAliases?.();
         hideAuthLoading();
         if(loaded){
           initializeNavigation();
           hideLoginGate();
+          try{
+            window.JTDMigratePlatformAliases?.();
+          }catch(error){
+            console.error('Migration des plateformes impossible', error);
+          }
           if(accountStorage.consumeLegacyNotice(STORAGE_KEY)){
             showToast('Anciennes données locales conservées. Le compte utilise sa sauvegarde cloud ou son stockage dédié.');
           }
