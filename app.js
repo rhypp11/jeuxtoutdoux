@@ -280,21 +280,27 @@ function migrateImportedPlatformAliases(){
 
   if(IS_PREVIEW_MODE){
     savePreviewData();
-    return;
+  } else {
+    const writes = [];
+    if(gamesChanged) writes.push([STORAGE_KEY, JSON.stringify(GAMES)]);
+    if(arrivalsChanged) writes.push([ARRIVALS_KEY, JSON.stringify(ARRIVALS)]);
+    if(wishlistChanged) writes.push([WISHLIST_KEY, JSON.stringify(WISHLIST)]);
+    if(cemeteryChanged) writes.push([CEMETERY_KEY, JSON.stringify(CEMETERY)]);
+    if(metaChanged) writes.push([PLATFORM_META_KEY, JSON.stringify(platformMeta)]);
+    if(orderChanged) writes.push([PLATFORM_ORDER_KEY, JSON.stringify(platformOrder)]);
+    if(writes.length){
+      accountStorage.atomicWrite(writes);
+      window.JTDDataChanged?.();
+    }
   }
-  const writes = [];
-  if(gamesChanged) writes.push([STORAGE_KEY, JSON.stringify(GAMES)]);
-  if(arrivalsChanged) writes.push([ARRIVALS_KEY, JSON.stringify(ARRIVALS)]);
-  if(wishlistChanged) writes.push([WISHLIST_KEY, JSON.stringify(WISHLIST)]);
-  if(cemeteryChanged) writes.push([CEMETERY_KEY, JSON.stringify(CEMETERY)]);
-  if(metaChanged) writes.push([PLATFORM_META_KEY, JSON.stringify(platformMeta)]);
-  if(orderChanged) writes.push([PLATFORM_ORDER_KEY, JSON.stringify(platformOrder)]);
-  if(writes.length){
-    accountStorage.atomicWrite(writes);
-    window.JTDDataChanged?.();
-  }
+  buildPlatformList();
+  render();
+  window.renderCemetery?.();
+  renderArrivals();
+  renderWishlist();
 }
 
+window.JTDMigratePlatformAliases = migrateImportedPlatformAliases;
 /* ---------- Ordre personnalisé des plateformes ---------- */
 const PLATFORM_ORDER_KEY = 'ludotheque:platform-order-v1';
 let platformOrder = [];
@@ -2640,7 +2646,6 @@ async function initApp(isCurrent = () => true){
   if(!isCurrent()) return;
   await loadWishlist();
   CEMETERY = IS_PREVIEW_MODE ? loadPreviewData().cemetery : JSON.parse(accountStorage.getItem(CEMETERY_KEY) || '[]');
-  migrateImportedPlatformAliases();
   window.renderCemetery?.();
   if(!isCurrent()) return;
   migrateGameTypes();
@@ -2685,6 +2690,7 @@ if(IS_PREVIEW_MODE){
 
   initApp()
     .then(() => {
+      migrateImportedPlatformAliases();
       initializeNavigation();
       const loading = document.getElementById('auth-loading');
       const login = document.getElementById('login-gate');
