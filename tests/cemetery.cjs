@@ -26,7 +26,15 @@ const server = createSandboxServer();
         return {foreground:style.color, background:style.backgroundColor};
       });
       assert.notEqual(colors.foreground,colors.background);
-      assert.equal(await page.locator('#global-filter-toggle').isVisible(),false);
+      assert.equal(await page.locator('.cemetery-heading').count(),0,'redundant cemetery heading is removed');
+      assert.equal(await page.locator('.cemetery-tab svg').count(),2);
+      if(width<=900){
+        assert.equal(await page.locator('#global-filter-toggle').isVisible(),true);
+        await page.locator('#global-filter-toggle').click();
+        assert.equal(await page.locator('#cemetery-sidebar').evaluate(el=>el.classList.contains('mobile-open')),true);
+        await page.locator('#mobile-backdrop').click();
+        assert.equal(await page.locator('#cemetery-sidebar').evaluate(el=>el.classList.contains('mobile-open')),false);
+      }else assert.equal(await page.locator('#global-filter-toggle').isVisible(),false);
       assert.equal(await page.locator('#sale-identity .game-identity-summary .identity-thumb').count(),1);
       assert.equal(await page.locator('#sale-identity .identity-edit-btn').count(),1);
       assert.match(await page.locator('#sale-identity').textContent(),/Fire Emblem/);
