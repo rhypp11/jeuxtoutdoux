@@ -289,7 +289,10 @@ function migrateImportedPlatformAliases(){
   if(cemeteryChanged) writes.push([CEMETERY_KEY, JSON.stringify(CEMETERY)]);
   if(metaChanged) writes.push([PLATFORM_META_KEY, JSON.stringify(platformMeta)]);
   if(orderChanged) writes.push([PLATFORM_ORDER_KEY, JSON.stringify(platformOrder)]);
-  if(writes.length) accountStorage.atomicWrite(writes);
+  if(writes.length){
+    accountStorage.atomicWrite(writes);
+    window.JTDDataChanged?.();
+  }
 }
 
 /* ---------- Ordre personnalisé des plateformes ---------- */
