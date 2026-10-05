@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=collection-mobile-1">
-<link rel="stylesheet" href="cemetery.css?v=cemetery-sale-3">
+<link rel="stylesheet" href="cemetery.css?v=cemetery-ergonomie-4">
 <link rel="stylesheet" href="cemetery-import.css?v=cemetery-import-1">
 </head>
 <body>
@@ -446,16 +446,23 @@
 </div>
 
 <div class="page hidden" id="page-cemetery">
-  <main class="cemetery-main">
-    <header class="cemetery-heading"><span class="eyebrow">Historique de collection</span><h2>Cimetière</h2><p>Les jeux qui quittent tes étagères gardent leur histoire.</p></header>
+  <div class="cemetery-layout">
+    <aside class="sidebar cemetery-sidebar" id="cemetery-sidebar" aria-label="Statistiques du cimetière">
+      <div class="side-label">Vue d’ensemble</div>
+      <div class="cemetery-stat"><span>Ventes encaissées</span><strong id="cemetery-stat-sales">0 €</strong></div>
+      <div class="cemetery-stat"><span>Estimation à vendre</span><strong id="cemetery-stat-estimated">0 €</strong></div>
+      <div class="cemetery-stat"><span>Jeux vendus</span><strong id="cemetery-stat-sold-count">0</strong></div>
+      <div class="cemetery-stat"><span>Jeux à vendre</span><strong id="cemetery-stat-pending-count">0</strong></div>
+    </aside>
+    <main class="cemetery-main">
     <div class="cemetery-toolbar">
-      <div class="cemetery-tabs" role="group" aria-label="État de vente"><button type="button" class="btn active" data-sale-view="pending">À vendre</button><button type="button" class="btn" data-sale-view="sold">Vendus</button></div>
+      <div class="cemetery-tabs" role="group" aria-label="État de vente"><button type="button" class="btn active cemetery-tab" data-sale-view="pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18l-2 13H5L3 7Z"></path><path d="M8 7a4 4 0 0 1 8 0"></path><path d="M9 12h6"></path></svg>À vendre</button><button type="button" class="btn cemetery-tab" data-sale-view="sold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16 9"></path></svg>Vendus</button></div>
       <input type="search" id="cemetery-search" placeholder="Chercher un jeu…" aria-label="Chercher dans le cimetière">
       <select id="cemetery-platform" aria-label="Plateforme"><option value="">Toutes les plateformes</option></select>
     </div>
-    <p id="cemetery-note" class="cemetery-note"></p>
     <div id="cemetery-list"></div>
-  </main>
+    </main>
+  </div>
 </div>
 <div class="modal-overlay hidden" id="sale-modal-overlay">
   <div class="modal">
@@ -526,8 +533,8 @@
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
 <script src="jtd-data.js?v=cemetery-sale-3"></script>
-<script src="app.js?v=platform-alias-fix-2"></script>
-<script src="cemetery.js?v=cemetery-sale-3"></script>
+<script src="app.js?v=cemetery-game-edit-3"></script>
+<script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=platform-alias-fix-1"></script>
 <script src="lifecycle.js?v=cemetery-sale-3"></script>
 <script>
@@ -540,5 +547,3 @@
 </script>
 </body>
 </html>
-
-

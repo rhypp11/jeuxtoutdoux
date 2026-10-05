@@ -390,6 +390,7 @@ let WISHLIST = [];
 let CEMETERY = [];
 const CEMETERY_KEY = 'ludotheque:cemetery-v1';
 let editingId = null; // null = ajout, sinon id du jeu en édition
+let editingCollection = 'games';
 let editingArrivalId = null;
 let editingWishlistId = null;
 let convertingWishlistId = null; // id de l'item wishlist en cours de bascule vers arrivage
@@ -1319,21 +1320,24 @@ function commitBoardTransfer(from, to, id, draft){
     return null;
   }
 }
-function openModal(id){
-  document.getElementById('f-sell-btn').classList.toggle('hidden', !id);
+function openModal(id, collection = 'games'){
+  editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
+  const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
   editingId = id || null;
+  if(editingId && !items.some(game => game.id === editingId)) return;
+  document.getElementById('f-sell-btn').classList.toggle('hidden', !editingId || editingCollection !== 'games');
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
 
   const title = document.getElementById('modal-title');
   const deleteBtn = document.getElementById('delete-btn');
 
   if(editingId){
-    const g = GAMES.find(x => x.id === editingId);
-    title.textContent = 'Modifier ce jeu';
-    deleteBtn.classList.remove('hidden');
+    const g = items.find(x => x.id === editingId);
+    title.textContent = editingCollection === 'cemetery' ? 'Modifier les infos du jeu' : 'Modifier ce jeu';
+    deleteBtn.classList.toggle('hidden', editingCollection === 'cemetery');
     document.getElementById('f-quick-hide-fields').classList.remove('hidden');
     document.getElementById('f-nom').value = g.nom || '';
-    const lockedFormat = state.format || g.format || 'Physique';
+    const lockedFormat = (editingCollection === 'cemetery' ? g.format : state.format || g.format) || 'Physique';
     setSelectValueAndSync('f-format', lockedFormat);
     populatePlatformSelect('f-plateforme');
     setSelectValueAndSync('f-plateforme', g.plateforme);
@@ -1370,9 +1374,10 @@ function openModal(id){
     document.getElementById('f-image').value = '';
   }
   updateImagePreview();
-  const identityItem = editingId ? GAMES.find(x => x.id === editingId) : null;
+  const identityItem = editingId ? items.find(x => x.id === editingId) : null;
   setIdentityEditor('f', identityItem, !!editingId);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
+  document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
   document.getElementById('modal-overlay').classList.remove('hidden');
   if(!editingId) document.getElementById('f-nom').focus();
 }
@@ -1381,7 +1386,9 @@ function closeModal(){
   document.getElementById('f-sell-btn').classList.add('hidden');
   document.getElementById('save-btn').textContent = 'Enregistrer';
   document.getElementById('modal-overlay').classList.add('hidden');
+  document.getElementById('modal-overlay').classList.remove('cemetery-game-editor');
   editingId = null;
+  editingCollection = 'games';
   convertingArrivalId = null; // annuler = l'arrivage reste où il était
 }
 
@@ -1403,11 +1410,14 @@ function saveModal(){
   const type = format === 'Numérique' ? document.getElementById('f-type').value : null;
 
   const fields = {nom, plateforme, prix, date, source, format, collector, japanese, type, image};
+  const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const received = convertingArrivalId
     ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, status:'a_jouer'})
     : null;
   if(convertingArrivalId && !received) return;
-  if(!convertingArrivalId){
+  if(editedCemetery){
+    if(!window.updateCemeteryGame?.(editingId, fields)) return;
+  } else if(!convertingArrivalId){
     if(editingId) Object.assign(GAMES.find(x => x.id === editingId), fields);
     else GAMES.push({id:crypto.randomUUID(), ...fields, status:null});
     saveGames();
@@ -1418,6 +1428,11 @@ function saveModal(){
   closeModal();
   buildPlatformList();
   render();
+  if(editedCemetery){
+    window.renderCemetery?.();
+    showToast('Infos du jeu mises à jour.');
+    return;
+  }
   if(received) showToast(`« ${received.nom} » ajouté à la collection.`, 'Voir', () => {
     goToPage('collection', received.format);
     state.platform = received.plateforme;
@@ -2424,7 +2439,12 @@ function toggleFormatDependentFields(format){
 }
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape') closeModal();
+  if(e.key === 'Escape'){
+    const overlay = document.getElementById('modal-overlay');
+    const layeredCemeteryEditor = !overlay.classList.contains('hidden') && overlay.classList.contains('cemetery-game-editor');
+    closeModal();
+    if(layeredCemeteryEditor) e.stopImmediatePropagation();
+  }
 });
 
 document.getElementById('search-input').addEventListener('input', (e) => {
@@ -2540,7 +2560,6 @@ function goToPage(page, format, push = true){
   });
   document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection ' + ((format || 'Physique') === 'Numérique' ? 'numérique' : 'physique') : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
-  document.getElementById('global-filter-toggle').classList.toggle('hidden', navigationPage === 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
@@ -2601,7 +2620,7 @@ function toggleMobileDrawer(el){
 }
 document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
 
-const PAGE_SIDEBAR_IDS = { home: 'home-sidebar', collection: 'collection-sidebar' };
+const PAGE_SIDEBAR_IDS = { home: 'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
   const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));
