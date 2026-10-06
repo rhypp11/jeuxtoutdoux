@@ -18,13 +18,14 @@ service cloud.firestore {
 
     function validPublicShare() {
       return request.resource.data.keys().hasOnly([
-          'version', 'publishedAt', 'games', 'wishlist', 'arrivals'
+          'version', 'publishedAt', 'games', 'wishlist', 'arrivals', 'cemetery'
         ])
-        && request.resource.data.version == 1
+        && request.resource.data.version == 2
         && request.resource.data.publishedAt is int
         && request.resource.data.games is list
         && request.resource.data.wishlist is list
-        && request.resource.data.arrivals is list;
+        && request.resource.data.arrivals is list
+        && request.resource.data.cemetery is list;
     }
 
     match /users/{userId} {
