@@ -117,6 +117,16 @@ async function restore(page, value, confirm=true){
         openModal(GAMES[0].id); GAMES[0].format = previous;
       });
       await page.locator('#cancel-btn').click();
+      const chatGPTDownloadEvent=page.waitForEvent('download');
+      await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
+      const chatGPTDownload=await chatGPTDownloadEvent;
+      assert.match(chatGPTDownload.suggestedFilename(),/^jeux-tout-doux-chatgpt-\\d{4}-\\d{2}-\\d{2}\\.json$/);
+      const shared=JSON.parse(fs.readFileSync(await chatGPTDownload.path(),'utf8'));
+      assert.equal(shared.app,'Jeux Tout Doux');assert.equal(shared.purpose,'Conseils dans ChatGPT');
+      assert.deepEqual(Object.keys(shared.data).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
+      assert.equal(Object.hasOwn(shared.data.games[0],'prix'),false);
+      assert.equal(Object.hasOwn(shared.data.games[0],'source'),false);
+      await page.locator('#profile-menu-btn').click();
       const downloadEvent=page.waitForEvent('download');
       await page.locator('#profile-menu-btn').click();await page.locator('#backup-btn').click();
       const download=await downloadEvent;
@@ -131,7 +141,7 @@ async function restore(page, value, confirm=true){
       assert.equal(firebaseRequests.length,0,'sandbox must not load production Firebase');
       assert.deepEqual(errors,[]);
       await page.screenshot({path:'/tmp/jtd-step1-'+width+'.png',fullPage:true});
-      console.log('PASS browser '+width+'px: restore/cancel/same file, escaping, status, rename, backup, invalid backup, no Firebase');
+      console.log('PASS browser '+width+'px: restore/cancel/same file, escaping, status, rename, ChatGPT export, backup, invalid backup, no Firebase');
       await context.close();
     }
   }finally{await browser.close();server.close();}
