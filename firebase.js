@@ -83,29 +83,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     firebaseConfig.projectId + '/databases/(default)/documents/shares/';
 
   function buildPublicSharePayload(){
-    const cleanGame = (g) => ({
-      nom: String(g.nom || ''),
-      plateforme: String(g.plateforme || ''),
-      format: g.format || null,
-      collector: g.collector === true,
-      japanese: g.japanese === true,
-      type: g.type || null,
-      status: g.status || null
+    return JTDData.createPublicSharePayload({
+      games:GAMES,
+      wishlist:WISHLIST,
+      arrivals:ARRIVALS,
+      cemetery:CEMETERY
     });
-    const cleanBoardItem = (g) => ({
-      nom: String(g.nom || ''),
-      plateforme: String(g.plateforme || ''),
-      date: g.date || null,
-      collector: g.collector === true,
-      japanese: g.japanese === true
-    });
-    return {
-      version: 1,
-      publishedAt: Date.now(),
-      games: GAMES.filter(g => g && g.nom && g.plateforme).map(cleanGame),
-      wishlist: WISHLIST.filter(g => g && g.nom && g.plateforme).map(cleanBoardItem),
-      arrivals: ARRIVALS.filter(g => g && g.nom && g.plateforme).map(cleanBoardItem)
-    };
   }
 
   function generateShareToken(){
@@ -126,8 +109,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     const active = !!SHARE_TOKEN;
     label.textContent = active ? 'Copier le lien de partage' : 'Partager ma collection';
     note.textContent = active
-      ? 'Lien vivant en lecture seule • collection, wishlist et arrivages'
-      : 'Crée un lien lecture seule à copier dans ChatGPT';
+      ? 'Lien vivant en lecture seule • collection, wishlist, arrivages et ventes'
+      : 'Lien lecture seule à copier dans ChatGPT';
     disableBtn.classList.toggle('hidden', !active);
   }
 

@@ -144,7 +144,54 @@
       isCurrent(session){ return !!session.uid && session.uid === uid && session.generation === generation; }
     };
   }
-  const api = {escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession};
+  function createPublicSharePayload(data, publishedAt = Date.now()){
+    const list = key => Array.isArray(data && data[key]) ? data[key] : [];
+    const cleanGame = item => ({
+      nom: String(item.nom || ''),
+      plateforme: String(item.plateforme || ''),
+      format: item.format || null,
+      collector: item.collector === true,
+      japanese: item.japanese === true,
+      type: item.type || null,
+      status: item.status || null
+    });
+    const cleanBoardItem = item => ({
+      nom: String(item.nom || ''),
+      plateforme: String(item.plateforme || ''),
+      date: item.date || null,
+      collector: item.collector === true,
+      japanese: item.japanese === true
+    });
+    const cemetery = list('cemetery');
+    const lotSizes = new Map();
+    for(const item of cemetery){
+      if(item && item.saleStatus === 'sold'){
+        const key = item.saleId || item.id;
+        if(key) lotSizes.set(key, (lotSizes.get(key) || 0) + 1);
+      }
+    }
+    const cleanSaleItem = item => {
+      const result = cleanGame(item);
+      result.saleStatus = item.saleStatus === 'sold' ? 'sold' : 'pending';
+      if(item.saleChannel === 'online' || item.saleChannel === 'store') result.saleChannel = item.saleChannel;
+      if(typeof item.saleVenue === 'string' && item.saleVenue.trim()) result.saleVenue = item.saleVenue.trim();
+      if(Number.isFinite(item.estimatedPrice) && item.estimatedPrice >= 0) result.estimatedPrice = item.estimatedPrice;
+      if(result.saleStatus === 'sold' && Number.isFinite(item.salePrice) && item.salePrice >= 0) result.salePrice = item.salePrice;
+      const key = item.saleId || item.id;
+      const lotSize = key && lotSizes.get(key);
+      if(result.saleStatus === 'sold' && lotSize > 1) result.lotSize = lotSize;
+      return result;
+    };
+    return {
+      version: 2,
+      publishedAt,
+      games: list('games').filter(item => item && item.nom && item.plateforme).map(cleanGame),
+      wishlist: list('wishlist').filter(item => item && item.nom && item.plateforme).map(cleanBoardItem),
+      arrivals: list('arrivals').filter(item => item && item.nom && item.plateforme).map(cleanBoardItem),
+      cemetery: cemetery.filter(item => item && item.nom && item.plateforme).map(cleanSaleItem)
+    };
+  }
+  const api = {escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
