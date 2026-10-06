@@ -43,18 +43,18 @@ function renderCemetery(){
   for(const group of groups){
     const item = group[0];
     const block = document.createElement('section');
-    block.className = 'sale-group';
-    const venue = [item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : '', item.saleVenue].filter(Boolean).join(' · ') || 'Lieu de vente à définir';
-    const amount = saleView === 'sold' ? item.salePrice : item.estimatedPrice;
     const lot = group.length > 1;
-    block.innerHTML = '<div class="sale-group-heading"><div class="sale-heading-main"><span class="sale-state-label">' + (saleView === 'sold' ? 'Vendu' : 'Estimation') + '</span><strong class="sale-amount">' + (amount != null ? euros(amount) : 'À définir') + '</strong>' + (lot ? '<span class="sale-lot-label">le lot · ' + group.length + ' jeux</span>' : '') + '</div><div class="sale-venue">' + escapeHTML(venue) + '</div></div>';
+    block.className = 'sale-group' + (lot ? ' sale-group-lot' : '');
+    const venue = [item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : '', item.saleVenue].filter(Boolean).join(' · ') || 'Lieu à définir';
+    const amount = saleView === 'sold' ? item.salePrice : item.estimatedPrice;
+    block.innerHTML = '<div class="sale-group-heading"><div class="sale-heading-main"><span class="sale-state-label">' + (saleView === 'sold' ? 'Vendu' : 'Estim.') + '</span><strong class="sale-amount">' + (amount != null ? euros(amount) : 'À définir') + '</strong>' + (lot ? '<span class="sale-lot-label">Lot · ' + group.length + ' jeux</span>' : '') + '</div><div class="sale-venue">' + escapeHTML(venue) + '</div></div>';
     const cards = document.createElement('div');
-    cards.className = 'grid sale-cards';
+    cards.className = 'sale-cards';
     for(const g of group){
       const card = renderCard(g, {readOnly:true, onOpen:() => openSaleModal(g.id)});
       card.classList.add('sale-game');
       const purchasePrice = card.querySelector('.card-price');
-      if(purchasePrice) purchasePrice.textContent = 'Acheté ' + euros(g.prix);
+      if(purchasePrice) purchasePrice.textContent = euros(g.prix);
       cards.appendChild(card);
     }
     block.appendChild(cards);
