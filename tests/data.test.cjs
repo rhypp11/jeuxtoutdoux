@@ -223,8 +223,11 @@ test('public share contains the requested boards and sale details without acquis
   assert.equal(payload.cemetery[1].lotSize,2);
   for(const board of [payload.games,payload.wishlist,payload.arrivals,payload.cemetery]){
     for(const item of board){
-      for(const field of ['id','prix','source','date','image','lien','saleId']) assert.equal(Object.hasOwn(item,field),false,field);
+      for(const field of ['id','prix','source','image','lien','saleId']) assert.equal(Object.hasOwn(item,field),false,field);
     }
+  }
+  for(const board of [payload.games,payload.cemetery]){
+    for(const item of board) assert.equal(Object.hasOwn(item,'date'),false);
   }
   assert.deepEqual(Object.keys(payload).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
 });
