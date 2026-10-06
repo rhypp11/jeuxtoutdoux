@@ -199,3 +199,32 @@ test('a transfer quota failure leaves both lists and memory unchanged', () => {
   assert.equal(storage.getItem('arrivals'),JSON.stringify([item]));assert.equal(storage.getItem('games'),'[]');
 });
 
+
+test('public share contains the requested boards and sale details without acquisition data', () => {
+  const payload = D.createPublicSharePayload({
+    games:[game({id:'private-game-id',prix:49.99,source:'Micromania',date:'2025-01-01',image:'https://example.com/cover.jpg'})],
+    wishlist:[game({id:'wishlist-id',date:'2027-05',lien:'https://example.com'})],
+    arrivals:[game({id:'arrival-id'})],
+    cemetery:[
+      game({id:'pending-id',prix:20,source:'Cash',saleStatus:'pending',saleChannel:'online',saleVenue:'Vinted',estimatedPrice:35}),
+      game({id:'sold-a',prix:12,source:'Store',saleStatus:'sold',saleId:'internal-lot-id',salePrice:42}),
+      game({id:'sold-b',prix:15,source:'Store',saleStatus:'sold',saleId:'internal-lot-id',salePrice:42})
+    ]
+  }, 123);
+  assert.equal(payload.version,2);
+  assert.equal(payload.publishedAt,123);
+  assert.equal(payload.games[0].nom,'Persona');
+  assert.equal(payload.wishlist[0].date,'2027-05');
+  assert.equal(payload.arrivals.length,1);
+  assert.deepEqual(payload.cemetery.map(item=>item.saleStatus),['pending','sold','sold']);
+  assert.equal(payload.cemetery[0].estimatedPrice,35);
+  assert.equal(payload.cemetery[0].saleVenue,'Vinted');
+  assert.equal(payload.cemetery[1].salePrice,42);
+  assert.equal(payload.cemetery[1].lotSize,2);
+  for(const board of [payload.games,payload.wishlist,payload.arrivals,payload.cemetery]){
+    for(const item of board){
+      for(const field of ['id','prix','source','date','image','lien','saleId']) assert.equal(Object.hasOwn(item,field),false,field);
+    }
+  }
+  assert.deepEqual(Object.keys(payload).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
+});
