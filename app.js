@@ -2373,6 +2373,38 @@ restoreInput.addEventListener('change', (e) => {
   if(file) restoreBackup(file);
 });
 
+function downloadChatGPTSnapshot(){
+  try{
+    const data = JTDData.createPublicSharePayload({
+      games:GAMES,
+      wishlist:WISHLIST,
+      arrivals:ARRIVALS,
+      cemetery:CEMETERY
+    });
+    const payload = {
+      app:'Jeux Tout Doux',
+      purpose:'Conseils dans ChatGPT',
+      exportedAt:new Date().toISOString(),
+      data
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'jeux-tout-doux-chatgpt-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Fichier prêt à joindre dans ChatGPT.');
+  }catch(error){
+    console.error('Export ChatGPT impossible', error);
+    showToast('Impossible de préparer le fichier pour ChatGPT.');
+  }
+}
+
+document.getElementById('chatgpt-export-btn').addEventListener('click', downloadChatGPTSnapshot);
+
 document.getElementById('share-btn').addEventListener('click', () => {
   if(window.JTDShare && typeof window.JTDShare.createOrCopy === 'function') window.JTDShare.createOrCopy();
 });
