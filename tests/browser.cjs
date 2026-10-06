@@ -126,7 +126,6 @@ async function restore(page, value, confirm=true){
       assert.deepEqual(Object.keys(shared.data).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
       assert.equal(Object.hasOwn(shared.data.games[0],'prix'),false);
       assert.equal(Object.hasOwn(shared.data.games[0],'source'),false);
-      await page.locator('#profile-menu-btn').click();
       const downloadEvent=page.waitForEvent('download');
       await page.locator('#profile-menu-btn').click();await page.locator('#backup-btn').click();
       const download=await downloadEvent;
