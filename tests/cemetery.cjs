@@ -78,7 +78,7 @@ const server = createSandboxServer();
       assert.equal(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).count(),1);
       const lot = await page.evaluate(()=>CEMETERY.filter(g=>g.salePrice===27.5));
       assert.equal(lot.length,2);assert.equal(lot[0].saleId,lot[1].saleId);
-      assert.match(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).textContent(),/Vendu.*le lot/);
+      assert.match(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).textContent(),/Vendu.*Lot · 2 jeux/);
       assert.match(await page.locator('.sale-game').filter({hasText:'Kena'}).textContent(),/Acheté/);
       await page.screenshot({path:'/tmp/jtd-cemetery-'+width+'-'+theme+'.png',fullPage:true});
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
