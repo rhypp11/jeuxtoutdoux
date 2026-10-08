@@ -1,3 +1,5 @@
+@import url('./ui-foundations.css');
+
 .cemetery-layout { display:grid; grid-template-columns:260px minmax(0,1fr); gap:0; width:100%; max-width:none; min-height:calc(100vh - 51px); margin:0; padding:0; }
 .cemetery-sidebar { align-self:stretch; position:relative; top:auto; margin:0; padding:30px 18px 24px !important; display:grid; align-content:start; gap:12px; background:var(--sidebar-bg); border:0; border-right:1px solid var(--hairline); border-radius:0; }
 .cemetery-sidebar .side-label { margin:0; padding:0; }
