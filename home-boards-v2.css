@@ -25,20 +25,20 @@
 #home-boards .board-head {
   position:relative;
   min-height:66px;
-  padding:14px 16px 14px 18px;
+  padding:16px 18px 14px;
   border-bottom:1px solid var(--ui-border);
-  background:transparent;
+  background:linear-gradient(180deg,rgba(var(--board-accent-rgb),.07),transparent 76%);
   color:var(--ui-text);
 }
 
+/* Signature couleur : bande horizontale, plus calme et plus JTD que le pipe vertical. */
 #home-boards .board-head::before {
   content:"";
   position:absolute;
   left:0;
-  top:14px;
-  bottom:14px;
-  width:3px;
-  border-radius:0 var(--ui-radius-pill) var(--ui-radius-pill) 0;
+  right:0;
+  top:0;
+  height:4px;
   background:var(--board-accent);
 }
 
@@ -59,8 +59,8 @@
 
 #home-boards .board-count {
   padding:2px 7px;
-  border:1px solid rgba(var(--board-accent-rgb),.22);
-  background:rgba(var(--board-accent-rgb),.08);
+  border:1px solid rgba(var(--board-accent-rgb),.26);
+  background:rgba(var(--board-accent-rgb),.10);
   color:var(--board-accent);
   font-family:var(--ui-font-mono);
   font-size:10px;
@@ -77,10 +77,11 @@
 #home-boards .board-add-btn {
   min-height:34px;
   height:34px;
-  padding:0 11px;
-  border:1px solid rgba(var(--board-accent-rgb),.28);
+  margin-left:auto;
+  padding:0 12px;
+  border:1px solid rgba(var(--board-accent-rgb),.34);
   border-radius:var(--ui-radius-sm);
-  background:rgba(var(--board-accent-rgb),.08);
+  background:rgba(var(--board-accent-rgb),.10);
   box-shadow:none;
   color:var(--board-accent);
   font-size:11px;
@@ -90,8 +91,8 @@
 
 #home-boards .board-add-btn:hover {
   filter:none;
-  border-color:rgba(var(--board-accent-rgb),.42);
-  background:rgba(var(--board-accent-rgb),.14);
+  border-color:rgba(var(--board-accent-rgb),.5);
+  background:rgba(var(--board-accent-rgb),.17);
 }
 
 #home-boards .board-rows {
@@ -104,18 +105,26 @@
 }
 
 #home-boards .calendar-group + .calendar-group {
-  margin-top:5px;
+  margin-top:7px;
   padding-top:7px;
-  border-top:1px solid rgba(var(--ui-rgb),.055);
+  border-top:0;
 }
 
+/* Les mois redeviennent de vraies têtes de section colorées. */
 #home-boards .calendar-group-head {
-  min-height:36px;
-  margin:0 2px 3px;
-  padding:5px 8px;
-  border:0;
+  min-height:38px;
+  margin:0 0 5px;
+  padding:7px 10px 7px 12px;
+  border:1px solid color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 24%,var(--ui-border));
   border-radius:var(--ui-radius-sm);
-  background:transparent;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 18%,transparent),
+    color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 7%,transparent));
+}
+
+#home-boards .calendar-group-head-loose {
+  border-color:var(--ui-border);
+  background:rgba(var(--ui-rgb),.03);
 }
 
 #home-boards .calendar-group-title {
@@ -123,11 +132,15 @@
 }
 
 #home-boards .calendar-group-title strong {
-  color:var(--ui-text);
+  color:color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 58%,var(--ui-text) 42%);
   font-family:var(--ui-font-sans);
-  font-size:12px;
-  font-weight:700;
+  font-size:12.5px;
+  font-weight:750;
   letter-spacing:0;
+}
+
+#home-boards .calendar-group-head-loose .calendar-group-title strong {
+  color:var(--ui-text);
 }
 
 #home-boards .calendar-group-title span {
@@ -137,14 +150,9 @@
   font-weight:500;
 }
 
+/* Pas de pastille décorative : le bandeau porte déjà la couleur. */
 #home-boards .calendar-group-head::after {
-  content:"";
-  width:6px;
-  height:6px;
-  margin-left:auto;
-  border-radius:50%;
-  background:var(--calendar-accent,var(--board-accent));
-  opacity:.72;
+  content:none;
 }
 
 #home-boards .calendar-items {
@@ -185,9 +193,9 @@
 #home-boards .calendar-day {
   width:40px;
   height:46px;
-  border:1px solid rgba(var(--ui-rgb),.055);
+  border:1px solid rgba(var(--ui-rgb),.07);
   border-radius:var(--ui-radius-sm);
-  background:rgba(var(--ui-rgb),.025);
+  background:color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 8%,var(--ui-surface-raised));
 }
 
 #home-boards .calendar-day strong {
@@ -202,6 +210,7 @@
 
 #home-boards .calendar-day-loose {
   width:40px;
+  background:rgba(var(--ui-rgb),.035);
 }
 
 #home-boards .board-thumb {
@@ -320,10 +329,16 @@
   font-size:12px;
 }
 
-.home-boards-switch-btn.active {
-  border:0 !important;
-  background:var(--ui-surface-raised) !important;
-  color:var(--ui-text) !important;
+.home-boards-switch-btn[data-target="wishlist"].active {
+  border:1px solid rgba(var(--wishlist-rgb),.42) !important;
+  background:rgba(var(--wishlist-rgb),.10) !important;
+  color:var(--wishlist) !important;
+}
+
+.home-boards-switch-btn[data-target="arrivals"].active {
+  border:1px solid rgba(var(--arrival-rgb),.42) !important;
+  background:rgba(var(--arrival-rgb),.10) !important;
+  color:var(--arrival) !important;
 }
 
 @media(min-width:901px) {
@@ -340,6 +355,26 @@
 }
 
 @media(max-width:900px) {
+  .home-main {
+    min-width:0;
+  }
+
+  .home-boards-switcher {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    width:auto !important;
+    max-width:none !important;
+    margin:12px var(--ui-page-gutter-mobile) 0 !important;
+    align-self:stretch;
+    justify-content:stretch;
+  }
+
+  .home-boards-switch-btn {
+    width:100%;
+    min-width:0;
+    justify-content:center;
+  }
+
   #home-boards {
     padding:12px var(--ui-page-gutter-mobile) 28px;
   }
@@ -351,12 +386,21 @@
 
   #home-boards .board-head {
     min-height:58px;
-    padding:11px 12px 11px 15px;
+    padding:14px 16px 12px;
   }
 
   #home-boards .board-head::before {
-    top:11px;
-    bottom:11px;
+    height:4px;
+  }
+
+  #home-boards .board-add-btn {
+    margin-right:0;
+  }
+
+  #home-boards .calendar-group-head {
+    min-height:36px;
+    margin-bottom:4px;
+    padding:6px 9px 6px 10px;
   }
 
   #home-boards .board.wishlist .board-row,
@@ -405,6 +449,21 @@
 }
 
 @media(max-width:390px) {
+  .home-boards-switcher {
+    margin-left:10px !important;
+    margin-right:10px !important;
+  }
+
+  #home-boards {
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  #home-boards .board-head {
+    padding-left:14px;
+    padding-right:14px;
+  }
+
   #home-boards .board.wishlist .board-row,
   #home-boards .board.arrivals .board-row,
   #home-boards .board.wishlist .wishlist-row-released {
