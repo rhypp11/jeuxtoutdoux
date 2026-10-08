@@ -1,0 +1,498 @@
+/* Wishlist + Arrivages — système visuel commun */
+
+#home-boards {
+  gap:var(--ui-space-5);
+  padding:var(--ui-space-5) var(--ui-page-gutter) var(--ui-space-8);
+}
+
+#home-boards .board.wishlist,
+#home-boards .board.arrivals {
+  --board-accent:var(--wishlist);
+  --board-accent-rgb:var(--wishlist-rgb);
+  min-width:0;
+  overflow:hidden;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-xl);
+  background:var(--ui-surface);
+  box-shadow:none;
+}
+
+#home-boards .board.arrivals {
+  --board-accent:var(--arrival);
+  --board-accent-rgb:var(--arrival-rgb);
+}
+
+#home-boards .board-head {
+  min-height:66px;
+  padding:14px 16px;
+  border-bottom:1px solid var(--ui-border);
+  background:var(--ui-surface);
+  color:var(--ui-text);
+  gap:12px;
+}
+
+#home-boards .board-head > div {
+  min-width:0;
+}
+
+/* Desktop : titre simple, l'accent vient seulement de l'icône et du compteur. */
+#home-boards .board-head h2 {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--ui-text);
+  font-family:var(--ui-font-sans);
+  font-size:14.5px;
+  font-weight:750;
+  letter-spacing:-.01em;
+}
+
+#home-boards .board-head-icon {
+  width:16px;
+  height:16px;
+  color:var(--board-accent);
+}
+
+#home-boards .board-count {
+  padding:2px 7px;
+  border:1px solid rgba(var(--board-accent-rgb),.26);
+  background:rgba(var(--board-accent-rgb),.10);
+  color:var(--board-accent);
+  font-family:var(--ui-font-mono);
+  font-size:10px;
+  font-weight:600;
+}
+
+#home-boards .board-total-estimate {
+  margin:3px 0 0 24px;
+  color:var(--ui-text-muted);
+  font-family:var(--ui-font-mono);
+  font-size:10px;
+}
+
+#home-boards .board-add-btn {
+  min-height:34px;
+  height:34px;
+  margin-left:auto;
+  padding:0 12px;
+  border:1px solid rgba(var(--board-accent-rgb),.32);
+  border-radius:var(--ui-radius-md);
+  background:transparent;
+  box-shadow:none;
+  color:var(--board-accent);
+  font-size:11px;
+  font-weight:700;
+  transition:background var(--ui-transition-fast),border-color var(--ui-transition-fast);
+}
+
+#home-boards .board-add-btn:hover {
+  filter:none;
+  border-color:rgba(var(--board-accent-rgb),.48);
+  background:rgba(var(--board-accent-rgb),.09);
+}
+
+#home-boards .board-rows {
+  gap:0;
+  padding:7px;
+}
+
+#home-boards .calendar-group {
+  padding:0;
+}
+
+#home-boards .calendar-group + .calendar-group {
+  margin-top:7px;
+  padding-top:7px;
+  border-top:0;
+}
+
+/* Les mois redeviennent de vraies têtes de section colorées. */
+#home-boards .calendar-group-head {
+  min-height:38px;
+  margin:0 0 5px;
+  padding:7px 10px 7px 12px;
+  border:1px solid color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 24%,var(--ui-border));
+  border-radius:var(--ui-radius-sm);
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 18%,transparent),
+    color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 7%,transparent));
+}
+
+#home-boards .calendar-group-head-loose {
+  border-color:var(--ui-border);
+  background:rgba(var(--ui-rgb),.03);
+}
+
+#home-boards .calendar-group-title {
+  gap:6px;
+}
+
+#home-boards .calendar-group-title strong {
+  color:color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 58%,var(--ui-text) 42%);
+  font-family:var(--ui-font-sans);
+  font-size:12.5px;
+  font-weight:750;
+  letter-spacing:0;
+}
+
+#home-boards .calendar-group-head-loose .calendar-group-title strong {
+  color:var(--ui-text);
+}
+
+#home-boards .calendar-group-title span {
+  color:var(--ui-text-muted);
+  font-family:var(--ui-font-mono);
+  font-size:9.5px;
+  font-weight:500;
+}
+
+/* Pas de pastille décorative : le bandeau porte déjà la couleur. */
+#home-boards .calendar-group-head::after {
+  content:none;
+}
+
+#home-boards .calendar-items {
+  gap:2px;
+  padding:0;
+}
+
+#home-boards .board-row,
+#home-boards .calendar-items .board-row,
+#home-boards .calendar-items .board-row + .board-row {
+  min-height:70px;
+  margin:0;
+  padding:8px 9px;
+  border:0;
+  border-radius:var(--ui-radius-md);
+  background:transparent;
+  transition:background var(--ui-transition-fast);
+}
+
+#home-boards .board-row:hover {
+  background:rgba(var(--ui-rgb),.035);
+}
+
+#home-boards .board.wishlist .board-row {
+  grid-template-columns:44px 92px minmax(0,1fr) auto;
+  gap:10px;
+}
+
+#home-boards .board.wishlist .wishlist-row-released {
+  grid-template-columns:92px minmax(0,1fr) auto;
+}
+
+#home-boards .board.arrivals .board-row {
+  grid-template-columns:44px 92px minmax(0,1fr) auto auto;
+  gap:10px;
+}
+
+#home-boards .calendar-day {
+  width:40px;
+  height:46px;
+  border:1px solid rgba(var(--ui-rgb),.07);
+  border-radius:var(--ui-radius-sm);
+  background:color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 8%,var(--ui-surface-raised));
+}
+
+#home-boards .calendar-day strong {
+  font-size:15px;
+  font-weight:700;
+}
+
+#home-boards .calendar-day span {
+  font-size:8px;
+  font-weight:600;
+}
+
+#home-boards .calendar-day-loose {
+  width:40px;
+  background:rgba(var(--ui-rgb),.035);
+}
+
+#home-boards .board-thumb {
+  width:92px;
+  height:52px;
+  border:0;
+  border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface-raised);
+}
+
+#home-boards .board-thumb img {
+  object-fit:contain;
+}
+
+#home-boards .board-info {
+  gap:4px;
+  min-width:0;
+}
+
+#home-boards .board-name {
+  color:var(--ui-text);
+  font-family:var(--ui-font-sans);
+  font-size:12.5px;
+  font-weight:650;
+  line-height:var(--ui-leading-tight);
+  letter-spacing:0;
+}
+
+#home-boards .board-plat {
+  gap:5px;
+  color:var(--ui-text-muted);
+  font-family:var(--ui-font-sans);
+  font-size:10px;
+}
+
+#home-boards .board-plat .mini-logo-sm {
+  width:14px;
+  height:14px;
+  border-radius:var(--ui-radius-xs);
+}
+
+#home-boards .board-plat .dot {
+  width:6px;
+  height:6px;
+}
+
+#home-boards .wishlist-release-date {
+  margin-left:2px;
+  padding:2px 5px;
+  border-radius:var(--ui-radius-xs);
+  background:rgba(var(--ui-rgb),.035);
+  color:var(--ui-text-muted);
+  font-family:var(--ui-font-mono);
+  font-size:8.5px;
+}
+
+#home-boards .arrival-purchase,
+#home-boards .board-source,
+#home-boards .board-price {
+  font-family:var(--ui-font-mono);
+  font-size:9.5px;
+}
+
+#home-boards .arrival-purchase {
+  color:var(--ui-text-muted);
+}
+
+#home-boards .arrival-price,
+#home-boards .board-price {
+  color:var(--board-accent);
+  font-weight:600;
+}
+
+#home-boards .board-link,
+#home-boards .to-wishlist-btn {
+  width:30px;
+  height:30px;
+  border:1px solid transparent;
+  border-radius:var(--ui-radius-sm);
+  background:transparent;
+  color:var(--ui-text-muted);
+}
+
+#home-boards a.board-link:hover,
+#home-boards .to-wishlist-btn:hover {
+  border-color:rgba(var(--board-accent-rgb),.2);
+  background:rgba(var(--board-accent-rgb),.08);
+  color:var(--board-accent);
+}
+
+#home-boards .board-empty {
+  margin:8px;
+  padding:28px 18px;
+  border:1px dashed var(--ui-border);
+  border-radius:var(--ui-radius-md);
+  color:var(--ui-text-muted);
+  font-family:var(--ui-font-sans);
+  font-size:12px;
+}
+
+.home-boards-switcher {
+  margin:12px var(--ui-page-gutter-mobile) 0;
+  padding:3px;
+  gap:3px;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-md);
+  background:var(--ui-surface);
+}
+
+.home-boards-switch-btn {
+  min-height:38px;
+  border:0;
+  border-radius:var(--ui-radius-sm);
+  background:transparent;
+  color:var(--ui-text-muted);
+  font-size:12px;
+}
+
+.home-boards-switch-btn[data-target="wishlist"].active {
+  border:1px solid rgba(var(--wishlist-rgb),.42) !important;
+  background:rgba(var(--wishlist-rgb),.10) !important;
+  color:var(--wishlist) !important;
+}
+
+.home-boards-switch-btn[data-target="arrivals"].active {
+  border:1px solid rgba(var(--arrival-rgb),.42) !important;
+  background:rgba(var(--arrival-rgb),.10) !important;
+  color:var(--arrival) !important;
+}
+
+@media(min-width:901px) {
+  #home-boards {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:start;
+  }
+}
+
+@media(max-width:1100px) and (min-width:901px) {
+  #home-boards {
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:900px) {
+  .home-main {
+    min-width:0;
+  }
+
+  .home-boards-switcher {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    width:auto !important;
+    max-width:none !important;
+    margin:12px var(--ui-page-gutter-mobile) 0 !important;
+    align-self:stretch;
+    justify-content:stretch;
+  }
+
+  .home-boards-switch-btn {
+    width:100%;
+    min-width:0;
+    justify-content:center;
+  }
+
+  #home-boards {
+    padding:12px var(--ui-page-gutter-mobile) 28px;
+  }
+
+  #home-boards .board.wishlist,
+  #home-boards .board.arrivals {
+    border-radius:var(--ui-radius-lg);
+  }
+
+  /* Le sélecteur fait déjà office de titre sur mobile : pas de répétition. */
+  #home-boards .board-head {
+    display:block;
+    min-height:0;
+    padding:10px;
+  }
+
+  #home-boards .board-head > div {
+    display:none;
+  }
+
+  #home-boards .board-add-btn {
+    width:100%;
+    height:36px;
+    margin:0;
+    justify-content:center;
+    border-color:rgba(var(--board-accent-rgb),.24);
+    background:rgba(var(--board-accent-rgb),.07);
+  }
+
+  #home-boards .calendar-group-head {
+    min-height:36px;
+    margin-bottom:4px;
+    padding:6px 9px 6px 10px;
+  }
+
+  #home-boards .board.wishlist .board-row,
+  #home-boards .board.arrivals .board-row,
+  #home-boards .board.wishlist .wishlist-row-released {
+    min-height:64px;
+    padding:7px 8px;
+    grid-template-columns:38px 82px minmax(0,1fr) auto !important;
+    grid-template-rows:1fr !important;
+    gap:8px !important;
+  }
+
+  #home-boards .board.wishlist .wishlist-row-released {
+    grid-template-columns:82px minmax(0,1fr) auto !important;
+  }
+
+  #home-boards .calendar-day {
+    grid-column:1;
+    grid-row:1 !important;
+    width:36px;
+    height:42px;
+  }
+
+  #home-boards .board-thumb {
+    grid-row:1 !important;
+    width:82px;
+    height:46px;
+  }
+
+  #home-boards .board-info {
+    grid-row:1 !important;
+    align-self:center;
+  }
+
+  #home-boards .board-name {
+    font-size:11.5px;
+  }
+
+  #home-boards .board-plat {
+    font-size:9px;
+  }
+
+  #home-boards .arrival-purchase {
+    display:none;
+  }
+}
+
+@media(max-width:390px) {
+  .home-boards-switcher {
+    margin-left:10px !important;
+    margin-right:10px !important;
+  }
+
+  #home-boards {
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  #home-boards .board-head {
+    padding:8px;
+  }
+
+  #home-boards .board.wishlist .board-row,
+  #home-boards .board.arrivals .board-row,
+  #home-boards .board.wishlist .wishlist-row-released {
+    grid-template-columns:34px 70px minmax(0,1fr) auto !important;
+    gap:7px !important;
+  }
+
+  #home-boards .board.wishlist .wishlist-row-released {
+    grid-template-columns:70px minmax(0,1fr) auto !important;
+  }
+
+  #home-boards .calendar-day {
+    width:32px;
+    height:40px;
+  }
+
+  #home-boards .board-thumb {
+    width:70px;
+    height:40px;
+  }
+
+  #home-boards .board-name {
+    font-size:11px;
+  }
+}
