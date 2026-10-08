@@ -31,21 +31,21 @@
   gap:12px;
 }
 
-/* Le titre porte la personnalité du board sans grande barre décorative. */
 #home-boards .board-head > div {
   min-width:0;
 }
 
+/* Desktop : titre simple, l'accent vient seulement de l'icône et du compteur. */
 #home-boards .board-head h2 {
   display:inline-flex;
   align-items:center;
   gap:8px;
   margin:0;
-  padding:7px 10px;
-  border:1px solid rgba(var(--board-accent-rgb),.18);
-  border-radius:var(--ui-radius-md);
-  background:rgba(var(--board-accent-rgb),.07);
-  color:color-mix(in srgb,var(--board-accent) 72%,var(--ui-text) 28%);
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--ui-text);
   font-family:var(--ui-font-sans);
   font-size:14.5px;
   font-weight:750;
@@ -385,24 +385,15 @@
     border-radius:var(--ui-radius-lg);
   }
 
-  /* Sur mobile, le header devient une vraie petite toolbar en deux lignes. */
+  /* Le sélecteur fait déjà office de titre sur mobile : pas de répétition. */
   #home-boards .board-head {
-    display:grid;
-    grid-template-columns:1fr;
-    align-items:stretch;
+    display:block;
     min-height:0;
-    padding:12px;
-    gap:9px;
+    padding:10px;
   }
 
   #home-boards .board-head > div {
-    display:flex;
-    justify-content:flex-start;
-  }
-
-  #home-boards .board-head h2 {
-    padding:6px 9px;
-    font-size:13.5px;
+    display:none;
   }
 
   #home-boards .board-add-btn {
@@ -477,7 +468,7 @@
   }
 
   #home-boards .board-head {
-    padding:10px;
+    padding:8px;
   }
 
   #home-boards .board.wishlist .board-row,
