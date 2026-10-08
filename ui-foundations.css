@@ -1,0 +1,190 @@
+/*
+ * JTD UI foundations
+ *
+ * Shared visual language for Collection, Wishlist, Arrivages and Cimetière.
+ * Keep these tokens semantic: view-specific colors and layouts stay in their
+ * own stylesheets, while spacing, density, controls and game-row geometry
+ * should build on this layer.
+ */
+
+:root {
+  /* Typography */
+  --ui-font-sans: 'DM Sans','Segoe UI','Roboto',sans-serif;
+  --ui-font-mono: 'JetBrains Mono',monospace;
+  --ui-text-xs: 10.5px;
+  --ui-text-sm: 12px;
+  --ui-text-md: 13.5px;
+  --ui-text-lg: 15px;
+  --ui-leading-tight: 1.25;
+  --ui-leading-normal: 1.45;
+
+  /* Spacing: the common rhythm used by rows, sidebars and controls. */
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 20px;
+  --ui-space-6: 24px;
+  --ui-space-7: 28px;
+  --ui-space-8: 32px;
+
+  /* Shape */
+  --ui-radius-xs: 4px;
+  --ui-radius-sm: 7px;
+  --ui-radius-md: 10px;
+  --ui-radius-lg: 14px;
+  --ui-radius-xl: 18px;
+  --ui-radius-pill: 999px;
+
+  /* Layout */
+  --ui-sidebar-width: 260px;
+  --ui-page-gutter: 28px;
+  --ui-page-gutter-mobile: 12px;
+  --ui-section-gap: 24px;
+
+  /* Controls */
+  --ui-control-height-sm: 32px;
+  --ui-control-height-md: 40px;
+  --ui-control-height-lg: 44px;
+  --ui-control-padding-x: 12px;
+
+  /* Game-list geometry. 16:9 artwork remains the JTD reference. */
+  --ui-game-thumb-width: 120px;
+  --ui-game-thumb-height: 68px;
+  --ui-game-thumb-width-compact: 96px;
+  --ui-game-thumb-height-compact: 54px;
+  --ui-game-row-padding-x: 16px;
+  --ui-game-row-padding-y: 10px;
+  --ui-game-row-gap: 14px;
+
+  /* Motion / interaction */
+  --ui-transition-fast: 120ms ease;
+  --ui-transition: 180ms ease;
+  --ui-focus-width: 2px;
+  --ui-focus-offset: 2px;
+
+  /* Semantic aliases: prefer these for new shared components. */
+  --ui-canvas: var(--ink);
+  --ui-sidebar: var(--sidebar-bg);
+  --ui-surface: var(--surface);
+  --ui-surface-raised: var(--surface-raised);
+  --ui-border: var(--hairline);
+  --ui-text: var(--text);
+  --ui-text-muted: var(--muted);
+  --ui-accent: var(--accent);
+}
+
+/* Keep native controls on the same typographic baseline as the app. */
+button,
+input,
+select,
+textarea {
+  font-family: var(--ui-font-sans);
+}
+
+/* One keyboard-focus language across every view. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--ui-focus-width) solid var(--ui-accent);
+  outline-offset: var(--ui-focus-offset);
+}
+
+/* Shared primitives for the view migrations that follow this PR. */
+.ui-game-row {
+  display: grid;
+  grid-template-columns: var(--ui-game-thumb-width) minmax(0,1fr);
+  align-items: center;
+  gap: var(--ui-game-row-gap);
+  padding: var(--ui-game-row-padding-y) var(--ui-game-row-padding-x);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.ui-game-row:last-child {
+  border-bottom: 0;
+}
+
+.ui-game-thumb {
+  width: var(--ui-game-thumb-width);
+  height: var(--ui-game-thumb-height);
+  border-radius: var(--ui-radius-sm);
+  overflow: hidden;
+  background: var(--ui-surface-raised);
+}
+
+.ui-game-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ui-game-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+}
+
+.ui-game-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ui-text);
+  font-size: var(--ui-text-md);
+  font-weight: 600;
+  line-height: var(--ui-leading-tight);
+}
+
+.ui-game-subline,
+.ui-game-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2);
+  color: var(--ui-text-muted);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-normal);
+}
+
+.ui-game-meta {
+  font-family: var(--ui-font-mono);
+  font-size: var(--ui-text-xs);
+}
+
+.ui-panel {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-lg);
+}
+
+.ui-control {
+  min-height: var(--ui-control-height-md);
+  padding: 0 var(--ui-control-padding-x);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+}
+
+.ui-control:hover {
+  border-color: var(--ui-text-muted);
+}
+
+@media (max-width:640px) {
+  :root {
+    --ui-page-gutter: var(--ui-page-gutter-mobile);
+    --ui-game-thumb-width: 104px;
+    --ui-game-thumb-height: 59px;
+    --ui-game-row-padding-x: 10px;
+    --ui-game-row-padding-y: 9px;
+    --ui-game-row-gap: 11px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  :root {
+    --ui-transition-fast: 0ms;
+    --ui-transition: 0ms;
+  }
+}
