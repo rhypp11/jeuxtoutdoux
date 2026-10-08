@@ -736,7 +736,7 @@ function applyCollectionSupportUI(format){
   const addBtn = document.getElementById('add-btn');
   if(addBtn){
     addBtn.textContent = isPhysical ? '+ Ajouter un jeu physique' : '+ Ajouter un jeu numérique';
-    addBtn.style.background = isPhysical ? 'var(--muted)' : '';
+
   }
 }
 
@@ -2588,7 +2588,7 @@ function goToPage(page, format, push = true){
   persistNavigation();
   navigationPage = ['collection','cemetery'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
-    b.classList.toggle('active', b.dataset.page === navigationPage && (navigationPage !== 'collection' || (b.dataset.format || 'Physique') === (format || 'Physique')));
+    b.classList.toggle('active', b.dataset.page === navigationPage);
   });
   document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection ' + ((format || 'Physique') === 'Numérique' ? 'numérique' : 'physique') : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
@@ -2605,6 +2605,11 @@ function goToPage(page, format, push = true){
       state.japanese = false;
       state.type = null;
     }
+    document.querySelectorAll('[data-collection-format]').forEach(button => {
+      const active = button.dataset.collectionFormat === fmt;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
     applyCollectionSupportUI(fmt);
     buildPlatformList();
     buildFormatToggles();
@@ -2630,6 +2635,10 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     goToPage(btn.dataset.page, btn.dataset.format);
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
+});
+
+document.querySelectorAll('[data-collection-format]').forEach(button => {
+  button.addEventListener('click', () => goToPage('collection', button.dataset.collectionFormat));
 });
 
 /* ---------- Navigation mobile ---------- */

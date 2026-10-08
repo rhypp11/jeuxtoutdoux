@@ -6,7 +6,7 @@ const server=createSandboxServer();
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const browser=await chromium.launch({headless:true,executablePath:process.env.JTD_CHROME || '/usr/bin/google-chrome',args:['--no-sandbox']});
   try {
-    for(const width of [320,390,640,820]) for(const theme of ['light','dark']) {
+    for(const width of [320,390,640,820,1440]) for(const theme of ['light','dark']) {
       const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
       const page=await context.newPage();
       await page.goto('http://127.0.0.1:'+server.address().port);
@@ -40,6 +40,21 @@ const server=createSandboxServer();
       await page.locator('#grid .card-name').first().click();
       await page.locator('#modal-overlay').waitFor({state:'visible'});
       await page.locator('#cancel-btn').click();
+      await page.locator('[data-collection-format="Numérique"]').click();
+      await page.locator('.nav-tab[data-page="collection"].active').waitFor();
+      assert.equal(await page.locator('[data-collection-format="Numérique"]').getAttribute('aria-pressed'),'true');
+      assert.equal(await page.evaluate(()=>state.format),'Numérique');
+      assert.equal(await page.locator('#type-filter-section').isVisible(),true);
+      assert.equal(await page.locator('#collector-filter-section').isVisible(),false);
+      await page.reload();
+      await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>state.format),'Numérique','Format survives reload');
+      await page.locator('[data-collection-format="Physique"]').click();
+      await page.goBack();
+      assert.equal(await page.evaluate(()=>state.format),'Numérique','Back restores secondary navigation');
+      await page.goForward();
+      assert.equal(await page.evaluate(()=>state.format),'Physique','Forward restores secondary navigation');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
       await context.close();
       console.log(`PASS collection ${width}px ${theme}: image, long title, metadata, status menu and edit`);
     }

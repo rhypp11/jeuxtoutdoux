@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="styles.css?v=collection-mobile-1">
 <link rel="stylesheet" href="cemetery.css?v=cemetery-ergonomie-4">
 <link rel="stylesheet" href="cemetery-import.css?v=cemetery-import-1">
+<link rel="stylesheet" href="ui-foundations.css?v=collection-1">
+<link rel="stylesheet" href="collection.css?v=collection-1">
 </head>
 <body>
 
@@ -358,6 +360,10 @@
   </aside>
 
   <main class="main">
+    <div class="collection-navigation" role="group" aria-label="Format de la collection">
+      <button type="button" class="collection-format-btn active" data-collection-format="Physique" aria-pressed="true">Physique</button>
+      <button type="button" class="collection-format-btn" data-collection-format="Numérique" aria-pressed="false">Numérique</button>
+    </div>
     <div class="platform-banner" id="platform-banner"></div>
 
     <div class="top-row">
@@ -365,7 +371,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input type="text" id="search-input" placeholder="Chercher un jeu..." aria-label="Rechercher un jeu">
       </div>
-      <select class="sort-select" id="sort-select">
+      <select class="sort-select" id="sort-select" aria-label="Trier la collection">
         <option value="name-asc">Nom (A → Z)</option>
         <option value="name-desc">Nom (Z → A)</option>
         <option value="price-desc">Prix (élevé → bas)</option>
