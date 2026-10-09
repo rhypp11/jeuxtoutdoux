@@ -179,8 +179,8 @@
     const unresolved = rows.some(entry => entry.kind === 'match' && !entry.choice);
     $('cemetery-import-apply').disabled = unresolved || !rows.some(entry => entry.kind === 'new' || entry.kind === 'match' && entry.choice !== 'skip');
   }
-  function open(){overlay.classList.remove('hidden');}
-  function close(){overlay.classList.add('hidden');rows=[];}
+  function open(){window.JTDDialogs.open(overlay.id,{onDismiss:close,initialFocus:'#cemetery-import-cancel',trigger:document.getElementById('profile-menu-btn')});}
+  function close(){window.JTDDialogs.close(overlay.id);rows=[];}
   $('cemetery-import-input').addEventListener('change', async event => {
     const file = event.target.files?.[0]; event.target.value='';
     if(!file) return;
@@ -197,7 +197,6 @@
     }
   });
   $('cemetery-import-cancel').addEventListener('click',close);
-  overlay.addEventListener('click',event => { if(event.target === overlay) close(); });
   $('cemetery-import-apply').addEventListener('click',() => {
     if(accountGeneration !== (window.JTDAccountGeneration || 0)){ $('cemetery-import-error').textContent='Le compte a changé. Relance l’import depuis le bon compte.'; return; }
     const state = window.JTDGetCemeteryImportState();

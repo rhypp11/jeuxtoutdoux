@@ -110,10 +110,10 @@ function openSaleModal(id){
     label.append(checkbox, document.createTextNode(other.nom + ' · ' + other.plateforme));
     saleEl('sale-lot-options').appendChild(label);
   }
-  saleEl('sale-modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('sale-modal-overlay', {onDismiss:closeSaleModal,initialFocus:'#sale-channel'});
   saleEl('sale-channel').focus();
 }
-function closeSaleModal(){ saleEl('sale-modal-overlay').classList.add('hidden'); saleEditingId = null; }
+function closeSaleModal(){ window.JTDDialogs.close('sale-modal-overlay'); saleEditingId = null; }
 window.closeSaleModal = closeSaleModal;
 function commitCemetery(next){
   try{
@@ -193,10 +193,6 @@ saleEl('sale-rollback').addEventListener('click', () => {
 });
 saleEl('sale-save').addEventListener('click', saveSale);
 saleEl('sale-cancel').addEventListener('click', closeSaleModal);
-saleEl('sale-modal-overlay').addEventListener('click', event => { if(event.target === saleEl('sale-modal-overlay')) closeSaleModal(); });
-document.addEventListener('keydown', event => {
-  if(event.key === 'Escape' && saleEl('modal-overlay')?.classList.contains('hidden')) closeSaleModal();
-});
 saleEl('cemetery-search').addEventListener('input', renderCemetery);
 saleEl('cemetery-platform').addEventListener('change', renderCemetery);
 document.querySelectorAll('[data-sale-view]').forEach(button => button.addEventListener('click', () => setSaleView(button.dataset.saleView)));

@@ -60,7 +60,9 @@ async function scene(page,name){
       if(!['127.0.0.1','localhost'].includes(url.hostname))return route.abort();
       const name=url.pathname==='/'?'index.html':url.pathname.slice(1);
       if(name!=='index.html'&&!name.endsWith('.css'))return route.fallback();
-      let body=fs.readFileSync(path.join(baselineDir,name),'utf8');
+      // Current markup/scripts (including dialog lifecycle), previous styles.
+      // This isolates CSS changes from deliberate accessibility attributes.
+      let body=fs.readFileSync(name==='index.html'?path.join(__dirname,'..',name):path.join(baselineDir,name),'utf8');
       if(name==='index.html')body=body.replace('window.JTD_PREVIEW_MODE =','window.JTD_PREVIEW_MODE = true ||');
       return route.fulfill({contentType:name==='index.html'?'text/html':'text/css',body});
      });

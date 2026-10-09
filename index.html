@@ -55,7 +55,7 @@
 
 <div class="toast-stack" id="toast-stack"></div>
 
-<div class="modal-overlay hidden" id="confirm-modal-overlay">
+<div class="modal-overlay hidden" id="confirm-modal-overlay" role="alertdialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
   <div class="modal confirm-modal">
     <h2 id="confirm-modal-title">Confirmer</h2>
     <p id="confirm-modal-message" class="confirm-modal-message"></p>
@@ -200,7 +200,7 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="arrival-modal-overlay">
+<div class="modal-overlay hidden" id="arrival-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="arrival-modal-title">
   <div class="modal">
     <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
 
@@ -209,13 +209,13 @@
       <div class="game-identity-editor" id="a-identity-editor">
       <div class="field">
         <label for="a-nom">Nom du jeu</label>
-        <input type="text" id="a-nom" placeholder="ex. Splatoon Raiders">
+        <input type="text" id="a-nom" aria-required="true" placeholder="ex. Splatoon Raiders">
       </div>
 
       <div class="field-row identity-core-row">
         <div class="field">
           <label for="a-plateforme">Plateforme</label>
-          <select id="a-plateforme"></select>
+          <select id="a-plateforme" aria-required="true"></select>
         </div>
         <div class="field">
           <label>Édition</label>
@@ -267,7 +267,7 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="wishlist-modal-overlay">
+<div class="modal-overlay hidden" id="wishlist-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title">
   <div class="modal">
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
@@ -276,13 +276,13 @@
       <div class="game-identity-editor" id="w-identity-editor">
       <div class="field">
         <label for="w-nom">Nom du jeu</label>
-        <input type="text" id="w-nom" placeholder="ex. Metaphor: ReFantazio">
+        <input type="text" id="w-nom" aria-required="true" placeholder="ex. Metaphor: ReFantazio">
       </div>
 
       <div class="field-row identity-core-row">
         <div class="field">
           <label for="w-plateforme">Plateforme</label>
-          <select id="w-plateforme"></select>
+          <select id="w-plateforme" aria-required="true"></select>
         </div>
         <div class="field">
           <label>Édition</label>
@@ -386,7 +386,7 @@
 </div>
 </div>
 
-<div class="modal-overlay hidden" id="modal-overlay">
+<div class="modal-overlay hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
 
@@ -395,12 +395,12 @@
       <div class="game-identity-editor" id="f-identity-editor">
       <div class="field">
         <label for="f-nom">Nom du jeu</label>
-        <input type="text" id="f-nom" placeholder="ex. Hollow Knight">
+        <input type="text" id="f-nom" aria-required="true" placeholder="ex. Hollow Knight">
       </div>
       <div class="field-row identity-core-row">
         <div class="field">
           <label for="f-plateforme">Plateforme</label>
-          <select id="f-plateforme"></select>
+          <select id="f-plateforme" aria-required="true"></select>
         </div>
         <div class="field" id="f-collector-field">
           <label>Édition</label>
@@ -467,7 +467,7 @@
     </main>
   </div>
 </div>
-<div class="modal-overlay hidden" id="sale-modal-overlay">
+<div class="modal-overlay hidden" id="sale-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="sale-modal-title">
   <div class="modal">
     <h2 id="sale-modal-title">Mettre en vente</h2>
     <div id="sale-identity"></div>
@@ -492,17 +492,17 @@
     </div>
   </div>
 </div>
-<div class="modal-overlay hidden" id="platform-modal-overlay">
+<div class="modal-overlay hidden" id="platform-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="platform-modal-title">
   <div class="modal platform-modal">
     <div class="platform-modal-heading">
       <div>
-        <h2>Gérer les plateformes</h2>
+        <h2 id="platform-modal-title">Gérer les plateformes</h2>
         <p>Un aperçu clair de tes plateformes. Modifie uniquement celle dont tu as besoin.</p>
       </div>
       <button type="button" class="platform-new-btn" id="new-platform-toggle">+ Nouvelle plateforme</button>
     </div>
     <div class="add-platform-row hidden" id="add-platform-row">
-      <input type="text" id="new-platform-name" placeholder="Nom de la nouvelle plateforme...">
+      <input type="text" id="new-platform-name" aria-label="Nom de la nouvelle plateforme" placeholder="Nom de la nouvelle plateforme...">
       <button type="button" class="add-platform-cancel" id="cancel-add-platform-btn">Annuler</button>
       <button type="button" id="add-platform-btn">Ajouter</button>
     </div>
@@ -539,6 +539,7 @@
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
 <script src="jtd-data.js?v=cemetery-sale-3"></script>
+<script src="dialogs.js?v=modal-keyboard-1"></script>
 <script src="app.js?v=edge-cases-1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=platform-alias-fix-1"></script>

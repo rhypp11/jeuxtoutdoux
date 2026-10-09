@@ -1592,6 +1592,8 @@ a {
 
 /* ---------- Modal ---------- */
 
+.field-error { color:var(--danger,#c43d32); font-size:12px; line-height:1.45; margin:6px 0 0; }
+
 .modal-overlay {
   position: fixed;
   inset: 0;
