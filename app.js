@@ -2605,11 +2605,6 @@ function goToPage(page, format, push = true){
       state.japanese = false;
       state.type = null;
     }
-    document.querySelectorAll('[data-collection-format]').forEach(button => {
-      const active = button.dataset.collectionFormat === fmt;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', String(active));
-    });
     applyCollectionSupportUI(fmt);
     buildPlatformList();
     buildFormatToggles();
@@ -2635,10 +2630,6 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     goToPage(btn.dataset.page, btn.dataset.format);
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
-});
-
-document.querySelectorAll('[data-collection-format]').forEach(button => {
-  button.addEventListener('click', () => goToPage('collection', button.dataset.collectionFormat));
 });
 
 /* ---------- Navigation mobile ---------- */
