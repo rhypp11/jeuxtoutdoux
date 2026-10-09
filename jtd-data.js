@@ -62,12 +62,8 @@
         if(item.lien) item.lien = safeURL(item.lien) || null;
         if(key === 'games'){
           if(item.format === 'Collector'){ item.format = 'Physique'; item.collector = true; }
+          // Preserve retired backup metadata without exposing it as a collection mode.
           if(!item.format) item.format = 'Physique';
-          if(!['Physique','Numérique'].includes(item.format)) throw new Error('Format invalide');
-          if(item.type === 'Compilation') item.type = 'Jeu simple';
-          if(item.type === 'Jeu + DLC') item.type = 'Complete Edition';
-          if(item.format !== 'Numérique') item.type = null;
-          else if(!item.type) item.type = 'Jeu simple';
         }
         return item;
       });
@@ -149,10 +145,8 @@
     const cleanGame = item => ({
       nom: String(item.nom || ''),
       plateforme: String(item.plateforme || ''),
-      format: item.format || null,
       collector: item.collector === true,
       japanese: item.japanese === true,
-      type: item.type || null,
       status: item.status || null
     });
     const cleanBoardItem = item => ({

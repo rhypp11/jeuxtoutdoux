@@ -66,10 +66,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   }
 
   function refreshAllViews(){
-    migrateGameTypes();
+    normalizeCollectionEditions();
     buildPlatformList();
     buildFormatToggles();
-    buildTypeToggles();
     buildStatusToggles();
     render();
     renderArrivals();

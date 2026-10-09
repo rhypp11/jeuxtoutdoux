@@ -45,6 +45,7 @@ Préserver l'ordre de chargement et les interfaces partagées entre scripts. Ré
 
 ## Choix produit à préserver
 
+- La collection concerne les jeux physiques uniquement ; ne pas ajouter de mode numérique ni de filtres DLC/type.
 - Interface en français, sobre et lisible, cohérente en thèmes clair et sombre.
 - Images des jeux horizontales. Sur mobile, les cartes utilisent la largeur disponible ; les modales doivent défiler et leurs actions rester accessibles sans chevauchement.
 - Wishlist et arrivages restent séparés en onglets sur mobile. Vérifier aussi le menu, les tiroirs, les dates et les listes longues.

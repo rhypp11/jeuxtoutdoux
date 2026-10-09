@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const D = require('../jtd-data.js');
-const game = (extra = {}) => ({id:'g',nom:'Persona',plateforme:'PC',format:'Numérique',...extra});
+const game = (extra = {}) => ({id:'g',nom:'Persona',plateforme:'PC',format:'Physique',...extra});
 function memory(){
   const values = new Map();
   return {values,getItem:key=>values.get(key) ?? null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
@@ -70,7 +70,7 @@ async function cloudHarness(){
     initializeApp:()=>({}),getAuth:()=>({}),getFirestore:()=>({}),doc:(_db,collection,id)=>({collection,id}),
     getDoc:async()=>({exists:()=>false}),setDoc:async(ref,data)=>writes.push({ref,data}),deleteDoc:async()=>{},
     onAuthStateChanged:(_auth,callback)=>{ctx.authCallback=callback;},signInWithEmailAndPassword(){},createUserWithEmailAndPassword(){},signOut(){},
-    initializeNavigation(){},resetNavigationSession(){},showToast(){},migrateGameTypes(){},buildPlatformList(){},buildFormatToggles(){},buildTypeToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
+    initializeNavigation(){},resetNavigationSession(){},showToast(){},normalizeCollectionEditions(){},buildPlatformList(){},buildFormatToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
   };
   ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',cemetery:'CEMETERY',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
   ctx.persistAppData = data => storage.atomicWrite([['games',JSON.stringify(data.games)]]);
@@ -230,4 +230,16 @@ test('public share contains the requested boards and sale details without acquis
     for(const item of board) assert.equal(Object.hasOwn(item,'date'),false);
   }
   assert.deepEqual(Object.keys(payload).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
+});
+
+test('retired backup metadata preserves entries without becoming public collection options', () => {
+  const original = game({format:'Ancien format',type:'Ancien type',collector:true,prix:25});
+  const restored = D.parseBackup([original]);
+  assert.equal(restored.games.length,1);
+  assert.equal(restored.games[0].format,original.format);
+  assert.equal(restored.games[0].type,original.type);
+  assert.equal(restored.games[0].prix,25);
+  const shared = D.createPublicSharePayload(restored).games[0];
+  assert.equal(Object.hasOwn(shared,'format'),false);
+  assert.equal(Object.hasOwn(shared,'type'),false);
 });

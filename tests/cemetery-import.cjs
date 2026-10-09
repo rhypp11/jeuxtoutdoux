@@ -25,7 +25,7 @@ const server = createSandboxServer();
       'JEU;NOM;Date;Source;Prix;Canal;Valeur;Gain',
       'PS5;Vente importée;2026-09-01;Fnac;30;🛜;18,50;14,25',
       'Switch 2;Fire Emblem — Test;2026-09-02;Test;59,99;🏪;45;35',
-      'PC;Persona 5 Royal;2026-09-03;Test;59,99;;45;25',
+      'Switch 2;Jeu Multi — Test;2026-09-03;Test;59,99;;45;25',
       'PS5;Terminé ailleurs — Test;2026-09-04;Test;24,99;;20;21',
       'PS4;Encore à vendre;2026-08-15;Micromania;12;🏪;10;',
       'PS5;Kena: Bridge of Spirits — Test;;;;;;'
@@ -44,7 +44,7 @@ const server = createSandboxServer();
       games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY
     }));
     assert.equal(after.games.some(item=>item.id==='test-fe'),false,'transfer removes only the matched collection game');
-    assert.ok(after.games.some(item=>item.id==='test-p5r'),'skip leaves the collection untouched');
+    assert.ok(after.games.some(item=>item.id==='test-party'),'skip leaves the collection untouched');
     assert.ok(after.games.some(item=>item.id==='test-elsewhere'),'keep leaves the collection copy in place');
     assert.equal(after.games.length,before.games.length-1);
     assert.deepEqual(after.arrivals,before.arrivals);
