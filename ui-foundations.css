@@ -205,3 +205,5 @@ button,input,select,textarea { font-family:var(--ui-font-sans); }
 :is(#page-collection,#page-cemetery,#home-boards,.modal-overlay) .image-fit-cover > img.game-art-image { object-fit:cover; }
 :is(#page-collection,#page-cemetery,#home-boards,.modal-overlay) .image-fit-cover > img.game-art-backdrop { display:none; }
 .image-fit-help { margin:0; font-size:11px; line-height:1.5; color:var(--muted); }
+.image-fit-field select { color-scheme:inherit; }
+.image-fit-field option { color:var(--text); background-color:var(--surface); }
