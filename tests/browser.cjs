@@ -75,7 +75,10 @@ async function restore(page, value, confirm=true){
       await page.evaluate(()=>dispatchEvent(new Event('online')));
       await page.getByRole('button',{name:'Actualiser',exact:true}).waitFor();
       await page.locator('#add-btn').click();
-      await page.getByRole('button',{name:'Actualiser',exact:true}).click();
+      // Background controls are inert while a dialog is open. Invoke the
+      // existing reload handler directly to keep testing its defensive guard.
+      assert.equal(await page.locator('#toast-stack').evaluate(el=>el.inert),true);
+      await page.locator('.toast-action').filter({hasText:'Actualiser'}).evaluate(el=>el.click());
       assert.ok(await page.locator('#modal-overlay').isVisible());
       await page.locator('#cancel-btn').click();
       await page.evaluate(()=>{window.JTDPrepareReload=async()=>false;dispatchEvent(new Event('online'));});

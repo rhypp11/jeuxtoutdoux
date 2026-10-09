@@ -433,10 +433,9 @@ function confirmAction(message, onConfirm, opts){
   document.getElementById('confirm-modal-message').textContent = message;
   const confirmBtn = document.getElementById('confirm-modal-confirm-btn');
   confirmBtn.textContent = (opts && opts.confirmLabel) || 'Supprimer';
-  overlay.classList.remove('hidden');
 
   const cleanup = () => {
-    overlay.classList.add('hidden');
+    window.JTDDialogs.close('confirm-modal-overlay');
     confirmBtn.removeEventListener('click', onConfirmClick);
     cancelBtn.removeEventListener('click', onCancelClick);
     activeConfirmationCleanup = null;
@@ -447,6 +446,7 @@ function confirmAction(message, onConfirm, opts){
   confirmBtn.addEventListener('click', onConfirmClick);
   cancelBtn.addEventListener('click', onCancelClick);
   activeConfirmationCleanup = cleanup;
+  window.JTDDialogs.open('confirm-modal-overlay', {onDismiss:cleanup,initialFocus:'#confirm-modal-cancel-btn'});
 }
 
 function euros(n){
@@ -864,6 +864,7 @@ function renderCard(g, options = {}){
 
   const card = document.createElement('div');
   card.className = 'card' + (g.collector ? ' collector' : '');
+  card.dataset.dialogTrigger = (options.readOnly ? 'sale:' : 'game:') + g.id;
   card.style.setProperty('--spine', color);
 
   const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
@@ -943,14 +944,12 @@ function renderCard(g, options = {}){
   }
   const onOpen = options.onOpen || (() => openModal(g.id));
   card.addEventListener('click', onOpen);
-  if(options.onOpen){
-    card.tabIndex = 0;
-    card.setAttribute('role', 'button');
-    card.setAttribute('aria-label', 'Modifier la vente de ' + g.nom);
-    card.addEventListener('keydown', event => {
-      if(event.key === 'Enter' || event.key === ' '){ event.preventDefault(); onOpen(); }
-    });
-  }
+  card.tabIndex = 0;
+  card.setAttribute('role', 'button');
+  card.setAttribute('aria-label', (options.onOpen ? 'Modifier la vente de ' : 'Modifier ') + g.nom);
+  card.addEventListener('keydown', event => {
+    if(event.target===card && (event.key === 'Enter' || event.key === ' ')){ event.preventDefault(); onOpen(); }
+  });
   return card;
 }
 
@@ -1320,14 +1319,14 @@ function openModal(id, collection = 'games'){
   setIdentityEditor('f', identityItem, !!editingId);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
-  document.getElementById('modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('modal-overlay', {onDismiss:closeModal});
   if(!editingId) document.getElementById('f-nom').focus();
 }
 
 function closeModal(){
   document.getElementById('f-sell-btn').classList.add('hidden');
   document.getElementById('save-btn').textContent = 'Enregistrer';
-  document.getElementById('modal-overlay').classList.add('hidden');
+  window.JTDDialogs.close('modal-overlay');
   document.getElementById('modal-overlay').classList.remove('cemetery-game-editor');
   editingId = null;
   editingCollection = 'games';
@@ -1340,11 +1339,9 @@ function updateImagePreview(){
 
 function saveModal(){
   const {nom, plateforme, collector, japanese, image} = readIdentityFields('f');
-  if(!nom){
-    document.getElementById('f-nom').focus();
-    return;
-  }
-  if(!plateforme){ document.getElementById('f-plateforme').focus(); return; }
+  window.JTDDialogs.clearErrors(document.getElementById('modal-overlay'));
+  if(!nom){ window.JTDDialogs.error('f-nom','Indique le nom du jeu.'); return; }
+  if(!plateforme){ window.JTDDialogs.error('f-plateforme','Choisis une plateforme.'); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
@@ -1545,6 +1542,13 @@ function renderArrivals(){
 
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
+    row.tabIndex = 0;
+    row.setAttribute('role','button');
+    row.setAttribute('aria-label','Modifier cet arrivage');
+    row.dataset.dialogTrigger = 'arrival:'+id;
+    row.addEventListener('keydown',event=>{
+      if(event.target===row && (event.key==='Enter' || event.key===' ')){event.preventDefault();openArrivalModal(id);}
+    });
     row.addEventListener('click', () => openArrivalModal(id));
     row.addEventListener('dragstart', () => {
       homeDragArrivalId = id;
@@ -1703,6 +1707,13 @@ function renderWishlist(){
       if(e.target.closest('.board-link')) return;
       openWishlistModal(item.id);
     });
+    row.tabIndex = 0;
+    row.setAttribute('role','button');
+    row.setAttribute('aria-label','Modifier '+item.nom);
+    row.dataset.dialogTrigger = 'wishlist:'+item.id;
+    row.addEventListener('keydown',event=>{
+      if(event.target===row && (event.key==='Enter' || event.key===' ')){event.preventDefault();openWishlistModal(item.id);}
+    });
     row.addEventListener('dragstart', () => {
       homeDragWishlistId = item.id;
       row.classList.add('dragging');
@@ -1822,21 +1833,22 @@ function openArrivalModal(id){
   }
   setIdentityEditor('a', identityItem, !!editingArrivalId);
   setContextEditor('a', identityItem, 'arrival', !!editingArrivalId);
-  document.getElementById('arrival-modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('arrival-modal-overlay', {onDismiss:closeArrivalModal});
   if(!editingArrivalId) document.getElementById('a-nom').focus();
 }
 
 function closeArrivalModal(){
   document.getElementById('a-save-btn').textContent = 'Enregistrer';
-  document.getElementById('arrival-modal-overlay').classList.add('hidden');
+  window.JTDDialogs.close('arrival-modal-overlay');
   editingArrivalId = null;
   convertingWishlistId = null; // annuler = l'item reste dans la wishlist
 }
 
 function saveArrivalModal(){
   const {nom, plateforme, collector, japanese, image} = readIdentityFields('a');
-  if(!nom){ document.getElementById('a-nom').focus(); return; }
-  if(!plateforme){ document.getElementById('a-plateforme').focus(); return; }
+  window.JTDDialogs.clearErrors(document.getElementById('arrival-modal-overlay'));
+  if(!nom){ window.JTDDialogs.error('a-nom','Indique le nom du jeu.'); return; }
+  if(!plateforme){ window.JTDDialogs.error('a-plateforme','Choisis une plateforme.'); return; }
 
   const date = document.getElementById('a-date').value || null;
   const prix = parsePriceInput(document.getElementById('a-prix').value);
@@ -1896,7 +1908,7 @@ function addArrivalToCollection(id){
   setContextEditor('f', item, 'purchase', true);
   document.getElementById('f-quick-hide-fields').classList.remove('hidden');
   document.getElementById('save-btn').textContent = 'Confirmer';
-  document.getElementById('modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('modal-overlay', {onDismiss:closeModal});
 }
 
 /* ----- Modal Wishlist ----- */
@@ -1928,20 +1940,21 @@ function openWishlistModal(id){
   }
   setIdentityEditor('w', identityItem, !!editingWishlistId);
   setContextEditor('w', identityItem, 'wishlist', !!editingWishlistId);
-  document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('wishlist-modal-overlay', {onDismiss:closeWishlistModal});
   if(!editingWishlistId) document.getElementById('w-nom').focus();
 }
 
 function closeWishlistModal(){
-  document.getElementById('wishlist-modal-overlay').classList.add('hidden');
+  window.JTDDialogs.close('wishlist-modal-overlay');
   editingWishlistId = null;
   convertingArrivalToWishlistId = null; // annuler = l'arrivage reste où il était
 }
 
 function saveWishlistModal(){
   const {nom, plateforme, collector, japanese, image} = readIdentityFields('w');
-  if(!nom){ document.getElementById('w-nom').focus(); return; }
-  if(!plateforme){ document.getElementById('w-plateforme').focus(); return; }
+  window.JTDDialogs.clearErrors(document.getElementById('wishlist-modal-overlay'));
+  if(!nom){ window.JTDDialogs.error('w-nom','Indique le nom du jeu.'); return; }
+  if(!plateforme){ window.JTDDialogs.error('w-plateforme','Choisis une plateforme.'); return; }
 
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
@@ -2001,7 +2014,7 @@ function moveWishlistToArrivals(id){
   document.getElementById('a-source').value = '';
   setIdentityEditor('a', item, true);
   setContextEditor('a', item, 'arrival', false);
-  document.getElementById('arrival-modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('arrival-modal-overlay', {onDismiss:closeArrivalModal});
 }
 
 function moveArrivalToWishlist(id){
@@ -2019,7 +2032,7 @@ function moveArrivalToWishlist(id){
   document.getElementById('w-lien').value = '';
   setIdentityEditor('w', item, true);
   setContextEditor('w', item, 'wishlist', false);
-  document.getElementById('wishlist-modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('wishlist-modal-overlay', {onDismiss:closeWishlistModal});
 }
 
 function updateImagePreviewFor(inputId, previewId){
@@ -2064,11 +2077,11 @@ document.getElementById('w-image').addEventListener('input', () => updateImagePr
 
 function openPlatformModal(){
   buildPlatformRows();
-  document.getElementById('platform-modal-overlay').classList.remove('hidden');
+  window.JTDDialogs.open('platform-modal-overlay', {onDismiss:closePlatformModal,initialFocus:'#new-platform-toggle'});
 }
 
 function closePlatformModal(){
-  document.getElementById('platform-modal-overlay').classList.add('hidden');
+  window.JTDDialogs.close('platform-modal-overlay');
   buildPlatformList();
   render();
 }
@@ -2197,11 +2210,10 @@ function buildPlatformRows(){
     row.querySelector('.platform-save-btn').addEventListener('click', () => {
       const current = row.dataset.currentName;
       const newName = nameInput.value.trim();
-      if(!newName){ nameInput.focus(); return; }
+      if(!newName){ window.JTDDialogs.error(nameInput,'Indique le nom de la plateforme.'); return; }
       const duplicate = allPlatformNames().find(name => name !== current && name.toLowerCase() === newName.toLowerCase());
       if(duplicate){
-        showToast(`La plateforme « ${duplicate} » existe déjà.`);
-        nameInput.focus();
+        window.JTDDialogs.error(nameInput,`La plateforme « ${duplicate} » existe déjà.`);
         return;
       }
 
@@ -2251,20 +2263,21 @@ function toHexColor(color){
 
 function setAddPlatformOpen(open){
   const form = document.getElementById('add-platform-row');
+  window.JTDDialogs.clearErrors(form);
   const toggle = document.getElementById('new-platform-toggle');
   form.classList.toggle('hidden', !open);
   toggle.classList.toggle('hidden', open);
   if(open) document.getElementById('new-platform-name').focus();
+  else toggle.focus();
 }
 
 function addPlatform(){
   const input = document.getElementById('new-platform-name');
   const name = input.value.trim();
-  if(!name) { input.focus(); return; }
+  if(!name) { window.JTDDialogs.error(input.id,'Indique le nom de la plateforme.'); return; }
   const existing = allPlatformNames().find(p => p.toLowerCase() === name.toLowerCase());
   if(existing){
-    showToast(`La plateforme « ${existing} » existe déjà.`);
-    input.focus();
+    window.JTDDialogs.error(input.id,`La plateforme « ${existing} » existe déjà.`);
     return;
   }
   ensurePlatformMeta(name);
@@ -2285,15 +2298,12 @@ document.getElementById('cancel-add-platform-btn').addEventListener('click', () 
 document.getElementById('add-platform-btn').addEventListener('click', addPlatform);
 document.getElementById('new-platform-name').addEventListener('keydown', (e) => {
   if(e.key === 'Enter'){ e.preventDefault(); addPlatform(); }
-  if(e.key === 'Escape'){ e.preventDefault(); e.target.value=''; setAddPlatformOpen(false); }
+  if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); e.target.value=''; setAddPlatformOpen(false); }
 });
 
 document.getElementById('sort-platforms-btn').addEventListener('click', togglePlatformSortMode);
 document.getElementById('manage-platforms-btn').addEventListener('click', openPlatformModal);
 document.getElementById('close-platform-modal-btn').addEventListener('click', closePlatformModal);
-document.getElementById('platform-modal-overlay').addEventListener('click', (e) => {
-  if(e.target.id === 'platform-modal-overlay') closePlatformModal();
-});
 
 document.getElementById('backup-btn').addEventListener('click', backupData);
 
@@ -2397,14 +2407,6 @@ document.getElementById('save-btn').addEventListener('click', saveModal);
 document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape'){
-    const overlay = document.getElementById('modal-overlay');
-    const layeredCemeteryEditor = !overlay.classList.contains('hidden') && overlay.classList.contains('cemetery-game-editor');
-    closeModal();
-    if(layeredCemeteryEditor) e.stopImmediatePropagation();
-  }
-});
 
 document.getElementById('search-input').addEventListener('input', (e) => {
   state.search = e.target.value;
