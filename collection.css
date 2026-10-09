@@ -4,6 +4,7 @@
 #page-collection .search-wrap input,
 #page-collection .sort-select {
   min-height:var(--ui-control-height-lg);
+  font-size:var(--ui-text-md);
   border:1px solid var(--ui-border);
   border-radius:var(--ui-radius-md);
   background:var(--ui-surface);
@@ -94,4 +95,15 @@
 }
 @media(max-width:380px) {
   #page-collection .card { padding:10px; }
+}
+
+/* Intermediate desktop widths keep search separate from the action pair. */
+@media (min-width:821px) and (max-width:1100px) {
+  #page-collection .top-row {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  #page-collection .search-wrap { grid-column:1 / -1; min-width:0; width:100%; }
+  #page-collection .sort-select { min-width:0; width:100%; max-width:none; }
+  #page-collection .add-btn-inline { min-width:0; width:100%; }
 }

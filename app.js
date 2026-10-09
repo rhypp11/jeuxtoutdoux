@@ -680,6 +680,7 @@ function buildPlatformList(){
   allItem.className = 'plat-item' + (state.platform === null ? ' active' : '');
   allItem.style.setProperty('--spine', 'var(--muted)');
   allItem.tabIndex = 0;
+  setFilterAccessibility(allItem, state.platform === null);
   const allIconSvg = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
   allItem.innerHTML = `${allIconSvg}<span class="plat-name">Toutes</span><span class="plat-count">${scoped.length}</span>`;
   allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); closeMobileDrawers(); };
@@ -692,6 +693,7 @@ function buildPlatformList(){
     item.className = 'plat-item' + (state.platform === p ? ' active' : '');
     item.style.setProperty('--spine', color);
     item.tabIndex = 0;
+  setFilterAccessibility(item, state.platform === p);
     const iconHtml = logo
       ? `<img class="mini-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
       : `<span class="spine-chip"></span>`;
@@ -701,18 +703,36 @@ function buildPlatformList(){
   });
 }
 
+function setFilterAccessibility(element, active){
+  element.setAttribute('role', 'button');
+  element.setAttribute('aria-pressed', String(active));
+  element.addEventListener('keydown', event => {
+    if(event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    const parent = element.parentElement;
+    const index = [...parent.children].indexOf(element);
+    element.click();
+    const replacement = parent.children[index];
+    const sidebar = parent.closest('.sidebar');
+    const closedDrawer = matchMedia('(max-width:820px)').matches && sidebar && !sidebar.classList.contains('mobile-open');
+    if(!closedDrawer && replacement?.getClientRects().length) replacement.focus({preventScroll:true});
+  });
+}
+
 function buildFormatToggles(){
   const container = document.getElementById('format-toggles');
   container.innerHTML = "";
   const collectorChip = document.createElement('div');
   collectorChip.className = 'toggle-chip' + (state.collector ? ' active' : '');
   collectorChip.tabIndex = 0;
+  setFilterAccessibility(collectorChip, state.collector);
   collectorChip.innerHTML = `<span class="toggle-chip-label">${FORMAT_ICON_STAR}<span>Collector</span></span>`;
   collectorChip.onclick = () => { state.collector = !state.collector; buildFormatToggles(); render(); };
   container.appendChild(collectorChip);
   const japaneseChip = document.createElement('div');
   japaneseChip.className = 'toggle-chip' + (state.japanese ? ' active' : '');
   japaneseChip.tabIndex = 0;
+  setFilterAccessibility(japaneseChip, state.japanese);
   japaneseChip.innerHTML = '<span class="toggle-chip-label"><span class="japanese-flag" aria-hidden="true"></span><span>Japonais</span></span>';
   japaneseChip.onclick = () => { state.japanese = !state.japanese; buildFormatToggles(); render(); };
   container.appendChild(japaneseChip);
@@ -726,6 +746,7 @@ function buildStatusToggles(){
     const isActive = state.status === s.key;
     chip.className = 'toggle-chip status-chip' + (isActive ? ' active' : '');
     chip.tabIndex = 0;
+  setFilterAccessibility(chip, isActive);
     chip.innerHTML = `<span class="toggle-chip-label"><span class="status-chip-icon" style="color:${s.color}">${s.icon}</span><span>${s.label}</span></span>`;
     if(isActive){
       chip.style.borderColor = s.border;
@@ -739,6 +760,7 @@ function buildStatusToggles(){
   const noneActive = state.status === '__none__';
   noneChip.className = 'toggle-chip status-chip' + (noneActive ? ' active' : '');
   noneChip.tabIndex = 0;
+  setFilterAccessibility(noneChip, noneActive);
   noneChip.innerHTML = `<span class="toggle-chip-label"><span class="status-chip-icon" style="color:var(--muted)">—</span><span>Sans statut</span></span>`;
   if(noneActive){
     noneChip.style.borderColor = 'var(--hairline)';
@@ -939,7 +961,7 @@ function renderResultsBar(count){
   const filters = [];
   if(state.platform) filters.push(state.platform);
   if(state.collector) filters.push('⭐ Collector');
-  if(state.japanese) filters.push('<span class="japanese-flag" aria-hidden="true"></span> Japonais');
+  if(state.japanese) filters.push({label:'Japonais', japanese:true});
   if(state.status){
     const s = STATUS_OPTIONS.find(x => x.key === state.status);
     filters.push(state.status === '__none__' ? 'Sans statut' : (s ? s.label : state.status));
@@ -948,7 +970,7 @@ function renderResultsBar(count){
 
   let html = `<span class="results-count">${count} jeu${count > 1 ? 'x' : ''}</span>`;
   if(filters.length){
-    html += `<span class="results-filters">${filters.map(f => `<b>${escapeHTML(f)}</b>`).join(' · ')}</span>`;
+    html += `<span class="results-filters">${filters.map(f => `<b>${f.japanese ? '<span class="japanese-flag" aria-hidden="true"></span> ' : ''}${escapeHTML(typeof f === 'string' ? f : f.label)}</b>`).join(' · ')}</span>`;
     html += `<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>`;
   }
   bar.innerHTML = html;
@@ -2443,7 +2465,11 @@ function persistNavigation(push = false){
 }
 function setHomeBoard(board){
   navigationBoard = board === 'arrivals' ? 'arrivals' : 'wishlist';
-  document.querySelectorAll('.home-boards-switch-btn').forEach(button => button.classList.toggle('active', button.dataset.target === navigationBoard));
+  document.querySelectorAll('.home-boards-switch-btn').forEach(button => {
+    const active = button.dataset.target === navigationBoard;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
   const boards = document.getElementById('home-boards');
   boards.classList.remove('show-wishlist', 'show-arrivals');
   boards.classList.add('show-' + navigationBoard);
@@ -2485,7 +2511,10 @@ function goToPage(page, push = true){
   persistNavigation();
   navigationPage = ['collection','cemetery'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
-    b.classList.toggle('active', b.dataset.page === navigationPage);
+    const active = b.dataset.page === navigationPage;
+    b.classList.toggle('active', active);
+    if(active) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
   });
   document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
@@ -2559,7 +2588,7 @@ if(topnavEl && window.ResizeObserver){
   window.addEventListener('load', updateTopnavHeightVar);
 }
 window.addEventListener('resize', () => {
-  if(window.innerWidth > 1100) closeMobileDrawers();
+  if(window.innerWidth > 820) closeMobileDrawers();
 });
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') closeMobileDrawers();

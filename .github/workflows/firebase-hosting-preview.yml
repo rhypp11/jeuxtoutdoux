@@ -53,7 +53,10 @@ jobs:
       - name: Check editing modal actions on mobile and desktop
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/modal-actions.cjs
 
-      - name: Compare cleaned CSS with the base branch
+      - name: Check shared page controls and keyboard filters
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/global-ui.cjs
+
+      - name: Compare unchanged modals with the base branch
         run: |
           git show '${{ github.event.pull_request.base.sha }}:styles.css' > "$RUNNER_TEMP/jtd-baseline.css"
           NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" JTD_BASELINE_CSS="$RUNNER_TEMP/jtd-baseline.css" node tests/css-regression.cjs
