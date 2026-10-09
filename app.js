@@ -889,10 +889,10 @@ function renderCard(g, options = {}){
     : '';
 
   const bannerInner = g.image
-    ? `<img src="${escapeHTML(safeURL(g.image, true))}" alt="${escapeHTML(g.nom)}">`
+    ? gameImageHtml(g, g.nom)
     : '';
 
-  const bannerHtml = `<div class="card-banner${g.image ? '' : ' placeholder'}">
+  const bannerHtml = `<div class="card-banner${gameImageClass(g)}${g.image ? '' : ' placeholder'}">
       ${bannerInner}
       <span class="card-fallback${g.image ? ' hidden' : ''}">${escapeHTML(g.plateforme.slice(0,2).toUpperCase())}</span>
     </div>`;
@@ -1136,6 +1136,15 @@ function setLastUsed(key, value){
   try { accountStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
+/* One image treatment for cards, board thumbnails and editing previews. */
+function gameImageHtml(item, alt = '', board = false){
+  const url = safeURL(item?.image, true);
+  if(!url) return '';
+  const src = escapeHTML(url);
+  return `<img class="game-art-backdrop" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="game-art-image" ${board ? 'data-board-art' : ''} src="${src}" alt="${escapeHTML(alt)}" decoding="async">`;
+}
+function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
+
 function identitySummaryHtml(item){
   const name = item && item.nom ? item.nom : 'Jeu';
   const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
@@ -1143,7 +1152,7 @@ function identitySummaryHtml(item){
   const color = getPlatformColor(platform);
   const logo = getPlatformLogo(platform);
   const thumb = image
-    ? `<img src="${escapeHTML(safeURL(image, true))}" alt="">`
+    ? gameImageHtml(item)
     : escapeHTML(platform.slice(0,2).toUpperCase());
   const platformIcon = logo
     ? `<img src="${escapeHTML(safeURL(logo, true))}" alt="">`
@@ -1152,7 +1161,7 @@ function identitySummaryHtml(item){
     ? `<span class="identity-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
     : '';
   return `
-    <div class="identity-thumb" style="${image ? '' : `background:${color}`}">${thumb}</div>
+    <div class="identity-thumb${gameImageClass(item)}" style="${image ? '' : `background:${color}`}">${thumb}</div>
     <div class="identity-copy">
       <strong>${collectorMark}${japaneseEditionMark(item)}<span>${escapeHTML(name)}</span></strong>
       <span>${platformIcon}${escapeHTML(platform)}</span>
@@ -1240,6 +1249,7 @@ function fillIdentityFields(prefix, item = {}){
   document.getElementById(prefix+'-collector').checked = !!item.collector;
   document.getElementById(prefix+'-japanese').checked = !!item.japanese;
   document.getElementById(prefix+'-image').value = item.image || '';
+  document.getElementById(prefix+'-image-fit').value = item.imageFit === 'cover' ? 'cover' : 'contain';
   updateImagePreviewFor(prefix+'-image', prefix === 'f' ? 'image-preview' : prefix+'-image-preview');
 }
 function readIdentityFields(prefix){
@@ -1248,7 +1258,8 @@ function readIdentityFields(prefix){
     plateforme:document.getElementById(prefix+'-plateforme').value.trim(),
     collector:document.getElementById(prefix+'-collector').checked,
     japanese:document.getElementById(prefix+'-japanese').checked,
-    image:safeURL(document.getElementById(prefix+'-image').value.trim(), true) || null
+    image:safeURL(document.getElementById(prefix+'-image').value.trim(), true) || null,
+    imageFit:document.getElementById(prefix+'-image-fit').value === 'cover' ? 'cover' : 'contain'
   };
 }
 function commitBoardTransfer(from, to, id, draft){
@@ -1314,6 +1325,7 @@ function openModal(id, collection = 'games'){
     document.getElementById('f-source').value = '';
     document.getElementById('f-image').value = '';
   }
+  document.getElementById('f-image-fit').value = editingId && items.find(x => x.id === editingId)?.imageFit === 'cover' ? 'cover' : 'contain';
   updateImagePreview();
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
   setIdentityEditor('f', identityItem, !!editingId);
@@ -1338,14 +1350,14 @@ function updateImagePreview(){
 }
 
 function saveModal(){
-  const {nom, plateforme, collector, japanese, image} = readIdentityFields('f');
+  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('f');
   window.JTDDialogs.clearErrors(document.getElementById('modal-overlay'));
   if(!nom){ window.JTDDialogs.error('f-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('f-plateforme','Choisis une plateforme.'); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
-  const fields = {nom, plateforme, prix, date, source, collector, japanese, image};
+  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const received = convertingArrivalId
     ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, format:'Physique', type:null, status:'a_jouer'})
@@ -1445,7 +1457,7 @@ function boardThumb(item){
     ? `<img src="${escapeHTML(logo)}" alt="" style="width:44px;height:44px;object-fit:contain;border-radius:8px;">`
     : `<span style="color:${color};font-weight:700;">${escapeHTML(initials)}</span>`;
   const image = safeURL(item.image, true);
-  return `<div class="board-thumb"><span class="board-image-fallback${image ? ' hidden' : ''}">${fallback}</span>${image ? `<img data-board-art src="${escapeHTML(image)}" alt="">` : ''}</div>`;
+  return `<div class="board-thumb${gameImageClass(item)}"><span class="board-image-fallback${image ? ' hidden' : ''}">${fallback}</span>${image ? gameImageHtml(item, '', true) : ''}</div>`;
 }
 
 function calendarDayHtml(date, opts = {}){
@@ -1845,7 +1857,7 @@ function closeArrivalModal(){
 }
 
 function saveArrivalModal(){
-  const {nom, plateforme, collector, japanese, image} = readIdentityFields('a');
+  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('a');
   window.JTDDialogs.clearErrors(document.getElementById('arrival-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('a-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('a-plateforme','Choisis une plateforme.'); return; }
@@ -1854,7 +1866,7 @@ function saveArrivalModal(){
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
 
-  const fields = {nom, plateforme, date, prix, source, collector, japanese, image};
+  const fields = {nom, plateforme, date, prix, source, collector, japanese, image, imageFit};
   const ordered = !!convertingWishlistId;
   if(ordered){
     if(!commitBoardTransfer('wishlist', 'arrivals', convertingWishlistId, fields)) return;
@@ -1951,7 +1963,7 @@ function closeWishlistModal(){
 }
 
 function saveWishlistModal(){
-  const {nom, plateforme, collector, japanese, image} = readIdentityFields('w');
+  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('w');
   window.JTDDialogs.clearErrors(document.getElementById('wishlist-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('w-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('w-plateforme','Choisis une plateforme.'); return; }
@@ -1959,7 +1971,7 @@ function saveWishlistModal(){
   const date = getFlexibleDate('w');
   const lien = document.getElementById('w-lien').value.trim() || null;
 
-  const fields = {nom, plateforme, date, lien, collector, japanese, image};
+  const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit};
   if(convertingArrivalToWishlistId){
     if(!commitBoardTransfer('arrivals', 'wishlist', convertingArrivalToWishlistId, fields)) return;
     renderArrivals();
@@ -2036,15 +2048,24 @@ function moveArrivalToWishlist(id){
 }
 
 function updateImagePreviewFor(inputId, previewId){
-  const url = safeURL(document.getElementById(inputId).value.trim(), true);
+  const prefix = inputId.slice(0,1);
+  const item = {image:document.getElementById(inputId).value.trim(), imageFit:document.getElementById(prefix+'-image-fit').value};
   const preview = document.getElementById(previewId);
+  const filled = item.imageFit === 'cover';
+  document.getElementById(prefix+'-image-fit-help').textContent = filled
+    ? 'Image agrandie sans déformation ; les bords peuvent être coupés.'
+    : 'Image entière, avec un fond flouté si nécessaire.';
+  preview.classList.add('game-art-frame');
+  preview.classList.toggle('image-fit-cover', filled);
+  preview.classList.toggle('image-fit-contain', !filled);
   preview.replaceChildren();
-  if(url){
-    const image = document.createElement('img');
-    image.src = url;
-    image.addEventListener('error', () => { preview.textContent = 'Image introuvable'; });
-    preview.appendChild(image);
+  if(safeURL(item.image, true)){
+    preview.innerHTML = gameImageHtml(item);
+    preview.querySelector('.game-art-image').addEventListener('error', () => { preview.textContent = 'Image introuvable'; });
   }else preview.textContent = "Aperçu de l'image";
+}
+for(const prefix of ['f','a','w']){
+  document.getElementById(prefix+'-image-fit').addEventListener('change', () => updateImagePreviewFor(prefix+'-image', prefix === 'f' ? 'image-preview' : prefix+'-image-preview'));
 }
 
 document.getElementById('add-arrival-btn').addEventListener('click', () => openArrivalModal(null));
@@ -2693,6 +2714,8 @@ document.addEventListener('error', event => {
   if(!(image instanceof HTMLImageElement)) return;
   const parent = image.parentElement;
   if(!parent) return;
+  if(image.classList.contains('game-art-backdrop')){ image.remove(); return; }
+  if(image.classList.contains('game-art-image')) parent.querySelector('.game-art-backdrop')?.remove();
   if(image.hasAttribute('data-board-art')){
     image.remove();
     parent.querySelector('.board-image-fallback')?.classList.remove('hidden');
