@@ -59,10 +59,13 @@ jobs:
       - name: Check long lists and empty collection transitions
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/edge-cases.cjs
 
-      - name: Compare unchanged modals with the base branch
+      - name: Compare pages and forms with the base branch
         run: |
-          git show '${{ github.event.pull_request.base.sha }}:styles.css' > "$RUNNER_TEMP/jtd-baseline.css"
-          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" JTD_BASELINE_CSS="$RUNNER_TEMP/jtd-baseline.css" node tests/css-regression.cjs
+          mkdir -p "$RUNNER_TEMP/jtd-baseline"
+          for file in index.html styles.css cemetery.css cemetery-import.css ui-foundations.css home-boards-v2.css collection.css; do
+            git show '${{ github.event.pull_request.base.sha }}:'"$file" > "$RUNNER_TEMP/jtd-baseline/$file"
+          done
+          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" JTD_BASELINE_CSS="$RUNNER_TEMP/jtd-baseline/styles.css" JTD_BASELINE_DIR="$RUNNER_TEMP/jtd-baseline" node tests/css-regression.cjs
 
       - name: Save theme screenshots
         if: always()
