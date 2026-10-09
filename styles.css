@@ -1445,9 +1445,6 @@ a {
   color: var(--muted);
 }
 
-.format-icon.download-icon {
-  color: var(--teal);
-}
 
 .card-title-icon {
   display: inline-flex;
@@ -2169,7 +2166,7 @@ a {
   margin: 2px 0 -4px;
 }
 
-/* ---------- Combo avec icône (plateforme / format) ---------- */
+/* ---------- Combo avec icône (plateforme) ---------- */
 
 .icon-select-wrap {
   position: relative;
@@ -6516,9 +6513,6 @@ input[type="date"] {
   grid-template-columns: minmax(0,1fr) 138px;
 }
 
-.identity-core-row:has(#f-type-field:not(.hidden)) {
-  grid-template-columns: minmax(0,1fr) minmax(0,.85fr);
-}
 
 .identity-collector-control {
   min-height: 42px;

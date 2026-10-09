@@ -21,7 +21,7 @@ async function scene(page,name){
   state.platform=null;state.search='';state.status=null;state.collector=false;state.japanese=false;
   if(['wishlist','arrivals','order','receive','drawer'].includes(name)){
    goToPage('home');setHomeBoard(name==='arrivals'||name==='receive'?'arrivals':'wishlist');
-  } else goToPage('collection','Physique');
+  } else goToPage('collection');
   if(name==='order')moveWishlistToArrivals(WISHLIST[0].id);
   if(name==='receive')addArrivalToCollection(ARRIVALS[0].id);
   if(name==='edit')openModal(GAMES.find(game=>game.format==='Physique').id);

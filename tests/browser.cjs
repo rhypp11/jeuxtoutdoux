@@ -110,13 +110,14 @@ async function restore(page, value, confirm=true){
       assert.ok(await page.evaluate(()=>[GAMES,ARRIVALS,WISHLIST].every(list=>list.every(item=>item.plateforme==='Ordinateur "test"'))));
       await page.locator('#page-collection .card').click();
       await page.locator('#cancel-btn').click();
-      // Historical digital entries must also open without the removed capability helper.
+      // Editing must preserve retired metadata from an old backup.
       await page.evaluate(()=>{
-        const previous = GAMES[0].format;
-        GAMES[0].format = 'Numérique'; state.format = null;
-        openModal(GAMES[0].id); GAMES[0].format = previous;
+        Object.assign(GAMES[0],{format:'Ancien format',type:'Ancien type'});
+        openModal(GAMES[0].id);
+        saveModal();
       });
-      await page.locator('#cancel-btn').click();
+      assert.equal(await page.evaluate(()=>GAMES[0].format),'Ancien format');
+      assert.equal(await page.evaluate(()=>GAMES[0].type),'Ancien type');
       const chatGPTDownloadEvent=page.waitForEvent('download');
       await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
       const chatGPTDownload=await chatGPTDownloadEvent;

@@ -17,7 +17,7 @@ const server=createSandboxServer();
         game.image='data:image/png;base64,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';
         game.collector=true; game.japanese=true; game.source='Boutique avec un nom très long';
         saveGames();
-        goToPage('collection','Physique');
+        goToPage('collection');
       });
       await page.locator('#grid .card-banner img').first().evaluate(img=>img.decode());
       const geometry=await page.locator('#grid .card').evaluateAll(cards=>cards.map(card=>{
@@ -41,7 +41,17 @@ const server=createSandboxServer();
       await page.locator('#modal-overlay').waitFor({state:'visible'});
       await page.locator('#cancel-btn').click();
       assert.equal(await page.locator('[data-collection-format]').count(),0,'Physical collection has no format selector');
-      assert.equal(await page.evaluate(()=>state.format),'Physique');
+      assert.equal(await page.locator('#f-type, #f-format, #type-filter-section').count(),0);
+      const bannerGap=await page.evaluate(()=>{
+        const banner=document.getElementById('platform-banner').getBoundingClientRect();
+        const nav=document.querySelector('.topnav').getBoundingClientRect();
+        return banner.top-nav.bottom;
+      });
+      assert.ok(bannerGap >= (width<=820 ? 16 : 24)-.5,'Platform banner has breathing room below top navigation');
+      await page.evaluate(()=>applyNavigation({page:'collection',format:'Ancien format',type:'Ancien type'}));
+      assert.equal(await page.evaluate(()=>Object.hasOwn(state,'format')||Object.hasOwn(state,'type')),false);
+      assert.equal(await page.locator('#grid .card').count(),await page.evaluate(()=>GAMES.length));
+      assert.equal(await page.evaluate(()=>location.hash.includes('format=')||location.hash.includes('type=')),false);
       await context.close();
       console.log(`PASS collection ${width}px ${theme}: image, long title, metadata, status menu and edit`);
     }

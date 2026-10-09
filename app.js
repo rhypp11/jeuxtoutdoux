@@ -12,7 +12,6 @@ if(IS_PREVIEW_MODE){
 }
 const PREVIEW_SEED = {
   games: [
-    {id:'test-p5r',nom:'Persona 5 Royal',plateforme:'PC',prix:59.99,format:'Numérique',collector:false,type:'Jeu simple',status:'termine',date:'2026-01-15',source:'Steam',image:null},
     {id:'test-fe',japanese:true,nom:'Fire Emblem — Test',plateforme:'Switch 2',prix:59.99,format:'Physique',collector:false,type:null,status:'a_jouer',date:'2026-09-17',source:'Test',image:null},
     {id:'test-party',nom:'Jeu Multi — Test',plateforme:'Switch 2',prix:39.99,format:'Physique',collector:false,type:null,status:'multi',date:'2026-05-01',source:'Test',image:null},
     {id:'test-elsewhere',nom:'Terminé ailleurs — Test',plateforme:'PlayStation 5',prix:24.99,format:'Physique',collector:true,type:null,status:'termine_ailleurs',date:'2025-12-01',source:'Test',image:null}
@@ -365,18 +364,6 @@ function updateSortButtonUI(){
 const ICON_STATUS_TODO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"></circle><line x1="12" y1="9" x2="12" y2="15"></line><rect x="6" y="15" width="12" height="5" rx="1.5"></rect></svg>`;
 const ICON_STATUS_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3c2.5 0 4 3 6 3s3.5-3 6-3c1.66 0 3 1.34 3 3s-1.34 3-3 3c-2.5 0-4-3-6-3s-3.5 3-6 3z"></path></svg>`;
-const ICON_TYPE_COMPILATION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`;
-const ICON_TYPE_SIMPLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"></rect></svg>`;
-const ICON_TYPE_PUZZLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h7v5a2 2 0 1 0 4 0V4h5v16h-5v-3a2 2 0 1 0-4 0v3H4z"></path></svg>`;
-const ICON_TYPE_UPGRADE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M12 16V8"></path><path d="M8.5 11.5 12 8l3.5 3.5"></path></svg>`;
-const TYPE_META = {
-  'Jeu simple': { icon: ICON_TYPE_SIMPLE, label:'Jeu simple' },
-  'DLC extension': { icon: ICON_TYPE_PUZZLE, label:'DLC' },
-  'Mise à niveau': { icon: ICON_TYPE_UPGRADE, label:'Mise à niveau' },
-  'Complete Edition': { icon: ICON_TYPE_COMPILATION, label:'Complete Edition' }
-};
-
-
 const STATUS_OPTIONS = [
   { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", fill: "var(--status-todo-fill)", bg: "color-mix(in srgb,var(--status-todo-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-todo-fill) 55%,var(--surface))" },
   { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", fill: "var(--status-multi-fill)", bg: "color-mix(in srgb,var(--status-multi-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-multi-fill) 55%,var(--surface))" },
@@ -399,8 +386,6 @@ let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascul
 
 let state = {
   platform: null,
-  format: null,
-  type: null,
   collector: false,
   japanese: false,
   status: null,
@@ -496,13 +481,7 @@ async function loadGames(){
   await saveGames();
 }
 
-function migrateTypeValue(type){
-  if(type === 'Compilation') return 'Jeu simple';
-  if(type === 'Jeu + DLC') return 'Complete Edition';
-  return type;
-}
-
-function migrateGameTypes(){
+function normalizeCollectionEditions(){
   GAMES.forEach(g => {
     if(g.format === 'Collector'){
       g.format = 'Physique';
@@ -510,9 +489,6 @@ function migrateGameTypes(){
     } else if(g.collector === undefined){
       g.collector = false;
     }
-    g.type = migrateTypeValue(g.type);
-    if(g.format === 'Numérique' && !g.type) g.type = 'Jeu simple';
-    if(g.format !== 'Numérique') g.type = null;
   });
 }
 
@@ -615,7 +591,6 @@ function applyRestoredData(data){
   state.platform = null;
   buildPlatformList();
   buildFormatToggles();
-  buildTypeToggles();
   buildStatusToggles();
   render();
   renderArrivals();
@@ -689,7 +664,7 @@ function setStatus(id, statusKey){
 }
 
 function buildPlatformList(){
-  const scoped = state.format ? GAMES.filter(g => g.format === state.format) : GAMES;
+  const scoped = GAMES;
   const counts = Object.create(null);
   scoped.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
   const platforms = platformSortMode === 'custom'
@@ -705,10 +680,7 @@ function buildPlatformList(){
   allItem.className = 'plat-item' + (state.platform === null ? ' active' : '');
   allItem.style.setProperty('--spine', 'var(--muted)');
   allItem.tabIndex = 0;
-  const isNumeriqueScope = state.format === 'Numérique';
-  const allIconSvg = isNumeriqueScope
-    ? `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--teal);"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>`
-    : `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
+  const allIconSvg = `<svg class="gamepad-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
   allItem.innerHTML = `${allIconSvg}<span class="plat-name">Toutes</span><span class="plat-count">${scoped.length}</span>`;
   allItem.onclick = () => { state.platform = null; buildPlatformList(); render(); closeMobileDrawers(); };
   container.appendChild(allItem);
@@ -729,17 +701,6 @@ function buildPlatformList(){
   });
 }
 
-function applyCollectionSupportUI(format){
-  const isPhysical = format !== 'Numérique';
-  document.getElementById('collector-filter-section').classList.toggle('hidden', !isPhysical);
-  document.getElementById('type-filter-section').classList.toggle('hidden', isPhysical);
-  const addBtn = document.getElementById('add-btn');
-  if(addBtn){
-    addBtn.textContent = isPhysical ? '+ Ajouter un jeu physique' : '+ Ajouter un jeu numérique';
-
-  }
-}
-
 function buildFormatToggles(){
   const container = document.getElementById('format-toggles');
   container.innerHTML = "";
@@ -755,20 +716,6 @@ function buildFormatToggles(){
   japaneseChip.innerHTML = '<span class="toggle-chip-label"><span class="japanese-flag" aria-hidden="true"></span><span>Japonais</span></span>';
   japaneseChip.onclick = () => { state.japanese = !state.japanese; buildFormatToggles(); render(); };
   container.appendChild(japaneseChip);
-}
-
-function buildTypeToggles(){
-  const container = document.getElementById('type-toggles');
-  if(!container) return;
-  container.innerHTML = "";
-  Object.keys(TYPE_META).forEach(t => {
-    const chip = document.createElement('div');
-    chip.className = 'toggle-chip' + (state.type === t ? ' active' : '');
-    chip.tabIndex = 0;
-    chip.innerHTML = `<span class="toggle-chip-label">${TYPE_META[t].icon}<span>${TYPE_META[t].label}</span></span>`;
-    chip.onclick = () => { state.type = (state.type === t ? null : t); buildTypeToggles(); render(); };
-    container.appendChild(chip);
-  });
 }
 
 function buildStatusToggles(){
@@ -809,10 +756,8 @@ function filteredGames(){
   const q = state.search.trim().toLowerCase();
   return GAMES.filter(g => {
       if(state.platform && g.plateforme !== state.platform) return false;
-      if(state.format && g.format !== state.format) return false;
       if(state.collector && !g.collector) return false;
       if(state.japanese && !g.japanese) return false;
-      if(state.type && (g.type || 'Jeu simple') !== state.type) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
       if(state.status){
         if(state.status === '__none__'){
@@ -995,7 +940,6 @@ function renderResultsBar(count){
   if(state.platform) filters.push(state.platform);
   if(state.collector) filters.push('⭐ Collector');
   if(state.japanese) filters.push('<span class="japanese-flag" aria-hidden="true"></span> Japonais');
-  if(state.type) filters.push((TYPE_META[state.type] || {}).label || state.type);
   if(state.status){
     const s = STATUS_OPTIONS.find(x => x.key === state.status);
     filters.push(state.status === '__none__' ? 'Sans statut' : (s ? s.label : state.status));
@@ -1042,10 +986,10 @@ function allPlatformNames(){
   return [...names].sort();
 }
 
-/* ---------- Combo avec icône (plateforme / format) ---------- */
+/* ---------- Combo avec icône (plateforme) ---------- */
 /* Le <select> natif reste la source de vérité (valeur, focus clavier, formulaire) ;
    on l'habille visuellement d'un déclencheur + liste custom pour pouvoir y afficher
-   des icônes (logos de plateforme, pictos Collector/Physique), ce qu'un <select> natif
+   des logos de plateforme, ce qu'un <select> natif
    ne permet pas. */
 
 const iconSelectRegistry = {};
@@ -1065,8 +1009,6 @@ function japaneseEditionMark(item){
 }
 
 const FORMAT_ICON_STAR = `<svg class="format-icon star-icon icon-select-icon-svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" title="Collector"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
-const FORMAT_ICON_DISC = `<svg class="format-icon disc-icon icon-select-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="Physique"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>`;
-const FORMAT_ICON_DOWNLOAD = `<svg class="format-icon download-icon icon-select-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" title="Numérique"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 19h16"></path></svg>`;
 
 function iconSelectify(selectId, getIcon){
   iconSelectRegistry[selectId] = { getIcon };
@@ -1150,20 +1092,6 @@ function populatePlatformSelect(selectId){
   select.innerHTML = platforms.map(p => `<option value="${escapeHTML(p)}">${escapeHTML(p)}</option>`).join('');
   if(current && platforms.includes(current)) select.value = current;
   else if(platforms.length) select.value = platforms[0];
-  rebuildIconSelectList(selectId);
-  syncIconSelectTrigger(selectId);
-}
-
-const TYPE_OPTIONS_DIGITAL = ['Jeu simple','DLC extension','Mise à niveau','Complete Edition'];
-
-function populateTypeSelect(selectId, format){
-  const select = document.getElementById(selectId);
-  if(!select) return;
-  const options = TYPE_OPTIONS_DIGITAL;
-  const current = select.value;
-  select.innerHTML = options.map(t => `<option value="${t}">${TYPE_META[t].label}</option>`).join('');
-  if(current && options.includes(current)) select.value = current;
-  else select.value = options[0];
   rebuildIconSelectList(selectId);
   syncIconSelectTrigger(selectId);
 }
@@ -1337,15 +1265,10 @@ function openModal(id, collection = 'games'){
     deleteBtn.classList.toggle('hidden', editingCollection === 'cemetery');
     document.getElementById('f-quick-hide-fields').classList.remove('hidden');
     document.getElementById('f-nom').value = g.nom || '';
-    const lockedFormat = (editingCollection === 'cemetery' ? g.format : state.format || g.format) || 'Physique';
-    setSelectValueAndSync('f-format', lockedFormat);
     populatePlatformSelect('f-plateforme');
     setSelectValueAndSync('f-plateforme', g.plateforme);
-    populateTypeSelect('f-type', lockedFormat);
-    setSelectValueAndSync('f-type', g.type || 'Jeu simple');
     document.getElementById('f-collector').checked = !!g.collector;
   document.getElementById('f-japanese').checked = !!g.japanese;
-    toggleFormatDependentFields(lockedFormat);
     document.getElementById('f-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
     document.getElementById('f-date').value = g.date || '';
     document.getElementById('f-source').value = g.source || '';
@@ -1354,8 +1277,6 @@ function openModal(id, collection = 'games'){
     title.textContent = 'Ajouter un jeu';
     deleteBtn.classList.add('hidden');
     document.getElementById('f-nom').value = '';
-    const lastFormat = state.format || getLastUsed('format', 'Physique');
-    setSelectValueAndSync('f-format', lastFormat);
     populatePlatformSelect('f-plateforme');
     if(state.platform){
       setSelectValueAndSync('f-plateforme', state.platform);
@@ -1363,11 +1284,8 @@ function openModal(id, collection = 'games'){
       const lastPlatform = getLastUsed('platform', '');
       if(lastPlatform) setSelectValueAndSync('f-plateforme', lastPlatform);
     }
-    populateTypeSelect('f-type', lastFormat);
-    setSelectValueAndSync('f-type', 'Jeu simple');
     document.getElementById('f-collector').checked = false;
   document.getElementById('f-japanese').checked = false;
-    toggleFormatDependentFields(lastFormat);
     document.getElementById('f-prix').value = '';
     document.getElementById('f-date').value = '';
     document.getElementById('f-source').value = '';
@@ -1406,25 +1324,21 @@ function saveModal(){
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
-  const format = document.getElementById('f-format').value;
-  const type = format === 'Numérique' ? document.getElementById('f-type').value : null;
-
-  const fields = {nom, plateforme, prix, date, source, format, collector, japanese, type, image};
+  const fields = {nom, plateforme, prix, date, source, collector, japanese, image};
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const received = convertingArrivalId
-    ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, status:'a_jouer'})
+    ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, format:'Physique', type:null, status:'a_jouer'})
     : null;
   if(convertingArrivalId && !received) return;
   if(editedCemetery){
     if(!window.updateCemeteryGame?.(editingId, fields)) return;
   } else if(!convertingArrivalId){
     if(editingId) Object.assign(GAMES.find(x => x.id === editingId), fields);
-    else GAMES.push({id:crypto.randomUUID(), ...fields, status:null});
+    else GAMES.push({id:crypto.randomUUID(), ...fields, format:'Physique', type:null, status:null});
     saveGames();
   } else renderArrivals();
 
   setLastUsed('platform', plateforme);
-  setLastUsed('format', format);
   closeModal();
   buildPlatformList();
   render();
@@ -1434,11 +1348,11 @@ function saveModal(){
     return;
   }
   if(received) showToast(`« ${received.nom} » ajouté à la collection.`, 'Voir', () => {
-    goToPage('collection', received.format);
+    goToPage('collection');
     state.platform = received.plateforme;
     state.search = ''; document.getElementById('search-input').value = '';
-    state.status = null; state.collector = false; state.japanese = false; state.type = null;
-    buildPlatformList(); buildFormatToggles(); buildTypeToggles(); buildStatusToggles(); render();
+    state.status = null; state.collector = false; state.japanese = false;
+    buildPlatformList(); buildFormatToggles(); buildStatusToggles(); render();
   });
 }
 
@@ -1954,10 +1868,6 @@ function addArrivalToCollection(id){
   document.getElementById('f-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
   document.getElementById('f-date').value = item.date || '';
   document.getElementById('f-source').value = item.source || '';
-  setSelectValueAndSync('f-format', 'Physique');
-  populateTypeSelect('f-type', 'Physique');
-  setSelectValueAndSync('f-type', 'Jeu simple');
-  toggleFormatDependentFields('Physique');
   setIdentityEditor('f', item, true);
   setContextEditor('f', item, 'purchase', true);
   document.getElementById('f-quick-hide-fields').classList.remove('hidden');
@@ -2462,13 +2372,6 @@ document.getElementById('cancel-btn').addEventListener('click', closeModal);
 document.getElementById('save-btn').addEventListener('click', saveModal);
 document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
-function toggleFormatDependentFields(format){
-  const isPhysical = format !== 'Numérique';
-  const collectorField = document.getElementById('f-collector-field');
-  const typeField = document.getElementById('f-type-field');
-  if(collectorField) collectorField.classList.toggle('hidden', !isPhysical);
-  if(typeField) typeField.classList.toggle('hidden', isPhysical);
-}
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape'){
@@ -2490,13 +2393,11 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  const keepFormat = state.format;
-  state = { platform:null, format:keepFormat, type:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
+  state = { platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
   buildFormatToggles();
-  buildTypeToggles();
   buildStatusToggles();
   render();
 });
@@ -2513,8 +2414,7 @@ function navigationSnapshot(){
 }
 function navigationHash(view){
   const params = new URLSearchParams();
-  if(view.format) params.set('format', view.format);
-  for(const key of ['platform','type','status','search']) if(view[key]) params.set(key, view[key]);
+  for(const key of ['platform','status','search']) if(view[key]) params.set(key, view[key]);
   for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
   if(view.board === 'arrivals') params.set('board', 'arrivals');
@@ -2551,11 +2451,8 @@ function setHomeBoard(board){
 function applyNavigation(view = {}){
   restoringNavigation = true;
   navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
-  const format = ['Physique','Numérique'].includes(view.format) ? view.format : (navigationPage === 'collection' ? 'Physique' : null);
   state = {
-    format,
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
-    type:['Jeu simple','DLC extension','Mise à niveau','Complete Edition'].includes(view.type) ? view.type : null,
     collector:view.collector === true, japanese:view.japanese === true,
     status:STATUS_OPTIONS.some(s => s.key === view.status) || view.status === '__none__' ? view.status : null,
     search:typeof view.search === 'string' ? view.search.slice(0,200) : '',
@@ -2564,7 +2461,7 @@ function applyNavigation(view = {}){
   document.getElementById('search-input').value = state.search;
   document.getElementById('sort-select').value = state.sort;
   setHomeBoard(view.board);
-  goToPage(navigationPage, state.format, false);
+  goToPage(navigationPage, false);
   restoringNavigation = false;
   persistNavigation();
 }
@@ -2582,7 +2479,7 @@ function resetNavigationSession(){
     history.replaceState(null, '', location.pathname + location.search);
   }
 }
-function goToPage(page, format, push = true){
+function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
@@ -2590,25 +2487,15 @@ function goToPage(page, format, push = true){
   document.querySelectorAll('.nav-tab').forEach(b => {
     b.classList.toggle('active', b.dataset.page === navigationPage);
   });
-  document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection ' + ((format || 'Physique') === 'Numérique' ? 'numérique' : 'physique') : 'Accueil');
+  document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
   if(navigationPage === 'collection'){
-    const fmt = format || 'Physique';
-    if(state.format !== fmt){
-      state.format = fmt;
-      state.platform = null;
-      state.collector = false;
-      state.japanese = false;
-      state.type = null;
-    }
-    applyCollectionSupportUI(fmt);
     buildPlatformList();
     buildFormatToggles();
-    buildTypeToggles();
     buildStatusToggles();
     render();
   }
@@ -2627,7 +2514,7 @@ window.addEventListener('hashchange', () => {
 });
 document.querySelectorAll('.nav-tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    goToPage(btn.dataset.page, btn.dataset.format);
+    goToPage(btn.dataset.page);
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
 });
@@ -2699,7 +2586,7 @@ async function initApp(isCurrent = () => true){
   CEMETERY = IS_PREVIEW_MODE ? loadPreviewData().cemetery : JSON.parse(accountStorage.getItem(CEMETERY_KEY) || '[]');
   window.renderCemetery?.();
   if(!isCurrent()) return;
-  migrateGameTypes();
+  normalizeCollectionEditions();
   try { const mode = accountStorage.getItem(PLATFORM_SORT_MODE_KEY); platformSortMode = mode === 'custom' ? 'custom' : 'count'; }catch(e){}
   seedPcPlatformOnce();
   iconSelectify('f-plateforme', getPlatformOptionIconHtml);
@@ -2707,7 +2594,6 @@ async function initApp(isCurrent = () => true){
   iconSelectify('w-plateforme', getPlatformOptionIconHtml);
   buildPlatformList();
   buildFormatToggles();
-  buildTypeToggles();
   buildStatusToggles();
   render();
   renderArrivals();

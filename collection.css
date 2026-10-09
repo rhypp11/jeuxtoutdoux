@@ -1,5 +1,5 @@
 /* Collection — scoped presentation, shared JTD foundations. */
-#page-collection .main { min-width:0; }
+#page-collection .main { min-width:0; padding-top:var(--ui-space-6); }
 #page-collection .top-row { gap:var(--ui-space-2); }
 #page-collection .search-wrap input,
 #page-collection .sort-select {
@@ -86,6 +86,7 @@
 #collection-sidebar .plat-item.active { background:color-mix(in srgb,var(--ui-accent) 9%,var(--ui-sidebar)); }
 #collection-sidebar .plat-item.active::before { background:var(--ui-accent); }
 @media(max-width:820px) {
+  #page-collection .main { padding-top:var(--ui-space-4); }
   #page-collection .card { padding:12px; }
   #page-collection .card-body { padding:0; }
   #page-collection .card-name { font-size:14px; }
