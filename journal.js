@@ -2,8 +2,8 @@
 (() => {
  'use strict';
  const $=id=>document.getElementById(id), esc=JTDData.escapeHTML;
- const statusNames={playing:'En cours',backlog:'Backlog',done:'Terminé',abandoned:'Abandonné'};
- const completionNames={finished:'Terminé',hundred:'100 %',achievements:'Tous les succès',both:'100 % · Tous les succès'};
+ const statusNames={playing:'En cours',backlog:'Backlog',done:'Terminé'};
+ const completionNames={finished:'Terminé',hundred:'100 %',achievements:'Tous les succès'};
  const feelings={gem:'Pépite',love:'Adoré',like:'Aimé',mixed:'Mitigé',dislike:'Pas aimé'};
  const bookshelf='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4v16M8 8v12M12 6v14m4-14 4 14"/></svg>';
  const puzzle='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h6V2a2 2 0 0 1 4 0v2h6v6h-2a2 2 0 0 0 0 4h2v6h-6v-2a2 2 0 0 0-4 0v2H4v-6h2a2 2 0 0 0 0-4H4Z"/></svg>';
@@ -13,14 +13,14 @@
  function metadata(r){return '<span>'+esc(r.plateforme)+'</span>'+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+(r.collectionId?'<span>'+bookshelf+'Collection</span>':'');}
  function row(r,compact=false){
   const day=r.finishedAt?.slice(8), month=r.finishedAt?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
-  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span><span class="journal-result"><span>'+esc(r.status==='done'?completionNames[r.completion]:statusNames[r.status])+'</span>'+(r.status==='done'&&r.feeling?'<span>'+esc(feelings[r.feeling])+'</span>':'')+(r.status==='done'&&r.review?'<span class="journal-review-mark">Avis rédigé</span>':'')+'</span></span></button>';
+  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span><span class="journal-result"><span>'+(r.status==='playing'?ICON_STATUS_PLAYING:'')+esc(r.status==='done'?completionNames[r.completion]:statusNames[r.status])+'</span>'+(r.status==='done'&&r.feeling?'<span>'+esc(feelings[r.feeling])+'</span>':'')+(r.status==='done'&&r.review?'<span class="journal-review-mark">Avis rédigé</span>':'')+'</span></span></button>';
  }
  function renderJournal(){
   const selected=year;
-  const years=[...new Set([String(new Date().getFullYear()),...JOURNAL.filter(r=>r.finishedAt&&['done','abandoned'].includes(r.status)).map(r=>r.finishedAt.slice(0,4))])].sort().reverse();
+  const years=[...new Set([String(new Date().getFullYear()),...JOURNAL.filter(r=>r.finishedAt&&r.status==='done').map(r=>r.finishedAt.slice(0,4))])].sort().reverse();
   if(!years.includes(selected)) years.push(selected);
   $('journal-year').innerHTML=years.map(y=>'<option value="'+y+'">'+y+'</option>').join('');$('journal-year').value=selected;
-  const past=JOURNAL.filter(r=>['done','abandoned'].includes(r.status)&&(!r.finishedAt||r.finishedAt.startsWith(year))).sort((a,b)=>(b.finishedAt||'').localeCompare(a.finishedAt||'')||a.nom.localeCompare(b.nom,'fr'));
+  const past=JOURNAL.filter(r=>r.status==='done'&&(!r.finishedAt||r.finishedAt.startsWith(year))).sort((a,b)=>(b.finishedAt||'').localeCompare(a.finishedAt||'')||a.nom.localeCompare(b.nom,'fr'));
   const groups=new Map();for(const r of past){const key=r.finishedAt?r.finishedAt.slice(0,7):'none';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
   const dated=[...groups.keys()].filter(k=>k!=='none');const shown=dated.slice(0,monthLimit);
   $('journal-feed').innerHTML=shown.map(k=>'<section class="journal-month"><h2>'+esc(MONTH_NAMES_FULL[Number(k.slice(5))-1])+'</h2>'+groups.get(k).map(r=>row(r)).join('')+'</section>').join('')+(dated.length>monthLimit?'<button class="btn btn-ghost" id="journal-more">Voir les mois précédents</button>':'')+(groups.has('none')?'<section class="journal-month"><h2>Sans date</h2>'+groups.get('none').map(r=>row(r)).join('')+'</section>':'')+(!past.length?'<p class="journal-empty">Aucun jeu terminé cette année.</p>':'');

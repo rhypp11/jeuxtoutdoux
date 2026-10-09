@@ -3,10 +3,14 @@ const assert=require('node:assert/strict');
 const D=require('../jtd-data.js'),J=require('../journal-data.js');
 const game={id:'physical',nom:'Ancien nom',plateforme:'PC',status:'multi'};
 const entry=(extra={})=>J.normalizeJournal([{id:'r',nom:'Nouveau nom',plateforme:'PC',collectionId:game.id,status:'done',medium:'physical',finishedAt:'2026-10-09',...extra}])[0];
+test('retired preview choices are simplified without discarding entries or reviews',()=>{
+ const restored=entry({status:'abandoned',completion:'both',review:'Avis de test'});
+ assert.equal(restored.status,'backlog');assert.equal(restored.completion,'achievements');assert.equal(restored.review,'Avis de test');
+});
 test('stable link survives title differences and restores former collection status on unlink',()=>{
- const result=D.normalizeData({games:[game],journal:[entry({completion:'both'})]});
+ const result=D.normalizeData({games:[game],journal:[entry({completion:'achievements'})]});
  assert.equal(result.games[0].status,'termine');assert.equal(result.games[0].journalPreviousStatus,'multi');
- assert.equal(J.collectionProgress(result.journal,game.id).completion,'both');
+ assert.equal(J.collectionProgress(result.journal,game.id).completion,'achievements');
  assert.equal(D.normalizeData({...result,journal:[]}).games[0].status,'multi');
 });
 test('replays preserve completed history and digital completion marks finished elsewhere',()=>{

@@ -43,4 +43,3 @@ const server=createSandboxServer();
  }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
-

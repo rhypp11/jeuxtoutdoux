@@ -1,6 +1,6 @@
 # Journal de joueur
 
-Le journal est privé et stocké avec les autres listes du compte. Une entrée décrit un parcours (jeu ou extension), son support joué, son accès et son statut. Les champs de fin, de ressenti et d’avis sont affichés uniquement pour les jeux terminés. Un replay crée une entrée distincte.
+Le journal est privé et stocké avec les autres listes du compte. Une entrée décrit un parcours (jeu ou extension), son support joué, son accès et son statut. Les champs de fin, de ressenti et d’avis sont affichés uniquement pour les jeux terminés. Un replay crée une entrée distincte. La complétion propose « Jeu terminé », « 100 % » ou « Tous les succès », sans cumul. Le statut « En cours » utilise une manette et les statuts issus du journal sont identifiés sur les cartes de collection.
 
 Le lien avec la collection utilise l’identifiant exact d’un exemplaire. Il est choisi explicitement ; aucun rapprochement par nom n’est effectué. Une entrée indépendante, numérique ou une extension ne crée pas de jeu dans la collection physique. Les extensions restent indépendantes du statut du jeu de base.
 

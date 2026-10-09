@@ -1,8 +1,8 @@
 /* Journal rules shared by backup validation, collection links and the UI. */
 (function(root){
   'use strict';
-  const statuses = ['playing','backlog','done','abandoned'];
-  const completions = ['finished','hundred','achievements','both'];
+  const statuses = ['playing','backlog','done'];
+  const completions = ['finished','hundred','achievements'];
   const feelings = ['', 'gem','love','like','mixed','dislike'];
   const own = (value, field) => Object.prototype.hasOwnProperty.call(value, field);
   function string(value, label, max, optional = false){
@@ -45,8 +45,8 @@
       }
       if(kind==='extension' && collectionId) throw Error('Une extension reste indépendante de la collection');
       return {id,nom,plateforme,kind,parentName:kind==='extension'?parentName:'',collectionId,
-        status:choice(value.status,statuses,'backlog','statut'),
-        completion:choice(value.completion,completions,'finished','complétion'),
+        status:choice(value.status==='abandoned'?'backlog':value.status,statuses,'backlog','statut'),
+        completion:choice(value.completion==='both'?'achievements':value.completion,completions,'finished','complétion'),
         medium:choice(value.medium,['physical','digital'],'digital','support'),
         access:choice(value.access,['owned','subscription','family','emulation'],'owned','accès'),
         finishedAt:date,feeling:choice(value.feeling,feelings,'','ressenti'),
@@ -60,7 +60,7 @@
     const completed=records.filter(r=>r.status==='done').sort((a,b)=>(b.finishedAt||'').localeCompare(a.finishedAt||''));
     const playing=records.find(r=>r.status==='playing');
     const latest=completed[0];
-    const status=playing?'en_cours':latest?(latest.medium==='physical'?'termine':'termine_ailleurs'):records.some(r=>r.status==='backlog')?'a_jouer':'abandonne';
+    const status=playing?'en_cours':latest?(latest.medium==='physical'?'termine':'termine_ailleurs'):'a_jouer';
     return {status,completion:latest?.completion||null,replay:!!playing&&!!latest,record:playing||latest||records[records.length-1]};
   }
   function syncGames(games, journal){
