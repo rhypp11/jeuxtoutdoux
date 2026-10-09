@@ -253,12 +253,15 @@
     <div class="field"><label for="a-source">Enseigne / source</label><input type="text" id="a-source" placeholder="ex. Fnac"></div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-danger hidden" id="a-delete-btn">Supprimer</button>
-      <button class="btn btn-ghost hidden" id="a-received-btn" title="Confirmer la réception de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Reçu</span></button>
-      <div style="flex:1;"></div>
-      <button class="btn btn-ghost" id="a-cancel-btn">Annuler</button>
-      <button class="btn btn-primary" id="a-save-btn">Enregistrer</button>
+    <div class="modal-actions modal-edit-actions">
+      <div class="modal-secondary-actions">
+      <button class="btn btn-ghost hidden" data-modal-action="context" id="a-received-btn" title="Confirmer la réception de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Reçu</span></button>
+      <button class="btn btn-danger hidden" data-modal-action="delete" id="a-delete-btn">Supprimer</button>
+      </div>
+      <div class="modal-primary-actions">
+      <button class="btn btn-ghost" data-modal-action="cancel" id="a-cancel-btn">Annuler</button>
+      <button class="btn btn-primary" data-modal-action="save" id="a-save-btn">Enregistrer</button>
+      </div>
     </div>
   </div>
 </div>
@@ -317,12 +320,15 @@
     <div class="field"><label for="w-lien">Lien</label><input type="url" id="w-lien" placeholder="Bon plan, fiche du jeu…"></div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-danger hidden" id="w-delete-btn">Supprimer</button>
-      <button class="btn btn-ghost hidden" id="w-order-btn" title="Confirmer la commande de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Commandé</span></button>
-      <div style="flex:1;"></div>
-      <button class="btn btn-ghost" id="w-cancel-btn">Annuler</button>
-      <button class="btn btn-primary" id="w-save-btn">Enregistrer</button>
+    <div class="modal-actions modal-edit-actions">
+      <div class="modal-secondary-actions">
+      <button class="btn btn-ghost hidden" data-modal-action="context" id="w-order-btn" title="Confirmer la commande de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Commandé</span></button>
+      <button class="btn btn-danger hidden" data-modal-action="delete" id="w-delete-btn">Supprimer</button>
+      </div>
+      <div class="modal-primary-actions">
+      <button class="btn btn-ghost" data-modal-action="cancel" id="w-cancel-btn">Annuler</button>
+      <button class="btn btn-primary" data-modal-action="save" id="w-save-btn">Enregistrer</button>
+      </div>
     </div>
   </div>
 </div>
@@ -428,12 +434,15 @@
       </div>
     </div>
 
-    <div class="modal-actions">
-      <button class="btn btn-danger hidden" id="delete-btn">Supprimer</button>
-      <button type="button" class="btn btn-ghost hidden" id="f-sell-btn">Mettre en vente</button>
-      <div style="flex:1;"></div>
-      <button class="btn btn-ghost" id="cancel-btn">Annuler</button>
-      <button class="btn btn-primary" id="save-btn">Enregistrer</button>
+    <div class="modal-actions modal-edit-actions">
+      <div class="modal-secondary-actions">
+      <button type="button" class="btn btn-ghost hidden" data-modal-action="context" id="f-sell-btn">Mettre en vente</button>
+      <button class="btn btn-danger hidden" data-modal-action="delete" id="delete-btn">Supprimer</button>
+      </div>
+      <div class="modal-primary-actions">
+      <button class="btn btn-ghost" data-modal-action="cancel" id="cancel-btn">Annuler</button>
+      <button class="btn btn-primary" data-modal-action="save" id="save-btn">Enregistrer</button>
+      </div>
     </div>
   </div>
 </div>
@@ -462,20 +471,23 @@
     <h2 id="sale-modal-title">Mettre en vente</h2>
     <div id="sale-identity"></div>
     <div class="form-section"><div class="form-section-title">Vente</div>
+      <div class="field"><label for="sale-channel">Canal de vente</label><select id="sale-channel"><option value="">À définir</option><option value="online">En ligne</option><option value="store">En boutique</option></select></div>
       <div class="field-row">
-        <div class="field"><label for="sale-channel">Canal de vente</label><select id="sale-channel"><option value="">À définir</option><option value="online">En ligne</option><option value="store">En boutique</option></select></div>
-        <div class="field"><label for="sale-venue">Où le vendre ?</label><input id="sale-venue" type="text" placeholder="Vinted, Leboncoin, Micromania…"></div>
+        <div class="field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="Optionnel"></div>
+        <div class="field"><label for="sale-price">Prix réel de vente (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="Vide tant que le jeu est à vendre" aria-describedby="sale-price-help"></div>
       </div>
-      <div class="field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="Optionnel"></div>
-      <div class="field"><label for="sale-price">Prix réel de vente (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="À renseigner une fois vendu"></div>
+      <p id="sale-price-help" class="cemetery-note">Renseigne le prix réel puis enregistre pour passer le jeu en vendu.</p>
       <div id="sale-lot-section"><div class="form-section-title">Vendre en lot</div><p class="cemetery-note">Coche les autres jeux de cette vente. Le prix réel sera le total du lot.</p><div id="sale-lot-options"></div></div>
       <p id="sale-error" role="alert" class="sale-error"></p>
     </div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-ghost" id="sale-rollback">Remettre en collection</button>
-      <button type="button" class="btn btn-ghost" id="sale-cancel">Annuler</button>
-      <button type="button" class="btn btn-primary" id="sale-save">Enregistrer</button>
-      <button type="button" class="btn btn-primary" id="sale-complete">Marquer vendu</button>
+    <div class="modal-actions modal-edit-actions">
+      <div class="modal-secondary-actions">
+      <button type="button" class="btn btn-ghost" data-modal-action="context" id="sale-rollback">Remettre en collection</button>
+      </div>
+      <div class="modal-primary-actions">
+      <button type="button" class="btn btn-ghost" data-modal-action="cancel" id="sale-cancel">Annuler</button>
+      <button type="button" class="btn btn-primary" data-modal-action="save" id="sale-save">Enregistrer</button>
+      </div>
     </div>
   </div>
 </div>
@@ -496,7 +508,7 @@
     <div class="platform-rows" id="platform-rows"></div>
     <div class="modal-actions platform-modal-actions">
       <span class="platform-modal-note">Les plateformes vides peuvent être supprimées.</span>
-      <div style="flex:1;"></div>
+      
       <button class="btn btn-primary" id="close-platform-modal-btn">Terminé</button>
     </div>
   </div>

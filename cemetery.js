@@ -44,7 +44,7 @@ function renderCemetery(){
     const item = group[0];
     const block = document.createElement('section');
     block.className = 'sale-group';
-    const venue = [item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : '', item.saleVenue].filter(Boolean).join(' · ') || 'Lieu de vente à définir';
+    const venue = item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : 'Canal à définir';
     const amount = saleView === 'sold' ? item.salePrice : item.estimatedPrice;
     const lot = group.length > 1;
     block.innerHTML = '<div class="sale-group-heading"><div class="sale-heading-main"><span class="sale-state-label">' + (saleView === 'sold' ? 'Vendu' : 'Estimation') + '</span><strong class="sale-amount">' + (amount != null ? euros(amount) : 'À définir') + '</strong>' + (lot ? '<span class="sale-lot-label">le lot · ' + group.length + ' jeux</span>' : '') + '</div><div class="sale-venue">' + escapeHTML(venue) + '</div></div>';
@@ -96,12 +96,10 @@ function openSaleModal(id){
   saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Modifier cette vente en lot' : 'Modifier cette vente') : 'Préparer la vente';
   renderSaleIdentity(group);
   saleEl('sale-channel').value = item.saleChannel || '';
-  saleEl('sale-venue').value = item.saleVenue || '';
   saleEl('sale-estimate').value = item.estimatedPrice ?? '';
   saleEl('sale-price').value = item.salePrice ?? '';
   saleEl('sale-error').textContent = '';
   saleEl('sale-rollback').textContent = sold ? 'Annuler la vente' : 'Remettre en collection';
-  saleEl('sale-complete').classList.toggle('hidden', sold);
   saleEl('sale-lot-section').classList.toggle('hidden', sold);
   saleEl('sale-lot-options').replaceChildren();
   for(const other of CEMETERY.filter(g => g.saleStatus === 'pending' && g.id !== id)){
@@ -135,23 +133,24 @@ function readSalePrice(id){
   if(!Number.isFinite(price)) throw new Error('Prix invalide.');
   return price;
 }
-function saveSale(complete){
+function saveSale(){
   const item = CEMETERY.find(g => g.id === saleEditingId);
   if(!item) return;
   try{
     const estimatedPrice = readSalePrice('sale-estimate');
     const salePrice = readSalePrice('sale-price');
-    const sold = item.saleStatus === 'sold' || complete;
+    const sold = item.saleStatus === 'sold' || salePrice !== null;
+    const completed = item.saleStatus !== 'sold' && sold;
     if(sold && salePrice === null) throw new Error('Renseigne le prix réel de vente avant de valider.');
     const selected = [...saleEl('sale-lot-options').querySelectorAll('input:checked')].map(input => input.value);
-    if(!sold && selected.length) throw new Error('Le lot sera créé avec « Marquer vendu ».');
-    const ids = item.saleStatus === 'sold' ? saleGroup(item).map(g => g.id) : [item.id, ...(complete ? selected : [])];
-    const fields = {saleStatus:sold ? 'sold' : 'pending', saleVenue:saleEl('sale-venue').value.trim() || null, saleChannel:saleEl('sale-channel').value || null};
+    if(!sold && selected.length) throw new Error('Renseigne le prix réel du lot avant d’enregistrer.');
+    const ids = item.saleStatus === 'sold' ? saleGroup(item).map(g => g.id) : [item.id, ...(sold ? selected : [])];
+    const fields = {saleStatus:sold ? 'sold' : 'pending', saleChannel:saleEl('sale-channel').value || null};
     if(sold){
       Object.assign(fields, {salePrice, saleId:item.saleId || crypto.randomUUID(), saleOrder:item.saleOrder ?? (Math.max(0,...CEMETERY.map(g => g.saleOrder || 0)) + 1)});
     }
     const next = CEMETERY.map(g => ids.includes(g.id) ? {...g, ...fields, ...(g.id === item.id ? {estimatedPrice} : {})} : g);
-    if(commitCemetery(next)){ closeSaleModal(); if(complete) setSaleView('sold'); showToast(complete ? 'Vente enregistrée.' : 'Informations enregistrées.'); }
+    if(commitCemetery(next)){ closeSaleModal(); if(completed) setSaleView('sold'); showToast(sold ? 'Vente enregistrée.' : 'Informations enregistrées.'); }
   }catch(error){ saleEl('sale-error').textContent = error.message; }
 }
 function setSaleView(view){
@@ -192,8 +191,7 @@ saleEl('sale-rollback').addEventListener('click', () => {
     if(commitCemetery(next)){ closeSaleModal(); setSaleView('pending'); }
   });
 });
-saleEl('sale-save').addEventListener('click', () => saveSale(false));
-saleEl('sale-complete').addEventListener('click', () => saveSale(true));
+saleEl('sale-save').addEventListener('click', saveSale);
 saleEl('sale-cancel').addEventListener('click', closeSaleModal);
 saleEl('sale-modal-overlay').addEventListener('click', event => { if(event.target === saleEl('sale-modal-overlay')) closeSaleModal(); });
 document.addEventListener('keydown', event => {
