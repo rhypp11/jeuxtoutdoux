@@ -27,9 +27,12 @@ const server=createSandboxServer();
     const cancel=result.find(b=>b.role==='cancel'),save=result.find(b=>b.role==='save');
     assert.ok(Math.abs(cancel.y-save.y)<1,'Cancel and Save share the last row: '+scene);
     assert.ok(cancel.right<=save.x+1,'Cancel precedes Save');
-    for(const b of result){assert.ok(b.x>=0&&b.right<=width+1,'No horizontal overflow');assert.ok(b.height>=40,'Touch target');if(!['cancel','save'].includes(b.role))assert.ok(b.bottom<=cancel.y+1,'Context actions precede primary pair');}
+    for(const b of result){assert.ok(b.x>=0&&b.right<=width+1,'No horizontal overflow');assert.ok(b.height>=40,'Touch target');if(width<=820&&!['cancel','save'].includes(b.role))assert.ok(b.bottom<=cancel.y+1,'Context actions precede primary pair');}
     assert.ok(save.bottom<=801&&save.y>=0,'Save remains reachable');
-    if(width===390&&theme==='light')await page.screenshot({path:'/tmp/jtd-modal-'+scene+'.png',fullPage:true});
+    const footerBox=await footer.boundingBox();
+    assert.ok(footerBox.height<=(width>820?70:125),'Footer stays compact');
+    if(width>820)for(const b of result)assert.ok(Math.abs((b.y+b.height/2)-(save.y+save.height/2))<1,'Desktop actions share one line');
+    if([390,1440].includes(width)&&theme==='light')await page.screenshot({path:'/tmp/jtd-modal-'+scene+'-'+width+'.png',fullPage:true});
    }
    assert.deepEqual(errors,[]);await context.close();console.log('PASS modal actions',width,theme);
   }

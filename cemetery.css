@@ -276,7 +276,7 @@
 .sale-lot-option input { width:18px; height:18px; flex-shrink:0; }
 #sale-lot-options { max-height:180px; overflow:auto; }
 .sale-error { color:var(--ui-text); font-weight:600; }
-#sale-modal-overlay .modal-actions { flex-wrap:wrap; }
+#sale-modal-overlay .cemetery-note { font-size:12px; margin:6px 0 12px; }
 #modal-overlay.cemetery-game-editor { z-index:60; }
 
 @media(max-width:1100px) and (min-width:821px) {
