@@ -14,6 +14,7 @@ const server = createSandboxServer();
       await page.goto('http://127.0.0.1:'+server.address().port);
       await page.locator('#app-shell').waitFor({state:'visible'});
       await page.locator('[data-page="collection"]').click();
+      await page.evaluate(()=>{GAMES.find(g=>g.id==='test-fe').imageFit='cover';saveGames();});
       const original = await page.evaluate(()=>GAMES.find(g=>g.id==='test-fe'));
       await page.locator('.card').filter({hasText:'Fire Emblem'}).click();
       await page.locator('#f-sell-btn').click();

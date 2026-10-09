@@ -36,8 +36,8 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
     assert.equal(await preview.evaluate(el=>el.scrollWidth<=el.clientWidth),true,'Empty preview label does not clip');
     // The same geometry must hold with an actual horizontal image.
     await page.locator('#'+prefix+'-image').fill('http://127.0.0.1:'+server.address().port+'/polish-fixture.svg');
-    await preview.locator('img').evaluate(img=>img.decode());
-    assert.equal(await preview.locator('img').evaluate(img=>getComputedStyle(img).objectFit),'contain','Image is not cropped');
+    await preview.locator('.game-art-image').evaluate(img=>img.decode());
+    assert.equal(await preview.locator('.game-art-image').evaluate(img=>getComputedStyle(img).objectFit),'contain','Image is not cropped');
     const modal=editor.locator('xpath=ancestor::div[contains(concat(" ",normalize-space(@class)," ")," modal ")]');
     const save=modal.locator('[data-modal-action="save"]');await save.scrollIntoViewIfNeeded();
     const saveBox=await save.boundingBox();assert.ok(saveBox.y>=0&&saveBox.y+saveBox.height<=701,'Save reachable with a short viewport');

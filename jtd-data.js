@@ -58,6 +58,8 @@
           if(item.saleChannel && !['online','store'].includes(item.saleChannel)) throw new Error('Canal de vente invalide');
           if(item.saleStatus === 'sold' && item.salePrice == null) throw new Error('Prix de vente manquant');
         }
+        // Missing mode in older backups keeps the whole image. Unknown modes cannot become CSS.
+        if(value.imageFit !== undefined) item.imageFit = value.imageFit === 'cover' ? 'cover' : 'contain';
         if(item.image) item.image = safeURL(item.image, true) || null;
         if(item.lien) item.lien = safeURL(item.lien) || null;
         if(key === 'games'){
@@ -189,4 +191,5 @@
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
 

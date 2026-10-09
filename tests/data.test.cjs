@@ -4,6 +4,15 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const D = require('../jtd-data.js');
 const game = (extra = {}) => ({id:'g',nom:'Persona',plateforme:'PC',format:'Physique',...extra});
+test('image modes survive backups and transfers, older data stays compatible',()=>{
+  const parsed=D.parseBackup({app:'Jeux Tout Doux',version:3,data:{games:[game({imageFit:'cover'})],wishlist:[game({id:'w',imageFit:'contain'})],arrivals:[game({id:'a',imageFit:'unexpected'})],cemetery:[game({id:'c',imageFit:'cover',saleStatus:'pending'})]}});
+  assert.equal(parsed.games[0].imageFit,'cover');
+  assert.equal(parsed.wishlist[0].imageFit,'contain');
+  assert.equal(parsed.arrivals[0].imageFit,'contain');
+  assert.equal(parsed.cemetery[0].imageFit,'cover');
+  assert.equal(D.parseBackup([game()]).games[0].imageFit,undefined);
+  assert.equal(D.transferItem(parsed.games,[], 'g', parsed.games[0]).target[0].imageFit,'cover');
+});
 function memory(){
   const values = new Map();
   return {values,getItem:key=>values.get(key) ?? null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
