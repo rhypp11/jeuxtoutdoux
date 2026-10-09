@@ -8,11 +8,12 @@ const baseline=fs.readFileSync(process.env.JTD_BASELINE_CSS,'utf8');
 const path=require('node:path');
 const baselineDir=process.env.JTD_BASELINE_DIR;
 const properties=['display','position','width','height','min-width','max-width','min-height','max-height','box-sizing','margin-top','margin-right','margin-bottom','margin-left','padding-top','padding-right','padding-bottom','padding-left','border-top-width','border-right-width','border-bottom-width','border-left-width','border-top-style','border-top-color','border-right-color','border-bottom-color','border-left-color','border-radius','background-color','background-image','background-size','background-position','color','font-family','font-size','font-weight','line-height','letter-spacing','text-transform','text-align','white-space','text-overflow','overflow-x','overflow-y','opacity','visibility','transform','top','right','bottom','left','z-index','box-shadow','outline-color','outline-width','outline-offset','flex-direction','flex-wrap','flex-grow','flex-shrink','flex-basis','align-items','align-self','justify-content','justify-self','grid-template-columns','grid-template-rows','grid-column-start','grid-column-end','grid-row-start','grid-row-end','column-gap','row-gap','object-fit','object-position','cursor','pointer-events','content'];
-// Compare every visible element, including pseudo-elements, on pages and forms.
+// Compare all pages and unaffected dialogs. The three deliberately polished game
+// forms are covered by modal-form-layout.cjs, modal-actions and dialog-keyboard.
 const scenes=['collection','status','wishlist','arrivals','cemetery','drawer','collection-drawer','cemetery-drawer','profile','order','receive','edit','new','wishlist-edit','arrival-edit','sale','import','platforms'];
 async function snapshot(page){
  await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
- return page.evaluate(properties=>[...document.body.querySelectorAll('*')].filter(el=>el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden').map(el=>{
+ return page.evaluate(properties=>[...document.body.querySelectorAll('*')].filter(el=>el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden'&&!el.closest('#modal-overlay > .modal, #arrival-modal-overlay > .modal, #wishlist-modal-overlay > .modal')).map(el=>{
   const rect=el.getBoundingClientRect();
   const styles=pseudo=>{const css=getComputedStyle(el,pseudo);return Object.fromEntries(properties.map(key=>[key,css.getPropertyValue(key)]));};
   return {tag:el.tagName,id:el.id,class:el.className?.baseVal??el.className,rect:[rect.x,rect.y,rect.width,rect.height],style:styles(),before:styles('::before'),after:styles('::after')};
@@ -85,7 +86,7 @@ async function scene(page,name){
      throw Error(`CSS regression ${width}px ${theme} ${name}: ${differences.length} elements differ; first: ${JSON.stringify(differences[0]).slice(0,1200)}`);
     }
    }
-   console.log(`PASS CSS ${width}px ${theme}: identical computed styles and geometry for ${scenes.length} scenes`);
+   console.log(`PASS CSS ${width}px ${theme}: ${scenes.length} scenes identical outside the three intentionally polished game forms`);
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

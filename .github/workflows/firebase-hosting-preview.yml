@@ -54,6 +54,9 @@ jobs:
       - name: Check editing modal actions on mobile and desktop
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/modal-actions.cjs
 
+      - name: Check game form layout, optional fields and long content
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/modal-form-layout.cjs
+
       - name: Check dialog keyboard accessibility and cancellation
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/dialog-keyboard.cjs
 
