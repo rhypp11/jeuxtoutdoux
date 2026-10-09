@@ -48,6 +48,7 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
    await page.keyboard.press('Escape');
    const before=await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST,cemetery:CEMETERY}));
    await page.locator('#cemetery-import-input').setInputFiles({name:'long-list.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(Array.from({length:40},(_,i)=>({nom:longTitle+i,plateforme:'Nintendo Switch',saleStatus:'pending'}))))});
+   await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
    const rows=page.locator('.cemetery-import-row');assert.equal(await rows.count(),40);
    await rows.last().scrollIntoViewIfNeeded();
    const apply=page.locator('#cemetery-import-apply');await apply.scrollIntoViewIfNeeded();
