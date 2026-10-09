@@ -7499,7 +7499,9 @@ input[type="date"] {
   }
   .topnav-nav .nav-tab {
     min-height: 46px;
-    padding: 0 10px;
+    min-width: 0;
+    flex: 1 1 0;
+    padding: 0 4px;
     font-size: 12.5px;
   }
 }
@@ -7534,11 +7536,11 @@ input[type="date"] {
     display: inline !important;
   }
   .topnav-nav .nav-tab {
-    gap: 7px;
+    gap: clamp(3px,1vw,7px);
   }
   .topnav-nav .nav-tab-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -7740,3 +7742,15 @@ input[type="date"] {
 }
 
 body:has(.modal-overlay:not(.hidden)) #sandbox-environment-badge { top: 12px; bottom: auto !important; }
+
+/* Very narrow screens keep all navigation labels visible without squeezing them. */
+@media(max-width:380px) {
+  .topnav-nav .nav-tab {
+    flex-direction:column;
+    justify-content:center;
+    gap:2px;
+    padding:4px 2px;
+    line-height:1.2;
+  }
+  .topnav-nav .nav-tab-label { font-size:12px; }
+}
