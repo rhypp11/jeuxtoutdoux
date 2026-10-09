@@ -50,6 +50,9 @@ jobs:
       - name: Check collection cards on mobile
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/collection-layout.cjs
 
+      - name: Check editing modal actions on mobile and desktop
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/modal-actions.cjs
+
       - name: Compare cleaned CSS with the base branch
         run: |
           git show '${{ github.event.pull_request.base.sha }}:styles.css' > "$RUNNER_TEMP/jtd-baseline.css"

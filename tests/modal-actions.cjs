@@ -1,0 +1,37 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
+const server=createSandboxServer();
+(async()=>{
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const browser=await chromium.launch({headless:true,...(process.env.JTD_CHROME?{executablePath:process.env.JTD_CHROME}:{}),args:['--no-sandbox']});
+ try {
+  for(const width of [320,390,820,1440])for(const theme of ['light','dark']){
+   const context=await sandboxContext(browser,{viewport:{width,height:800},colorScheme:theme});
+   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
+   for(const scene of ['collection','new','wishlist','arrival','sale']){
+    await page.evaluate(scene=>{
+     closeModal();closeWishlistModal();closeArrivalModal();document.getElementById('sale-modal-overlay').classList.add('hidden');
+     if(scene==='collection'||scene==='new')openModal(scene==='new'?null:GAMES[0].id);
+     if(scene==='wishlist')openWishlistModal(WISHLIST[0].id);
+     if(scene==='arrival')openArrivalModal(ARRIVALS[0].id);
+     if(scene==='sale'){CEMETERY.push({...GAMES[0],id:'modal-sale',saleStatus:'pending'});openSaleModal('modal-sale');}
+    },scene);
+    const footer=page.locator('.modal-overlay:not(.hidden) .modal-edit-actions');
+    await footer.locator('[data-modal-action="save"]').scrollIntoViewIfNeeded();
+    const result=await footer.evaluate(el=>{
+     const buttons=[...el.querySelectorAll('button')].filter(b=>b.getClientRects().length);
+     return buttons.map(b=>{const r=b.getBoundingClientRect();return {role:b.dataset.modalAction,x:r.x,y:r.y,right:r.right,bottom:r.bottom,height:r.height,width:r.width};});
+    });
+    const cancel=result.find(b=>b.role==='cancel'),save=result.find(b=>b.role==='save');
+    assert.ok(Math.abs(cancel.y-save.y)<1,'Cancel and Save share the last row: '+scene);
+    assert.ok(cancel.right<=save.x+1,'Cancel precedes Save');
+    for(const b of result){assert.ok(b.x>=0&&b.right<=width+1,'No horizontal overflow');assert.ok(b.height>=40,'Touch target');if(!['cancel','save'].includes(b.role))assert.ok(b.bottom<=cancel.y+1,'Context actions precede primary pair');}
+    assert.ok(save.bottom<=801&&save.y>=0,'Save remains reachable');
+    if(width===390&&theme==='light')await page.screenshot({path:'/tmp/jtd-modal-'+scene+'.png',fullPage:true});
+   }
+   assert.deepEqual(errors,[]);await context.close();console.log('PASS modal actions',width,theme);
+  }
+ }finally{await browser.close();server.close();}
+})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
