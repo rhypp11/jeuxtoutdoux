@@ -48,6 +48,8 @@
  .journal-layout[data-tab="playing"] [data-journal-panel="backlog"],.journal-layout[data-tab="backlog"] [data-journal-panel="playing"]{display:none}
  .journal-panel{padding:16px}.journal-entry{gap:9px}.journal-entry .board-thumb{flex-basis:92px;width:92px;height:52px}.journal-entry-body>strong{font-size:12px}.journal-meta,.journal-result{font-size:10px;gap:4px 8px}.journal-date{flex-basis:30px}.journal-date strong{font-size:15px}
  .journal-entry.compact .board-thumb{flex-basis:100px;width:100px;height:57px}.journal-entry.compact .journal-entry-body>strong{font-size:13px}
- .nav-tabs .nav-tab{min-width:0}
+ .topnav-nav .nav-tab{min-width:0;gap:4px}
+ .topnav-nav .nav-tab-label{margin-left:0}
 }
 @media(max-width:380px){.topnav-nav .nav-tab-label{font-size:10px}.journal-heading h1{font-size:20px}.journal-heading select{padding:8px}.journal-entry .board-thumb{width:72px;flex-basis:72px;height:46px}.journal-entry{gap:7px}.journal-meta,.journal-result{gap:3px 6px}}
+
