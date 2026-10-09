@@ -17,7 +17,7 @@ const server=createSandboxServer();
     for(const control of await page.locator(controls).all()){
      if(!await control.isVisible())continue;
      const box=await control.boundingBox();assert.ok(box.height>=44,'Shared action size '+view);
-     assert.ok(box.x>=0&&box.x+box.width<=width+1,'Control stays in viewport');
+     assert.ok(box.x>=0&&box.x+box.width<=width+1,'Control stays in viewport '+view+' '+width+'px '+JSON.stringify(box));
     }
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'No page overflow '+view);
     const main=view==='home'?'.home-main':view==='collection'?'#page-collection .main':'.cemetery-main';
