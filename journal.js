@@ -1,0 +1,100 @@
+/* Private player journal. Uses the same account transaction as backup restore. */
+(() => {
+ 'use strict';
+ const $=id=>document.getElementById(id), esc=JTDData.escapeHTML;
+ const statusNames={playing:'En cours',backlog:'Backlog',done:'Terminé',abandoned:'Abandonné'};
+ const completionNames={finished:'Terminé',hundred:'100 %',achievements:'Tous les succès',both:'100 % · Tous les succès'};
+ const feelings={gem:'Pépite',love:'Adoré',like:'Aimé',mixed:'Mitigé',dislike:'Pas aimé'};
+ const bookshelf='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4v16M8 8v12M12 6v14m4-14 4 14"/></svg>';
+ const puzzle='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h6V2a2 2 0 0 1 4 0v2h6v6h-2a2 2 0 0 0 0 4h2v6h-6v-2a2 2 0 0 0-4 0v2H4v-6h2a2 2 0 0 0 0-4H4Z"/></svg>';
+ const fields=['nom','plateforme','kind','parentName','status','completion','medium','access','finishedAt','feeling','review','image','imageFit'];
+ let year=String(new Date().getFullYear()), monthLimit=3, draft=null, generation=0;
+ const currentGeneration=()=>window.JTDAccountGeneration||0;
+ function metadata(r){return '<span>'+esc(r.plateforme)+'</span>'+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+(r.collectionId?'<span>'+bookshelf+'Collection</span>':'');}
+ function row(r,compact=false){
+  const day=r.finishedAt?.slice(8), month=r.finishedAt?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
+  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span><span class="journal-result"><span>'+esc(r.status==='done'?completionNames[r.completion]:statusNames[r.status])+'</span>'+(r.status==='done'&&r.feeling?'<span>'+esc(feelings[r.feeling])+'</span>':'')+(r.status==='done'&&r.review?'<span class="journal-review-mark">Avis rédigé</span>':'')+'</span></span></button>';
+ }
+ function renderJournal(){
+  const selected=year;
+  const years=[...new Set([String(new Date().getFullYear()),...JOURNAL.filter(r=>r.finishedAt&&['done','abandoned'].includes(r.status)).map(r=>r.finishedAt.slice(0,4))])].sort().reverse();
+  if(!years.includes(selected)) years.push(selected);
+  $('journal-year').innerHTML=years.map(y=>'<option value="'+y+'">'+y+'</option>').join('');$('journal-year').value=selected;
+  const past=JOURNAL.filter(r=>['done','abandoned'].includes(r.status)&&(!r.finishedAt||r.finishedAt.startsWith(year))).sort((a,b)=>(b.finishedAt||'').localeCompare(a.finishedAt||'')||a.nom.localeCompare(b.nom,'fr'));
+  const groups=new Map();for(const r of past){const key=r.finishedAt?r.finishedAt.slice(0,7):'none';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
+  const dated=[...groups.keys()].filter(k=>k!=='none');const shown=dated.slice(0,monthLimit);
+  $('journal-feed').innerHTML=shown.map(k=>'<section class="journal-month"><h2>'+esc(MONTH_NAMES_FULL[Number(k.slice(5))-1])+'</h2>'+groups.get(k).map(r=>row(r)).join('')+'</section>').join('')+(dated.length>monthLimit?'<button class="btn btn-ghost" id="journal-more">Voir les mois précédents</button>':'')+(groups.has('none')?'<section class="journal-month"><h2>Sans date</h2>'+groups.get('none').map(r=>row(r)).join('')+'</section>':'')+(!past.length?'<p class="journal-empty">Aucun jeu terminé cette année.</p>':'');
+  for(const status of ['playing','backlog']){const list=JOURNAL.filter(r=>r.status===status);$('journal-'+status).innerHTML=list.length?list.map(r=>row(r,true)).join(''):'<p class="journal-empty">'+(status==='playing'?'Aucun jeu en cours.':'Backlog vide.')+'</p>';}
+  $('journal-more')?.addEventListener('click',()=>{monthLimit+=3;renderJournal();});
+ }
+ function read(){return {...draft,...Object.fromEntries(fields.map(f=>[f,$('j-'+f).value]))};}
+ function reflect(){
+  const r=read(), done=r.status==='done';
+  $('j-parent-field').classList.toggle('hidden',r.kind!=='extension');
+  $('j-kind').disabled=!!r.collectionId;
+  $('j-source').disabled=r.kind==='extension';
+  $('j-finished-fields').classList.toggle('hidden',!done);
+  $('j-completion-field').classList.toggle('hidden',!done);
+  $('j-identity-card').innerHTML=(r.nom?boardThumb(r)+'<div><strong>'+esc(JTDJournalData.title(r))+'</strong><div class="journal-meta">'+metadata(r)+'</div></div>':'');
+  $('j-link-info').textContent=r.collectionId?(GAMES.some(g=>g.id===r.collectionId)?'Lié à un exemplaire de la collection.':'Exemplaire absent de la collection ; historique conservé.') : '';
+  $('j-unlink').classList.toggle('hidden',!r.collectionId);
+ }
+ function open(record=null,collectionId=null){
+  generation=currentGeneration();
+  const g=collectionId?GAMES.find(g=>g.id===collectionId):null;
+  draft=record?{...record}:{id:crypto.randomUUID(),nom:g?.nom||'',plateforme:g?.plateforme||'',kind:'game',parentName:'',collectionId:g?.id||null,status:'playing',completion:'finished',medium:g?'physical':'digital',access:'owned',finishedAt:'',feeling:'',review:'',image:g?.image||'',imageFit:g?.imageFit||'contain'};
+  fields.forEach(f=>$('j-'+f).value=draft[f]||'');
+  $('journal-modal-title').textContent=record?'Modifier le parcours':'Ajouter au journal';
+  $('j-source-field').classList.remove('hidden');
+  $('j-source').innerHTML='<option value="">Nouvelle entrée</option>'+GAMES.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.nom+' · '+g.plateforme)+'</option>').join('');$('j-source').value=draft.collectionId||'';
+  $('j-platforms').innerHTML=allPlatformNames().map(p=>'<option value="'+esc(p)+'"></option>').join('');
+  $('j-details').open=!draft.nom;
+  $('j-error').textContent='';
+  $('j-delete').classList.toggle('hidden',!record);$('j-replay').classList.toggle('hidden',!record||record.status!=='done');
+  JTDDialogs.clearErrors($('journal-modal-overlay'));reflect();
+  JTDDialogs.open('journal-modal-overlay',{initialFocus:draft.nom?'#j-status':'#j-nom',onDismiss:close});
+ }
+ function close(){JTDDialogs.close('journal-modal-overlay');draft=null;}
+ function commit(next){
+  if(generation!==currentGeneration())throw Error('Le compte a changé. Rouvre le journal.');
+  const data=JTDData.normalizeData({...buildBackupPayload().data,journal:next});
+  if(new TextEncoder().encode(JSON.stringify(data)).length>900000)throw Error('La sauvegarde approche de sa limite. Télécharge une sauvegarde avant de réduire les images ou les avis.');
+  window.persistAppData(data); // storage failure must leave memory and editor untouched
+  replaceAppData(data);window.JTDDataChanged?.();
+  render();buildStatusToggles();renderJournal();
+ }
+ function save(){
+  let r=read();
+  for(const [field,message] of [['nom','Indique un titre.'],['plateforme','Indique une plateforme.'],...(r.kind==='extension'?[['parentName','Indique le jeu de base.']]:[])]){
+   if(!r[field].trim()){$('j-details').open=true;JTDDialogs.error('j-'+field,message);return;}
+  }
+  if(r.image&&!JTDData.safeURL(r.image,true)){$('j-details').open=true;JTDDialogs.error('j-image','Indique une URL d’image valide.');return;}
+  try{r=JTDJournalData.normalizeJournal([r])[0];const next=JOURNAL.some(x=>x.id===r.id)?JOURNAL.map(x=>x.id===r.id?r:x):[...JOURNAL,r];commit(next);close();showToast('Journal enregistré.');}
+  catch(e){$('j-error').textContent=e.message;}
+ }
+ function openForGame(id){const p=JTDJournalData.collectionProgress(JOURNAL,id);open(p?.record||null,p?null:id);}
+ window.renderJournal=renderJournal;
+ window.JTDJournal={openForGame,close};
+ $('journal-add').addEventListener('click',()=>open());
+ $('journal-year').addEventListener('change',e=>{year=e.target.value;monthLimit=3;renderJournal();});
+ $('page-journal').addEventListener('click',e=>{const entry=e.target.closest('[data-journal-id]');if(entry){const r=JOURNAL.find(r=>r.id===entry.dataset.journalId);if(r)open(r);}});
+ document.querySelectorAll('[data-journal-tab]').forEach(b=>b.onclick=()=>{document.querySelector('.journal-layout').dataset.tab=b.dataset.journalTab;document.querySelectorAll('[data-journal-tab]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});});
+ $('j-source').addEventListener('change',e=>{const g=GAMES.find(g=>g.id===e.target.value);if(g){draft.collectionId=g.id;for(const f of ['nom','plateforme','image','imageFit'])$('j-'+f).value=g[f]|| (f==='imageFit'?'contain':'');$('j-kind').value='game';$('j-medium').value='physical';$('j-access').value='owned';}else draft.collectionId=null;reflect();});
+ $('j-unlink').addEventListener('click',()=>{draft.collectionId=null;$('j-source').value='';reflect();});
+ fields.forEach(f=>$('j-'+f).addEventListener('input',reflect));
+ $('j-save').addEventListener('click',save);$('j-cancel').addEventListener('click',close);
+ $('j-delete').addEventListener('click',()=>{
+  const id=draft.id, session=generation;
+  confirmAction('Supprimer ce parcours du journal ?',()=>{
+  if(!draft||draft.id!==id||generation!==session||session!==currentGeneration())return;
+  try{commit(JOURNAL.filter(r=>r.id!==id));close();showToast('Parcours supprimé.');}catch(e){$('j-error').textContent=e.message;}
+  });
+ });
+ $('j-replay').addEventListener('click',()=>{
+  const previous=JOURNAL.find(r=>r.id===draft.id);if(!previous)return;
+  close();open({...previous,id:crypto.randomUUID(),status:'playing',completion:'finished',finishedAt:'',feeling:'',review:''});
+  $('journal-modal-title').textContent='Rejouer';$('j-delete').classList.add('hidden');
+ });
+ $('f-journal-btn').addEventListener('click',()=>{const id=editingId;closeModal();openForGame(id);});
+ renderJournal();
+})();
