@@ -961,7 +961,7 @@ function renderResultsBar(count){
   const filters = [];
   if(state.platform) filters.push(state.platform);
   if(state.collector) filters.push('⭐ Collector');
-  if(state.japanese) filters.push('<span class="japanese-flag" aria-hidden="true"></span> Japonais');
+  if(state.japanese) filters.push({label:'Japonais', japanese:true});
   if(state.status){
     const s = STATUS_OPTIONS.find(x => x.key === state.status);
     filters.push(state.status === '__none__' ? 'Sans statut' : (s ? s.label : state.status));
@@ -970,7 +970,7 @@ function renderResultsBar(count){
 
   let html = `<span class="results-count">${count} jeu${count > 1 ? 'x' : ''}</span>`;
   if(filters.length){
-    html += `<span class="results-filters">${filters.map(f => `<b>${escapeHTML(f)}</b>`).join(' · ')}</span>`;
+    html += `<span class="results-filters">${filters.map(f => `<b>${f.japanese ? '<span class="japanese-flag" aria-hidden="true"></span> ' : ''}${escapeHTML(typeof f === 'string' ? f : f.label)}</b>`).join(' · ')}</span>`;
     html += `<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>`;
   }
   bar.innerHTML = html;
@@ -2588,7 +2588,7 @@ if(topnavEl && window.ResizeObserver){
   window.addEventListener('load', updateTopnavHeightVar);
 }
 window.addEventListener('resize', () => {
-  if(window.innerWidth > 1100) closeMobileDrawers();
+  if(window.innerWidth > 820) closeMobileDrawers();
 });
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') closeMobileDrawers();
