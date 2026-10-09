@@ -50,7 +50,7 @@
   min-width:0;
   max-width:none;
   margin:0;
-  padding:22px var(--ui-page-gutter) 70px;
+  padding:var(--ui-space-6) var(--ui-page-gutter) 70px;
 }
 .cemetery-heading h2 { margin:0; font-size:32px; }
 .cemetery-heading p,.cemetery-note { color:var(--ui-text-muted); line-height:1.6; }
@@ -79,7 +79,7 @@
   align-items:center;
   justify-content:center;
   gap:7px;
-  min-height:36px;
+  min-height:var(--ui-control-height-md);
   padding:0 12px;
   border:0;
   border-radius:var(--ui-radius-sm);
@@ -98,14 +98,14 @@
 .cemetery-toolbar input,.cemetery-toolbar select {
   width:100%;
   min-width:0;
-  min-height:40px;
+  min-height:var(--ui-control-height-lg);
   padding:0 12px;
   border:1px solid var(--ui-border);
   border-radius:var(--ui-radius-md);
   background:var(--ui-surface);
   color:var(--ui-text);
   font:inherit;
-  font-size:12px;
+  font-size:var(--ui-text-md);
 }
 .cemetery-toolbar input:hover,.cemetery-toolbar select:hover { border-color:var(--ui-text-muted); }
 
@@ -309,7 +309,7 @@
   }
   #cemetery-sidebar.mobile-open { transform:translateX(0) !important; }
   .cemetery-stat { width:100%; box-sizing:border-box; }
-  .cemetery-main { padding:10px 0 56px; }
+  .cemetery-main { padding:var(--ui-space-4) 0 56px; }
   .cemetery-toolbar { grid-template-columns:1fr; gap:8px; }
   .cemetery-tabs { width:100%; min-width:0; }
   #cemetery-list { border-radius:var(--ui-radius-md); }
@@ -326,9 +326,9 @@
 }
 
 @media(max-width:500px) {
-  .cemetery-layout { padding:0 10px; }
+  .cemetery-layout { padding:0 var(--ui-page-gutter-mobile); }
   .cemetery-toolbar { margin-bottom:10px; }
-  .cemetery-tab { min-height:38px; font-size:12px; }
+  .cemetery-tab { font-size:12px; }
   .sale-group {
     display:flex;
     flex-direction:column;

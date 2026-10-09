@@ -1,0 +1,49 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
+const server=createSandboxServer();
+(async()=>{
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const browser=await chromium.launch({headless:true,...(process.env.JTD_CHROME?{executablePath:process.env.JTD_CHROME}:{}),args:['--no-sandbox']});
+ try{
+  for(const width of [320,390,820,900,1440])for(const theme of ['light','dark']){
+   const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
+   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
+   for(const view of ['home','collection','cemetery']){
+    await page.locator('[data-page="'+view+'"]').click();
+    assert.equal(await page.locator('.nav-tab[aria-current="page"]').getAttribute('data-page'),view);
+    const controls=view==='home'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';
+    for(const control of await page.locator(controls).all()){
+     if(!await control.isVisible())continue;
+     const box=await control.boundingBox();assert.ok(box.height>=44,'Shared action size '+view);
+     assert.ok(box.x>=0&&box.x+box.width<=width+1,'Control stays in viewport');
+    }
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'No page overflow '+view);
+    const main=view==='home'?'.home-main':view==='collection'?'#page-collection .main':'.cemetery-main';
+    const padding=await page.locator(main).evaluate(el=>parseFloat(getComputedStyle(el).paddingTop));
+    assert.equal(padding,(width<=(view==='home'?900:820)?16:24),'Shared top spacing '+view);
+    if(view==='home')assert.equal(await page.locator('#home-boards').evaluate(el=>getComputedStyle(el).paddingLeft),'0px','No duplicated page gutters');
+    await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
+   }
+   await page.locator('[data-page="home"]').click();
+   if(width<=900){
+    await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('[data-target="arrivals"]').getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator('#arrivals-board').isVisible(),true);
+    await page.locator('[data-target="wishlist"]').click();assert.equal(await page.locator('[data-target="wishlist"]').getAttribute('aria-pressed'),'true');
+   }
+   await page.locator('[data-page="collection"]').click();
+   if(await page.locator('#global-filter-toggle').isVisible())await page.locator('#global-filter-toggle').click();
+   const chip=page.locator('#format-toggles [role="button"]').first();
+   await chip.focus();await page.keyboard.press('Space');
+   assert.equal(await page.locator('#format-toggles [role="button"]').first().getAttribute('aria-pressed'),'true');
+   assert.equal(await page.locator('#format-toggles [role="button"]').first().evaluate(el=>el===document.activeElement),true,'Keyboard focus survives filter redraw');
+   await page.keyboard.press('Enter');assert.equal(await page.locator('#format-toggles [role="button"]').first().getAttribute('aria-pressed'),'false');
+   const platform=page.locator('#platform-list [role="button"]').nth(1);
+   await platform.focus();await page.keyboard.press('Enter');
+   assert.equal(await page.evaluate(()=>state.platform!==null),true,'Keyboard platform filter works');
+   assert.deepEqual(errors,[]);
+   await context.close();console.log('PASS global UI',width,theme);
+  }
+ }finally{await browser.close();server.close();}
+})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

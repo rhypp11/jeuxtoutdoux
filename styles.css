@@ -6684,7 +6684,7 @@ input[type="date"] {
 }
 
 .home-app {
-  grid-template-columns: 280px minmax(0,1fr);
+  grid-template-columns: var(--ui-sidebar-width) minmax(0,1fr);
 }
 
 #home-sidebar {
@@ -6807,7 +6807,7 @@ input[type="date"] {
 }
 
 .home-main {
-  padding: 30px 34px 60px;
+  padding: var(--ui-space-6) var(--ui-page-gutter) 60px;
   gap: 16px;
 }
 
@@ -6843,7 +6843,7 @@ input[type="date"] {
 
 @media (max-width:640px) {
   .home-main {
-    padding: 16px 14px 36px;
+    padding: var(--ui-space-4) var(--ui-page-gutter-mobile) 36px;
     gap: 12px;
   }
   .home-summary-total strong {
@@ -7214,13 +7214,13 @@ input[type="date"] {
     --switch-rgb: var(--arrival-rgb);
   }
   .home-boards-switch-btn {
-    color: var(--switch-accent);
-    background: rgba(var(--switch-rgb),.08);
+    color: var(--muted);
+    background: transparent;
   }
   .home-boards-switch-btn.active {
     color: var(--switch-accent);
     border: 0;
-    background: rgba(var(--switch-rgb),.22);
+    background: rgba(var(--switch-rgb),.09);
     box-shadow: inset 0 0 0 1px rgba(var(--switch-rgb),.45);
   }
   .home-boards-switch-btn.active svg {

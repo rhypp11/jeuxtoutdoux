@@ -4,6 +4,7 @@
 #page-collection .search-wrap input,
 #page-collection .sort-select {
   min-height:var(--ui-control-height-lg);
+  font-size:var(--ui-text-md);
   border:1px solid var(--ui-border);
   border-radius:var(--ui-radius-md);
   background:var(--ui-surface);
