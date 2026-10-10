@@ -64,9 +64,23 @@ select{color-scheme:inherit}select option,select optgroup{color:var(--text);back
 .journal-modal #j-link-info{margin:0}
 .journal-modal #j-art-details{margin:0;padding:10px 0;border-bottom:0}
 .journal-modal #j-art-details[open] summary{margin-bottom:14px}
-.collection-journal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--hairline)}
-.collection-journal-row>span{font-size:12px;color:var(--muted)}
+.collection-journal-row{display:grid;gap:10px;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--hairline)}
+.collection-journal-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted)}
 .collection-journal-row .btn{font-size:12px;padding:8px 10px;min-height:40px}
+.collection-journal-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--hairline);background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.collection-journal-entry:last-child{border-bottom:0}
+.collection-journal-entry>span:first-child{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;line-height:1.5}
+.collection-journal-entry-action{flex-shrink:0;max-width:100px;font-size:11px;color:var(--teal);line-height:1.5}
+.collection-journal-entry:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.journal-detail-meta,.journal-detail-bilan{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;line-height:1.5;color:var(--muted)}
+.journal-detail-meta>span{display:inline-flex;align-items:center;gap:5px}
+.journal-detail-meta svg{width:13px;height:13px}
+.journal-detail-bilan{padding:14px;background:rgba(var(--ui-rgb),.025);border-radius:12px;color:var(--text)}
+.journal-detail-bilan>span:first-child{color:var(--accent);font-weight:600}
+.journal-detail-review h3{font-size:13px;margin:0 0 12px}
+.journal-detail-review p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.75}
+.journal-detail-review p.journal-empty{font-size:12px;padding:0}
+@media(max-width:736px){.journal-detail-modal .modal-edit-actions .modal-primary-actions{grid-template-columns:1fr}}
 #page-collection .card-identity .card-status-badge{min-height:22px;padding:3px 5px;gap:4px;font-size:10px;border-radius:6px;line-height:1.2}
 #page-collection .card-identity .card-status-badge>svg{width:11px;height:11px}
 .card-identity .card-status-badge .card-journal-origin{display:inline-flex;flex-shrink:0;align-items:center;opacity:.75}

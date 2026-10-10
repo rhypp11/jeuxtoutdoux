@@ -1305,7 +1305,7 @@ function openModal(id, collection = 'games'){
   const showJournalAction = !!editingId && editingCollection === 'games';
   document.getElementById('f-journal-row').classList.toggle('hidden',!showJournalAction);
   document.getElementById('f-journal-btn').classList.toggle('hidden',!showJournalAction);
-  document.getElementById('f-journal-btn').textContent = JTDJournalData.collectionProgress(JOURNAL,editingId) ? 'Ouvrir le parcours' : 'Ajouter un parcours';
+  window.JTDJournal?.renderCollectionSummary(showJournalAction ? editingId : null);
   if(editingId && !items.some(game => game.id === editingId)) return;
   document.getElementById('f-sell-btn').classList.toggle('hidden', !editingId || editingCollection !== 'games');
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)

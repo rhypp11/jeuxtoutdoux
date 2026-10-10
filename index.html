@@ -444,7 +444,7 @@
       </div>
     </div>
 
-    <div class="collection-journal-row hidden" id="f-journal-row"><span>Journal</span><button class="btn btn-ghost hidden" type="button" id="f-journal-btn">Ajouter un parcours</button></div>
+    <div class="collection-journal-row hidden" id="f-journal-row"><div class="collection-journal-heading"><span>Journal</span><button class="btn btn-ghost hidden" type="button" id="f-journal-btn">Ajouter un parcours</button></div><div id="f-journal-entries"></div></div>
 
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
@@ -548,6 +548,17 @@
   <div class="journal-tabs" role="group" aria-label="Vue du journal"><button class="btn active" data-journal-tab="feed" aria-pressed="true">Journal</button><button class="btn" data-journal-tab="playing" aria-pressed="false">En cours</button><button class="btn" data-journal-tab="backlog" aria-pressed="false">Backlog</button></div>
   <div class="journal-layout" data-tab="feed"><div id="journal-feed"></div><aside class="journal-side"><section class="journal-panel" data-journal-panel="playing"><h2>En cours</h2><div id="journal-playing"></div></section><section class="journal-panel" data-journal-panel="backlog"><h2>Backlog</h2><div id="journal-backlog"></div></section></aside></div>
 </section>
+<div class="modal-overlay hidden" id="journal-detail-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-detail-title">
+ <div class="modal journal-detail-modal">
+  <h2 id="journal-detail-title">Parcours terminé</h2>
+  <div id="journal-detail-identity" class="game-identity-summary"></div>
+  <div id="journal-detail-meta" class="journal-detail-meta"></div>
+  <div id="journal-detail-bilan" class="journal-detail-bilan"></div>
+  <section class="journal-detail-review"><h3>Avis</h3><p id="journal-detail-review"></p></section>
+  <div class="modal-actions modal-edit-actions"><div class="modal-secondary-actions"><button class="btn btn-ghost" id="journal-detail-edit" type="button">Modifier le parcours</button></div><div class="modal-primary-actions"><button class="btn btn-primary" id="journal-detail-close" type="button">Fermer</button></div></div>
+ </div>
+</div>
+
 <div class="modal-overlay hidden" id="journal-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-modal-title">
  <div class="modal journal-modal"><h2 id="journal-modal-title">Ajouter au journal</h2>
 
