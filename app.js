@@ -367,6 +367,7 @@ function updateSortButtonUI(){
 const ICON_STATUS_TODO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"></circle><line x1="12" y1="9" x2="12" y2="15"></line><rect x="6" y="15" width="12" height="5" rx="1.5"></rect></svg>`;
 const ICON_STATUS_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3c2.5 0 4 3 6 3s3.5-3 6-3c1.66 0 3 1.34 3 3s-1.34 3-3 3c-2.5 0-4-3-6-3s-3.5 3-6 3z"></path></svg>`;
+const ICON_JOURNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h5a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H4V4Zm16 0h-5a3 3 0 0 0-3 3v14a4 4 0 0 1 4-2h3V4Z"/></svg>`;
 const ICON_STATUS_PLAYING = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7h9c2 0 3.2 1.5 3.6 3.4l1.2 6.1c.5 2.5-2.2 3.9-3.8 2.1L15 16H9l-2.5 2.6c-1.6 1.8-4.3.4-3.8-2.1l1.2-6.1C4.3 8.5 5.5 7 7.5 7Z"/><path d="M7 10v4m-2-2h4"/><circle cx="16" cy="11" r=".6" fill="currentColor"/><circle cx="18" cy="13" r=".6" fill="currentColor"/></svg>`;
 const STATUS_OPTIONS = [
   {key:'en_cours',label:'En cours',icon:ICON_STATUS_PLAYING,color:'var(--muted)',fill:'var(--surface-raised)',bg:'var(--surface)',border:'var(--hairline)'},
@@ -880,10 +881,10 @@ function renderCard(g, options = {}){
 
   const journalProgress = JTDJournalData.collectionProgress(JOURNAL, g.id);
   const originalStatus = STATUS_OPTIONS.find(s => s.key === g.status);
-  const completionLabel = {hundred:'100 %',achievements:'Tous les succès'}[journalProgress?.completion];
-  const activeStatus = originalStatus && journalProgress ? {...originalStatus, label:journalProgress.replay ? 'En cours · déjà terminé' : completionLabel && g.status === 'termine' ? completionLabel : originalStatus.label} : originalStatus;
+  const completionLabel = {hundred:'100 %',achievements:'Succès'}[journalProgress?.completion];
+  const activeStatus = originalStatus && journalProgress ? {...originalStatus, label:journalProgress.replay ? 'En cours' : completionLabel && g.status === 'termine' ? completionLabel : originalStatus.label} : originalStatus;
   const statusIcon = activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
-  const statusTitle = journalProgress ? activeStatus.label + ' · Depuis le journal' : activeStatus ? activeStatus.label : 'Définir le statut';
+  const statusTitle = journalProgress ? (journalProgress.replay ? 'En cours · déjà terminé' : journalProgress.completion === 'achievements' ? 'Tous les succès' : activeStatus.label) + ' · Depuis le journal' : activeStatus ? activeStatus.label : 'Définir le statut';
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
   const statusFill = activeStatus ? activeStatus.fill : 'var(--muted)';
   const statusMenu = STATUS_OPTIONS.map(s => `
@@ -893,7 +894,7 @@ function renderCard(g, options = {}){
 
   const statusBadgeHtml = `<div class="card-status-control">
       <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
-        ${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span>${journalProgress ? '<span class="card-journal-origin">Journal</span>' : ''}
+        ${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span>${journalProgress ? '<span class="card-journal-origin" title="Depuis le journal" aria-label="Depuis le journal">' + ICON_JOURNAL + '</span>' : ''}
       </button>
       <div class="card-status-menu hidden">${statusMenu}</div>
     </div>`;
@@ -1301,7 +1302,10 @@ function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
   editingId = id || null;
-  document.getElementById('f-journal-btn').classList.toggle('hidden', !editingId || editingCollection !== 'games');
+  const showJournalAction = !!editingId && editingCollection === 'games';
+  document.getElementById('f-journal-row').classList.toggle('hidden',!showJournalAction);
+  document.getElementById('f-journal-btn').classList.toggle('hidden',!showJournalAction);
+  document.getElementById('f-journal-btn').textContent = JTDJournalData.collectionProgress(JOURNAL,editingId) ? 'Ouvrir le parcours' : 'Ajouter un parcours';
   if(editingId && !items.some(game => game.id === editingId)) return;
   document.getElementById('f-sell-btn').classList.toggle('hidden', !editingId || editingCollection !== 'games');
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)

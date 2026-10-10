@@ -13,7 +13,7 @@
  function metadata(r){return '<span>'+esc(r.plateforme)+'</span>'+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+(r.collectionId?'<span>'+bookshelf+'Collection</span>':'');}
  function row(r,compact=false){
   const day=r.finishedAt?.slice(8), month=r.finishedAt?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
-  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span><span class="journal-result"><span>'+(r.status==='playing'?ICON_STATUS_PLAYING:'')+esc(r.status==='done'?completionNames[r.completion]:statusNames[r.status])+'</span>'+(r.status==='done'&&r.feeling?'<span>'+esc(feelings[r.feeling])+'</span>':'')+(r.status==='done'&&r.review?'<span class="journal-review-mark">Avis rédigé</span>':'')+'</span></span></button>';
+  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span>'+(!compact?'<span class="journal-result"><span>'+(r.status==='playing'?ICON_STATUS_PLAYING:'')+esc(r.status==='done'?completionNames[r.completion]:statusNames[r.status])+'</span>'+(r.status==='done'&&r.feeling?'<span>'+esc(feelings[r.feeling])+'</span>':'')+(r.status==='done'&&r.review?'<span class="journal-review-mark">Avis rédigé</span>':'')+'</span>':'')+'</span></button>';
  }
  function renderJournal(){
   const selected=year;
@@ -35,9 +35,14 @@
   $('j-source').disabled=r.kind==='extension';
   $('j-finished-fields').classList.toggle('hidden',!done);
   $('j-completion-field').classList.toggle('hidden',!done);
-  $('j-identity-card').innerHTML=(r.nom?boardThumb(r)+'<div><strong>'+esc(JTDJournalData.title(r))+'</strong><div class="journal-meta">'+metadata(r)+'</div></div>':'');
+  $('j-identity-card').innerHTML=r.nom?identitySummaryHtml({...r,nom:JTDJournalData.title(r)}):'';
+  $('j-identity-card').querySelector('.identity-edit-btn')?.addEventListener('click',()=>{setGameEditor(true);$('j-nom').focus();});
   $('j-link-info').textContent=r.collectionId?(GAMES.some(g=>g.id===r.collectionId)?'Lié à un exemplaire de la collection.':'Exemplaire absent de la collection ; historique conservé.') : '';
   $('j-unlink').classList.toggle('hidden',!r.collectionId);
+ }
+ function setGameEditor(expanded){
+  $('j-details').classList.toggle('hidden',!expanded);
+  $('j-identity-card').classList.toggle('hidden',expanded);
  }
  function open(record=null,collectionId=null){
   generation=currentGeneration();
@@ -48,7 +53,8 @@
   $('j-source-field').classList.remove('hidden');
   $('j-source').innerHTML='<option value="">Nouvelle entrée</option>'+GAMES.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.nom+' · '+g.plateforme)+'</option>').join('');$('j-source').value=draft.collectionId||'';
   $('j-platforms').innerHTML=allPlatformNames().map(p=>'<option value="'+esc(p)+'"></option>').join('');
-  $('j-details').open=!draft.nom;
+  setGameEditor(!draft.nom);
+  $('j-art-details').open=false;
   $('j-error').textContent='';
   $('j-delete').classList.toggle('hidden',!record);$('j-replay').classList.toggle('hidden',!record||record.status!=='done');
   JTDDialogs.clearErrors($('journal-modal-overlay'));reflect();
@@ -66,9 +72,9 @@
  function save(){
   let r=read();
   for(const [field,message] of [['nom','Indique un titre.'],['plateforme','Indique une plateforme.'],...(r.kind==='extension'?[['parentName','Indique le jeu de base.']]:[])]){
-   if(!r[field].trim()){$('j-details').open=true;JTDDialogs.error('j-'+field,message);return;}
+   if(!r[field].trim()){setGameEditor(true);JTDDialogs.error('j-'+field,message);return;}
   }
-  if(r.image&&!JTDData.safeURL(r.image,true)){$('j-details').open=true;JTDDialogs.error('j-image','Indique une URL d’image valide.');return;}
+  if(r.image&&!JTDData.safeURL(r.image,true)){setGameEditor(true);$('j-art-details').open=true;JTDDialogs.error('j-image','Indique une URL d’image valide.');return;}
   try{r=JTDJournalData.normalizeJournal([r])[0];const next=JOURNAL.some(x=>x.id===r.id)?JOURNAL.map(x=>x.id===r.id?r:x):[...JOURNAL,r];commit(next);close();showToast('Journal enregistré.');}
   catch(e){$('j-error').textContent=e.message;}
  }
@@ -79,7 +85,7 @@
  $('journal-year').addEventListener('change',e=>{year=e.target.value;monthLimit=3;renderJournal();});
  $('page-journal').addEventListener('click',e=>{const entry=e.target.closest('[data-journal-id]');if(entry){const r=JOURNAL.find(r=>r.id===entry.dataset.journalId);if(r)open(r);}});
  document.querySelectorAll('[data-journal-tab]').forEach(b=>b.onclick=()=>{document.querySelector('.journal-layout').dataset.tab=b.dataset.journalTab;document.querySelectorAll('[data-journal-tab]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});});
- $('j-source').addEventListener('change',e=>{const g=GAMES.find(g=>g.id===e.target.value);if(g){draft.collectionId=g.id;for(const f of ['nom','plateforme','image','imageFit'])$('j-'+f).value=g[f]|| (f==='imageFit'?'contain':'');$('j-kind').value='game';$('j-medium').value='physical';$('j-access').value='owned';}else draft.collectionId=null;reflect();});
+ $('j-source').addEventListener('change',e=>{const g=GAMES.find(g=>g.id===e.target.value);if(g){draft.collectionId=g.id;for(const f of ['nom','plateforme','image','imageFit'])$('j-'+f).value=g[f]|| (f==='imageFit'?'contain':'');$('j-kind').value='game';$('j-medium').value='physical';$('j-access').value='owned';}else draft.collectionId=null;reflect();if(g)setGameEditor(false);});
  $('j-unlink').addEventListener('click',()=>{draft.collectionId=null;$('j-source').value='';reflect();});
  fields.forEach(f=>$('j-'+f).addEventListener('input',reflect));
  $('j-save').addEventListener('click',save);$('j-cancel').addEventListener('click',close);

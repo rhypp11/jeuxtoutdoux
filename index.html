@@ -395,7 +395,7 @@
 <div class="modal-overlay hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
-<button class="btn btn-ghost hidden" type="button" id="f-journal-btn">Au journal</button>
+
 
     <div class="form-section">
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
@@ -443,6 +443,8 @@
       <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, Steam…"></div>
       </div>
     </div>
+
+    <div class="collection-journal-row hidden" id="f-journal-row"><span>Journal</span><button class="btn btn-ghost hidden" type="button" id="f-journal-btn">Ajouter un parcours</button></div>
 
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
@@ -549,20 +551,31 @@
 <div class="modal-overlay hidden" id="journal-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-modal-title">
  <div class="modal journal-modal"><h2 id="journal-modal-title">Ajouter au journal</h2>
 
-  <div id="j-identity-card" class="journal-identity"></div>
-  <div class="field-row"><div class="field"><label for="j-status">Statut</label><select id="j-status"><option value="playing">En cours</option><option value="backlog">Backlog</option><option value="done">Terminé</option></select></div><div class="field" id="j-completion-field"><label for="j-completion">Complétion</label><select id="j-completion"><option value="finished">Jeu terminé</option><option value="hundred">100 %</option><option value="achievements">Tous les succès</option></select></div></div>
-  <details id="j-details"><summary>Jeu et accès</summary>
-  <div class="field" id="j-source-field"><label for="j-source">Exemplaire de la collection</label><select id="j-source"><option value="">Nouvelle entrée</option></select></div>
-   <div class="field"><label for="j-kind">Type</label><select id="j-kind"><option value="game">Jeu</option><option value="extension">Extension</option></select></div>
-   <div class="field hidden" id="j-parent-field"><label for="j-parentName">Jeu de base</label><input id="j-parentName" maxlength="500"></div>
-   <div class="field"><label for="j-nom">Titre</label><input id="j-nom" maxlength="500" required></div>
-   <div class="field"><label for="j-plateforme">Plateforme</label><input id="j-plateforme" list="j-platforms" maxlength="150" required><datalist id="j-platforms"></datalist></div>
+  <div class="form-section journal-game-section">
+   <div class="form-section-title">Jeu</div>
+   <div id="j-identity-card" class="game-identity-summary hidden"></div>
+   <div id="j-details" class="game-identity-editor">
+    <div class="field" id="j-source-field"><label for="j-source">Exemplaire de la collection</label><select id="j-source"><option value="">Nouvelle entrée</option></select></div>
+    <div class="field"><label for="j-kind">Type</label><select id="j-kind"><option value="game">Jeu</option><option value="extension">Extension</option></select></div>
+    <div class="field hidden" id="j-parent-field"><label for="j-parentName">Jeu de base</label><input id="j-parentName" maxlength="500"></div>
+    <div class="field"><label for="j-nom">Titre</label><input id="j-nom" maxlength="500" required></div>
+    <div class="field"><label for="j-plateforme">Plateforme</label><input id="j-plateforme" list="j-platforms" maxlength="150" required><datalist id="j-platforms"></datalist></div>
+    <details id="j-art-details"><summary>Image</summary><div class="field"><label for="j-image">Image (URL)</label><input id="j-image" type="url"></div><div class="field"><label for="j-imageFit">Affichage de l’image</label><select id="j-imageFit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div></details>
+    <div id="j-link-info"></div><button class="btn btn-ghost hidden" id="j-unlink" type="button">Délier de la collection</button>
+   </div>
+  </div>
+  <div class="form-section journal-progress-section">
+   <div class="form-section-title">Parcours</div>
+   <div class="field"><label for="j-status">Statut</label><select id="j-status"><option value="playing">En cours</option><option value="backlog">Backlog</option><option value="done">Terminé</option></select></div>
    <div class="field-row"><div class="field"><label for="j-medium">Support joué</label><select id="j-medium"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div><div class="field"><label for="j-access">Accès</label><select id="j-access"><option value="owned">Possédé</option><option value="subscription">Abonnement</option><option value="family">Partage familial</option><option value="emulation">Émulation</option></select></div></div>
-   <div class="field"><label for="j-image">Image (URL)</label><input id="j-image" type="url"></div>
-   <div class="field"><label for="j-imageFit">Affichage de l’image</label><select id="j-imageFit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
-   <div id="j-link-info"></div><button class="btn btn-ghost hidden" id="j-unlink" type="button">Délier de la collection</button>
-  </details>
-  <div id="j-finished-fields"><div class="field-row"><div class="field"><label for="j-finishedAt">Date de fin</label><input type="date" id="j-finishedAt"></div><div class="field"><label for="j-feeling">Ressenti</label><select id="j-feeling"><option value="">Non renseigné</option><option value="gem">Pépite</option><option value="love">Adoré</option><option value="like">Aimé</option><option value="mixed">Mitigé</option><option value="dislike">Pas aimé</option></select></div></div><div class="field"><label for="j-review">Avis</label><textarea id="j-review" rows="5" maxlength="20000"></textarea></div></div>
+  </div>
+  <div id="j-finished-fields" class="form-section journal-finish-section">
+   <div class="form-section-title">Bilan</div>
+   <div class="field-row"><div class="field" id="j-completion-field"><label for="j-completion">Complétion</label><select id="j-completion"><option value="finished">Jeu terminé</option><option value="hundred">100 %</option><option value="achievements">Tous les succès</option></select></div><div class="field"><label for="j-finishedAt">Date de fin</label><input type="date" id="j-finishedAt"></div></div>
+   <div class="field"><label for="j-feeling">Ressenti</label><select id="j-feeling"><option value="">Non renseigné</option><option value="gem">Pépite</option><option value="love">Adoré</option><option value="like">Aimé</option><option value="mixed">Mitigé</option><option value="dislike">Pas aimé</option></select></div>
+   <div class="field"><label for="j-review">Avis</label><textarea id="j-review" rows="5" maxlength="20000"></textarea></div>
+  </div>
+
   <p id="j-error" role="alert" class="journal-error"></p>
   <div class="modal-actions modal-edit-actions"><div class="modal-secondary-actions"><button class="btn btn-danger hidden" id="j-delete" type="button">Supprimer</button><button class="btn btn-ghost hidden" id="j-replay" type="button">Rejouer</button></div><div class="modal-primary-actions"><button class="btn btn-ghost" id="j-cancel" type="button">Annuler</button><button class="btn btn-primary" id="j-save" type="button">Enregistrer</button></div></div>
  </div>
